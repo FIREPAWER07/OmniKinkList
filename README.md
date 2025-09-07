@@ -49,12 +49,20 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
 ## ⚙️ Other Projects I've Made  
 
 ### 🎵 Spicetify Installer  
-A clean and simple installer for **Spicetify**, making it easier than ever to customize your Spotify experience.  
 
-<a href="https://github.com/FIREPAWER07/SpicetifyInstaller">
-  <img src="https://i.imgur.com/UYvcaSa.png" alt="Spicetify Logo" width="120">
-</a>  
-
-🔗 [Check it out here](https://github.com/FIREPAWER07/SpicetifyInstaller)
+<table>
+  <tr>
+    <td width="200">
+      <a href="https://github.com/FIREPAWER07/SpicetifyInstaller">
+        <img src="https://i.imgur.com/UYvcaSa.png" alt="Spicetify Logo" width="180">
+      </a>
+    </td>
+    <td>
+      A clean and simple installer for **Spicetify**, making it easier than ever to customize your Spotify experience.  
+      <br><br>
+      🔗 <a href="https://github.com/FIREPAWER07/SpicetifyInstaller">Check it out here</a>
+    </td>
+  </tr>
+</table>
 
 ---
