@@ -1,0 +1,47 @@
+/* CSS Variables for theming */
+:root {
+    --background: #ffffff;
+    --foreground: #0a0a0a;
+    --card: #ffffff;
+    --card-foreground: #0a0a0a;
+    --primary: #18181b;
+    --primary-foreground: #fafafa;
+    --secondary: #f4f4f5;
+    --secondary-foreground: #18181b;
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
+    --border: #e4e4e7;
+    --input: #e4e4e7;
+    --ring: #a1a1aa;
+    
+    /* Preference colors */
+    --color-favorite: #3b82f6;
+    --color-like: #10b981;
+    --color-indifferent: #f59e0b;
+    --color-maybe: #f97316;
+    --color-limit: #dc2626;
+    --color-not-entered: #e2e8f0;
+}
+
+.dark {
+    --background: #0a0a0a;
+    --foreground: #fafafa;
+    --card: #0a0a0a;
+    --card-foreground: #fafafa;
+    --primary: #fafafa;
+    --primary-foreground: #18181b;
+    --secondary: #27272a;
+    --secondary-foreground: #fafafa;
+    --muted: #27272a;
+    --muted-foreground: #a1a1aa;
+    --border: #27272a;
+    --input: #27272a;
+    --ring: #52525b;
+    
+    --color-favorite: #60a5fa;
+    --color-like: #34d399;
+    --color-indifferent: #fbbf24;
+    --color-maybe: #fb923c;
+    --color-limit: #f87171;
+    --color-not-entered: #475569;
+}
