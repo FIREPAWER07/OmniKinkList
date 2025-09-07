@@ -69,6 +69,17 @@ const exportUtils = {
             border-radius: 16px;
         }
         
+        .promo-text {
+            margin-top: 20px;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .promo-text a {
+            color: white;
+            text-decoration: underline;
+        }
+        
         .stats {
             display: flex;
             gap: 20px;
@@ -182,6 +193,9 @@ const exportUtils = {
         <div class="header">
             <h1>My Kinklist</h1>
             <p>${listType.charAt(0).toUpperCase() + listType.slice(1)} Version - Generated on ${new Date().toLocaleDateString()}</p>
+            <div class="promo-text">
+                You want to create a kinky list like this? Check out <a href="https://firepawer07.github.io/OmniKinkList/" target="_blank">https://firepawer07.github.io/OmniKinkList/</a>!
+            </div>
         </div>
         
         <div class="stats">
