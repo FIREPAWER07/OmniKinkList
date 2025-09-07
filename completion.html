@@ -26,10 +26,6 @@
                 </div>
                 <div class="card-content">
                     <div class="export-buttons">
-                        <button class="btn btn-primary btn-export" id="export-json">
-                            <span class="btn-icon">📊</span>
-                            Export as JSON
-                        </button>
                         <button class="btn btn-primary btn-export" id="export-html">
                             <span class="btn-icon">📄</span>
                             Export as HTML
@@ -49,6 +45,7 @@
 
     <script src="scripts/shared.js"></script>
     <script src="scripts/storage.js"></script>
+    <script src="scripts/export.js"></script>
     <script>
         // Initialize theme
         function initTheme() {
@@ -85,7 +82,6 @@
         if (!listType) {
             alert('No list type found. Redirecting to home.');
             window.location.href = 'index.html';
-            return;
         }
 
         const kinkData = parseKinkListData(kinklistData[listType]);
@@ -174,8 +170,7 @@
 
         // Generate HTML export content
         function generateHTMLExport(listType, preferences, kinkData) {
-            // Recalculate stats for the export
-            const exportStats = {
+            const stats = {
                 total: kinkData.reduce((sum, category) => sum + category.items.length, 0),
                 completed: Object.keys(preferences).length,
                 favorite: 0,
@@ -186,15 +181,14 @@
             };
 
             Object.values(preferences).forEach(pref => {
-                if (exportStats.hasOwnProperty(pref.level)) {
-                    exportStats[pref.level]++;
+                if (stats.hasOwnProperty(pref.level)) {
+                    stats[pref.level]++;
                 }
-                if (pref.dualLevel && exportStats.hasOwnProperty(pref.dualLevel)) {
-                    exportStats[pref.dualLevel]++;
+                if (pref.dualLevel && stats.hasOwnProperty(pref.dualLevel)) {
+                    stats[pref.dualLevel]++;
                 }
             });
             
-            // Generate the HTML content
             return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -202,130 +196,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Kinklist - ${listType.charAt(0).toUpperCase() + listType.slice(1)}</title>
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            background: #f8f9fa; 
-            color: #333;
-        }
-        .container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-        }
-        .header { 
-            text-align: center; 
-            margin-bottom: 40px; 
-            padding: 40px; 
-            background: linear-gradient(135deg, #8b5cf6, #a855f7); 
-            color: white; 
-            border-radius: 16px; 
-        }
-        .stats { 
-            display: flex; 
-            gap: 20px; 
-            margin: 30px 0; 
-            justify-content: center; 
-            flex-wrap: wrap; 
-        }
-        .stat { 
-            text-align: center; 
-            padding: 20px; 
-            background: white; 
-            border-radius: 12px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-            min-width: 120px;
-        }
-        .stat-number { 
-            font-size: 2rem; 
-            font-weight: bold; 
-            color: #333; 
-        }
-        .stat-label { 
-            color: #666; 
-            margin-top: 5px; 
-        }
-        .category { 
-            margin: 30px 0; 
-            background: white; 
-            border-radius: 12px; 
-            padding: 24px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-        }
-        .category-title { 
-            font-size: 1.5rem; 
-            font-weight: 600; 
-            margin-bottom: 20px; 
-            color: #333; 
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-        .items-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-            gap: 15px; 
-        }
-        .item { 
-            padding: 16px; 
-            border-radius: 8px; 
-            border-left: 4px solid #ddd; 
-            background: #fafafa;
-        }
-        .item-name { 
-            font-weight: 500; 
-            margin-bottom: 8px; 
-            font-size: 1.1rem;
-        }
-        .item-description { 
-            font-size: 0.9rem; 
-            color: #666; 
-            margin-bottom: 12px; 
-            font-style: italic;
-        }
-        .preference { 
-            display: inline-block; 
-            padding: 4px 12px; 
-            border-radius: 20px; 
-            font-size: 0.8rem; 
-            font-weight: 500; 
-            margin: 2px; 
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 40px; padding: 40px; background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; border-radius: 16px; }
+        .stats { display: flex; gap: 20px; margin: 30px 0; justify-content: center; flex-wrap: wrap; }
+        .stat { text-align: center; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #333; }
+        .stat-label { color: #666; margin-top: 5px; }
+        .category { margin: 30px 0; background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .category-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 20px; color: #333; }
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .item { padding: 16px; border-radius: 8px; border-left: 4px solid #ddd; }
+        .item-name { font-weight: 500; margin-bottom: 8px; }
+        .item-description { font-size: 0.9rem; color: #666; margin-bottom: 12px; }
+        .preference { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; margin: 2px; }
         .pref-favorite { background: #3b82f6; color: white; }
         .pref-like { background: #10b981; color: white; }
         .pref-indifferent { background: #f59e0b; color: white; }
         .pref-maybe { background: #f97316; color: white; }
         .pref-limit { background: #dc2626; color: white; }
-        .dual-prefs { 
-            display: flex; 
-            gap: 10px; 
-            flex-wrap: wrap; 
-            margin-top: 10px;
-        }
-        .dual-label { 
-            font-size: 0.8rem; 
-            color: #666; 
-            margin-right: 5px; 
-            font-weight: 600;
-        }
-        .dual-pref-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .category-description {
-            font-style: italic;
-            color: #666;
-            margin-bottom: 15px;
-        }
-        @media (max-width: 768px) {
-            .items-grid {
-                grid-template-columns: 1fr;
-            }
-            .stats {
-                flex-direction: column;
-                align-items: center;
-            }
-        }
+        .dual-prefs { display: flex; gap: 10px; flex-wrap: wrap; }
+        .dual-label { font-size: 0.8rem; color: #666; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -337,33 +228,30 @@
         
         <div class="stats">
             <div class="stat">
-                <div class="stat-number">${exportStats.total}</div>
+                <div class="stat-number">${stats.total}</div>
                 <div class="stat-label">Total Items</div>
             </div>
             <div class="stat">
-                <div class="stat-number">${exportStats.completed}</div>
+                <div class="stat-number">${stats.completed}</div>
                 <div class="stat-label">Completed</div>
             </div>
             <div class="stat">
-                <div class="stat-number">${exportStats.favorite}</div>
+                <div class="stat-number">${stats.favorite}</div>
                 <div class="stat-label">Favorites</div>
             </div>
             <div class="stat">
-                <div class="stat-number">${exportStats.like}</div>
+                <div class="stat-number">${stats.like}</div>
                 <div class="stat-label">Likes</div>
             </div>
             <div class="stat">
-                <div class="stat-number">${exportStats.limit}</div>
+                <div class="stat-number">${stats.limit}</div>
                 <div class="stat-label">Limits</div>
             </div>
         </div>
         
-        ${kinkData.map(category => {
-            const explanation = categoryExplanations[category.name] || '';
-            return `
+        ${kinkData.map(category => `
             <div class="category">
                 <h2 class="category-title">${category.name}</h2>
-                ${explanation ? `<div class="category-description">${explanation}</div>` : ''}
                 <div class="items-grid">
                     ${category.items.filter(item => preferences[item.name]).map(item => {
                         const pref = preferences[item.name];
@@ -373,12 +261,12 @@
                                 ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
                                 ${item.hasDualPreference && item.dualLabels ? `
                                     <div class="dual-prefs">
-                                        <div class="dual-pref-item">
+                                        <div>
                                             <span class="dual-label">${item.dualLabels.first}:</span>
                                             <span class="preference pref-${pref.level}">${pref.level.charAt(0).toUpperCase() + pref.level.slice(1)}</span>
                                         </div>
                                         ${pref.dualLevel ? `
-                                            <div class="dual-pref-item">
+                                            <div>
                                                 <span class="dual-label">${item.dualLabels.second}:</span>
                                                 <span class="preference pref-${pref.dualLevel}">${pref.dualLevel.charAt(0).toUpperCase() + pref.dualLevel.slice(1)}</span>
                                             </div>
@@ -392,8 +280,7 @@
                     }).join('')}
                 </div>
             </div>
-            `;
-        }).join('')}
+        `).join('')}
     </div>
 </body>
 </html>`;
