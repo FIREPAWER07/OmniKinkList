@@ -58,7 +58,7 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
       </a>
     </td>
     <td>
-      A clean and simple installer for **Spicetify**, making it easier than ever to customize your Spotify experience.  
+      A clean and simple installer for Spicetify, making it easier than ever to customize your Spotify experience.  
       <br><br>
       🔗 <a href="https://github.com/FIREPAWER07/SpicetifyInstaller">Check it out here</a>
     </td>
