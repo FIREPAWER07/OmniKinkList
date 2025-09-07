@@ -883,10 +883,12 @@ const kinklistData = {
 ? Sexual scenarios involving the wearing of diapers.
 * Cum play
 ? Various activities focused on semen.
-* Salivia/Spit
+* Saliva/Spit
 ? Sexual play involving saliva or spitting.
 * Squirting
 ? Female ejaculation during sexual activity.
+* Amniotic fluid
+? The inclusion of amniotic fluid in sexual contexts.
 
 #Degradation
 (Giving, Receiving)
