@@ -26,8 +26,7 @@ A modern, interactive web app designed for perverts who want to **explore, track
 
 1. **Pick Your List Type** – Classic, Detailed, or Extended
 2. **Set Your Preferences** – Click the color-coded buttons to mark your likes, dislikes, and everything in-between
-3. **Track Your Progress** – Watch the completion bar fill up as you go
-4. **Export Your Results** – Save your preferences as JSON to share or revisit later
+3. **Export Your Results** – Save your preferences as HTML to share or revisit later
 
 ---
 
