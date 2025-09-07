@@ -1,6 +1,10 @@
 # OmniKinkList - The BEST Kink Preference List For Perverts~
 A modern web app for exploring and sharing personal preferences with customizable options.
 
+[![GitHub issues](https://img.shields.io/github/issues/FIREPAWER07/SpicetifyInstaller.svg)](https://github.com/FIREPAWER07/SpicetifyInstaller/issues)
+[![License](https://img.shields.io/github/license/FIREPAWER07/SpicetifyInstaller.svg)](LICENSE)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D31CKA7D)
+
 ## Features
 
 - 🎯 Three list types: Classic, Detailed, Extended
