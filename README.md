@@ -1,5 +1,4 @@
-# KinkList - Preference Explorer
-
+# OmniKinkList - The BEST Kink Preference List For Perverts~
 A modern web app for exploring and sharing personal preferences with customizable options.
 
 ## Features
