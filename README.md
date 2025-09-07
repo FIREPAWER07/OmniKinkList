@@ -39,5 +39,5 @@ A modern, interactive web app designed for perverts who want to **explore, track
 ## 🔗 Links
 
 * [💻 Live Demo](https://firepawer07.github.io/OmniKinkList/)
-* [🐞 Report Issues](https://github.com/FIREPAWER07/SpicetifyInstaller/issues)
+* [🐞 Report Issues](https://github.com/FIREPAWER07/OmniKinkList/issues)
 * [☕ Support on Ko-fi](https://ko-fi.com/D1D31CKA7D)
