@@ -1,4 +1,4 @@
-# OmniKinkList - The BEST Kink Preference List For Perverts~
+# 🔥 OmniKinkList | The BEST Kink Preference List For Perverts~ 🔥
 A modern web app for exploring and sharing personal preferences with customizable options.
 
 [![GitHub issues](https://img.shields.io/github/issues/FIREPAWER07/SpicetifyInstaller.svg)](https://github.com/FIREPAWER07/SpicetifyInstaller/issues)
