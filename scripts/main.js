@@ -10,6 +10,28 @@ function init() {
     
     // Load saved preferences
     preferences = storage.loadPreferences();
+    
+    // Add scroll to top functionality
+    initScrollToTop();
+}
+
+// Initialize scroll to top button
+function initScrollToTop() {
+    const scrollBtn = document.getElementById('scroll-to-top');
+    if (scrollBtn) {
+        scrollBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Show/hide based on scroll position
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                scrollBtn.style.display = 'flex';
+            } else {
+                scrollBtn.style.display = 'none';
+            }
+        });
+    }
 }
 
 // Theme management

@@ -4,7 +4,7 @@
     --foreground: #0a0a0a;
     --card: #ffffff;
     --card-foreground: #0a0a0a;
-    --primary: #18181b;
+    --primary: #8b5cf6;
     --primary-foreground: #fafafa;
     --secondary: #f4f4f5;
     --secondary-foreground: #18181b;
@@ -26,9 +26,9 @@
 .dark {
     --background: #0a0a0a;
     --foreground: #fafafa;
-    --card: #0a0a0a;
+    --card: #111111;
     --card-foreground: #fafafa;
-    --primary: #fafafa;
+    --primary: #a855f7;
     --primary-foreground: #18181b;
     --secondary: #27272a;
     --secondary-foreground: #fafafa;
@@ -43,5 +43,5 @@
     --color-indifferent: #fbbf24;
     --color-maybe: #fb923c;
     --color-limit: #f87171;
-    --color-not-entered: #475569;
+    --color-not-entered: #374151;
 }

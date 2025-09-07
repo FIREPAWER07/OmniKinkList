@@ -16,90 +16,187 @@
         <!-- List Selection Page -->
         <div id="list-selection" class="page">
             <div class="header">
-                <h1>KinkList - Modern Preference Explorer</h1>
-                <p>A modern, accessible tool for exploring and expressing your preferences</p>
+                <div class="header-content">
+                    <h1>KinkList Explorer</h1>
+                    <p>A modern, accessible tool for exploring and expressing your preferences</p>
+                </div>
+                <div class="header-graphic">
+                    <div class="graphic-circle"></div>
+                    <div class="graphic-circle"></div>
+                    <div class="graphic-circle"></div>
+                </div>
             </div>
 
-            <div class="controls">
-                <input type="file" id="import-file" accept=".json" style="display: none;">
-                <button class="btn btn-secondary" id="import-button">
-                    Import JSON
-                </button>
+            <div class="card">
+                <div class="card-header">
+                    <h2>Get Started</h2>
+                    <p>Choose how you'd like to begin your exploration</p>
+                </div>
+                <div class="card-content">
+                    <div class="controls">
+                        <input type="file" id="import-file" accept=".json" style="display: none;">
+                        <button class="btn btn-secondary" id="import-button">
+                            <span class="btn-icon">📤</span>
+                            Import Existing Preferences
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div class="category">
-                <h2 class="category-title">Choose Your List Type</h2>
-                <p class="category-description">Select the version that best fits your needs</p>
-                
-                <div class="list-selector">
-                    <button class="list-type-btn" data-type="classic">
-                        <strong>Classic</strong><br>
-                        <small>Simple, essential categories</small>
-                    </button>
-                    <button class="list-type-btn" data-type="detailed">
-                        <strong>Detailed</strong><br>
-                        <small>Comprehensive with descriptions</small>
-                    </button>
-                    <button class="list-type-btn" data-type="extended">
-                        <strong>Extended</strong><br>
-                        <small>Complete with all options</small>
-                    </button>
+            <div class="card">
+                <div class="card-header">
+                    <h2>Choose Your List Type</h2>
+                    <p>Select the version that best fits your needs</p>
+                </div>
+                <div class="card-content">
+                    <div class="list-selector">
+                        <button class="list-type-btn" data-type="classic">
+                            <span class="list-icon">🔍</span>
+                            <strong>Classic</strong>
+                            <small>Simple, essential categories</small>
+                        </button>
+                        <button class="list-type-btn" data-type="detailed">
+                            <span class="list-icon">📋</span>
+                            <strong>Detailed</strong>
+                            <small>Comprehensive with descriptions</small>
+                        </button>
+                        <button class="list-type-btn" data-type="extended">
+                            <span class="list-icon">🌐</span>
+                            <strong>Extended</strong>
+                            <small>Complete with all options</small>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preference-legend">
+                <h3>Preference Guide</h3>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <span class="legend-color pref-favorite"></span>
+                        <span class="legend-label">Favorite</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color pref-like"></span>
+                        <span class="legend-label">Like</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color pref-indifferent"></span>
+                        <span class="legend-label">Indifferent</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color pref-maybe"></span>
+                        <span class="legend-label">Maybe</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color pref-limit"></span>
+                        <span class="legend-label">Limit</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Main Kinklist Page -->
         <div id="kinklist-page" class="page hidden">
-            <div class="header">
-                <h1>Your Kinklist</h1>
-                <p>Select your preferences for each item</p>
-            </div>
-
-            <div class="controls">
-                <button class="btn btn-secondary" id="back-to-selection">← Back to List Selection</button>
-                <button class="btn btn-secondary" id="reset-all">Reset All</button>
-                <button class="btn btn-primary" id="complete-export">Complete & Export</button>
-            </div>
-
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill"></div>
-            </div>
-
-            <div class="stats">
-                <div class="stat">
-                    <div class="stat-number" id="total-items">0</div>
-                    <div class="stat-label">Total Items</div>
+            <div class="sticky-header">
+                <div class="header-content">
+                    <h1>Your Kinklist</h1>
+                    <p>Select your preferences for each item</p>
                 </div>
-                <div class="stat">
-                    <div class="stat-number" id="completed-items">0</div>
-                    <div class="stat-label">Completed</div>
+                <div class="header-actions">
+                    <button class="btn btn-icon" id="back-to-selection" title="Back to list selection">←</button>
+                    <button class="btn btn-secondary" id="reset-all">Reset All</button>
+                    <button class="btn btn-primary" id="complete-export">Complete & Export</button>
                 </div>
-                <div class="stat">
-                    <div class="stat-number" id="completion-percentage">0%</div>
-                    <div class="stat-label">Progress</div>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-header">
+                    <h3>Your Progress</h3>
+                    <span id="completion-percentage">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-stats">
+                    <div class="stat">
+                        <div class="stat-number" id="total-items">0</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="completed-items">0</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preference-legend">
+                <h3>Preference Guide</h3>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <span class="legend-color pref-favorite"></span>
+                        <span class="legend-label">Favorite</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color pref-like"></span>
+                        <span class="legend-label">Like</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color pref-indifferent"></span>
+                        <span class="legend-label">Indifferent</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color pref-maybe"></span>
+                        <span class="legend-label">Maybe</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color pref-limit"></span>
+                        <span class="legend-label">Limit</span>
+                    </div>
                 </div>
             </div>
 
             <div id="categories-container"></div>
+
+            <div class="floating-actions">
+                <button class="btn btn-primary btn-fab" id="scroll-to-top" title="Scroll to top">↑</button>
+                <button class="btn btn-primary" id="quick-complete-export">Complete & Export</button>
+            </div>
         </div>
 
         <!-- Completion Page -->
         <div id="completion-page" class="page hidden">
             <div class="completion-page">
-                <h1 class="completion-title">🎉 Kinklist Complete!</h1>
-                <p>Your preferences have been saved. You can now export your kinklist.</p>
-                
-                <div class="export-buttons">
-                    <button class="btn btn-primary" id="export-json">Export as JSON</button>
-                    <button class="btn btn-primary" id="export-html">Export as HTML</button>
+                <div class="completion-header">
+                    <div class="completion-icon">🎉</div>
+                    <h1 class="completion-title">Kinklist Complete!</h1>
+                    <p>Your preferences have been saved. You can now export your kinklist.</p>
                 </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Export Options</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="export-buttons">
+                            <button class="btn btn-primary btn-export" id="export-json">
+                                <span class="btn-icon">📊</span>
+                                Export as JSON
+                            </button>
+                            <button class="btn btn-primary btn-export" id="export-html">
+                                <span class="btn-icon">📄</span>
+                                Export as HTML
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="completion-stats"></div>
 
                 <div class="controls">
                     <button class="btn btn-secondary" id="back-to-edit">← Back to Edit</button>
                     <button class="btn btn-secondary" id="start-over">Start Over</button>
                 </div>
-
-                <div id="completion-stats"></div>
             </div>
         </div>
     </div>
