@@ -156,16 +156,11 @@
         });
 
         document.getElementById('export-html').addEventListener('click', () => {
-            const htmlContent = generateHTMLExport(listType, preferences, kinkData);
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `kinklist-${listType}-${new Date().toISOString().split('T')[0]}.html`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const listType = localStorage.getItem('selectedListType');
+            const preferences = JSON.parse(localStorage.getItem('kinklist-preferences') || '{}');
+            const kinkData = parseKinkListData(kinklistData[listType]);
+    
+            exportUtils.exportAsHTML(listType, preferences, kinkData);
         });
 
         // Generate HTML export content

@@ -87,12 +87,16 @@
             const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             
-            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            // Default to dark mode if no preference is saved
+            if (savedTheme === 'light') {
+                document.body.classList.remove('dark');
+                document.getElementById('theme-icon').textContent = '🌙';
+            } else {
                 document.body.classList.add('dark');
                 document.getElementById('theme-icon').textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
             }
         }
-
         function toggleTheme() {
             const body = document.body;
             const themeIcon = document.getElementById('theme-icon');
