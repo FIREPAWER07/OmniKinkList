@@ -136,6 +136,7 @@ const kinklistData = {
 * Cum play
 * Saliva/Spit
 * Squirting
+* Amniotic fluid
 
 #Degradation
 * Glory hole
@@ -163,6 +164,9 @@ const kinklistData = {
 * Shaving
 * Medical play
 * Age play
+* Gore
+* Birth
+* Feet
 
 #Pain
 * Light pain
@@ -434,6 +438,8 @@ const kinklistData = {
 ? Sexual play involving saliva or spitting.
 * Squirting
 ? Female ejaculation during sexual activity.
+* Amniotic fluid
+? The inclusion of amniotic fluid in sexual contexts.
 
 #Degradation
 (Giving, Receiving)
@@ -489,6 +495,12 @@ const kinklistData = {
 ? Role playing medical scenarios and procedures.
 * Age play
 ? Role playing different ages (all participants adult).
+* Gore
+? Fetishism involving the use or depiction of blood or bodily fluids.
+* Birth
+? Fetishism involving the act of giving birth or witnessing it.
+* Feet
+? Fetishism involving the feet.
 
 #Pain
 (Giving, Receiving)
