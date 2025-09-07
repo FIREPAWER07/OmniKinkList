@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KinkList - Preferences</title>
+    <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+        <span id="theme-icon">🌙</span>
+    </button>
+
+    <div class="container">
+        <div class="sticky-header">
+            <div class="header-content">
+                <h1>Your Kinklist</h1>
+                <p>Select your preferences for each item</p>
+            </div>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-icon" title="Back to list selection">←</a>
+                <button class="btn btn-secondary" id="reset-all">Reset All</button>
+                <button class="btn btn-primary" id="complete-export">Complete & Export</button>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-header">
+                <h3>Your Progress</h3>
+                <span id="completion-percentage">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-stats">
+                <div class="stat">
+                    <div class="stat-number" id="total-items">0</div>
+                    <div class="stat-label">Total Items</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="completed-items">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="preference-legend">
+            <h3>Preference Guide</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="legend-color pref-favorite"></span>
+                    <span class="legend-label">Favorite</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color pref-like"></span>
+                    <span class="legend-label">Like</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color pref-indifferent"></span>
+                    <span class="legend-label">Indifferent</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color pref-maybe"></span>
+                    <span class="legend-label">Maybe</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color pref-limit"></span>
+                    <span class="legend-label">Limit</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="categories-container"></div>
+
+        <div class="floating-actions">
+            <button class="btn btn-primary btn-fab" id="scroll-to-top" title="Scroll to top">↑</button>
+            <button class="btn btn-primary" id="quick-complete-export">Complete & Export</button>
+        </div>
+    </div>
+
+    <script src="scripts/shared.js"></script>
+    <script src="scripts/storage.js"></script>
+    <script>
+        // Global state
+        let currentListType = null;
+        let preferences = {};
+        let kinkData = [];
+
+        // Initialize app
+        function init() {
+            initTheme();
+            initEventListeners();
+            
+            // Load selected list type
+            currentListType = localStorage.getItem('selectedListType');
+            if (!currentListType) {
+                alert('No list type selected. Redirecting to home.');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Load preferences
+            const saved = localStorage.getItem('kinklist-preferences');
+            if (saved) {
+                try {
+                    preferences = JSON.parse(saved);
+                } catch (error) {
+                    console.error('Failed to load preferences:', error);
+                    preferences = {};
+                }
+            }
+            
+            // Parse and load data
+            kinkData = parseKinkListData(kinklistData[currentListType]);
+            renderKinklist();
+            
+            // Add scroll to top functionality
+            initScrollToTop();
+        }
+
+        // Initialize theme
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.body.classList.add('dark');
+                document.getElementById('theme-icon').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark');
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize scroll to top button
+        function initScrollToTop() {
+            const scrollBtn = document.getElementById('scroll-to-top');
+            if (scrollBtn) {
+                scrollBtn.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                
+                // Show/hide based on scroll position
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 300) {
+                        scrollBtn.style.display = 'flex';
+                    } else {
+                        scrollBtn.style.display = 'none';
+                    }
+                });
+                
+                // Initially hide the button
+                scrollBtn.style.display = 'none';
+            }
+        }
+
+        // Initialize event listeners
+        function initEventListeners() {
+            // Theme toggle
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+            
+            // Reset functionality
+            document.getElementById('reset-all').addEventListener('click', resetAll);
+            
+            // Complete and export
+            document.getElementById('complete-export').addEventListener('click', () => {
+                // Save preferences before navigating
+                localStorage.setItem('kinklist-preferences', JSON.stringify(preferences));
+                window.location.href = 'completion.html';
+            });
+            
+            document.getElementById('quick-complete-export').addEventListener('click', () => {
+                // Save preferences before navigating
+                localStorage.setItem('kinklist-preferences', JSON.stringify(preferences));
+                window.location.href = 'completion.html';
+            });
+        }
+
+        // Preference management
+        function setPreference(itemName, level, isDual = false, dualType = null) {
+            if (!preferences[itemName]) {
+                preferences[itemName] = {
+                    itemName,
+                    level: 'not-entered'
+                };
+            }
+
+            if (isDual && dualType) {
+                preferences[itemName].dualLevel = level;
+            } else {
+                preferences[itemName].level = level;
+            }
+
+            // Save to localStorage
+            localStorage.setItem('kinklist-preferences', JSON.stringify(preferences));
+            
+            // Update UI
+            updateProgress();
+            updatePreferenceButton(itemName, level, isDual, dualType);
+        }
+
+        function updatePreferenceButton(itemName, level, isDual, dualType) {
+            const selector = isDual ? 
+                `[data-item="${itemName}"][data-dual="${dualType}"]` : 
+                `[data-item="${itemName}"]:not([data-dual])`;
+            
+            const buttons = document.querySelectorAll(`${selector} .pref-btn`);
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            const activeButton = document.querySelector(`${selector} .pref-btn[data-level="${level}"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+
+        // Progress tracking
+        function updateProgress() {
+            const totalItems = kinkData.reduce((sum, category) => sum + category.items.length, 0);
+            const completedItems = Object.keys(preferences).length;
+            const percentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+            document.getElementById('total-items').textContent = totalItems;
+            document.getElementById('completed-items').textContent = completedItems;
+            document.getElementById('completion-percentage').textContent = `${percentage}%`;
+            document.getElementById('progress-fill').style.width = `${percentage}%`;
+        }
+
+        // Render kinklist
+        function renderKinklist() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+
+            kinkData.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+
+                const explanation = categoryExplanations[category.name] || '';
+                
+                categoryDiv.innerHTML = `
+                    <div class="category-header">
+                        <h2 class="category-title">${category.name}</h2>
+                        ${explanation ? `<p class="category-description">${explanation}</p>` : ''}
+                        ${category.subcategory ? `<p class="subcategory-title">${category.subcategory}</p>` : ''}
+                    </div>
+                    <div class="items-grid">
+                        ${category.items.map(item => renderKinkItem(item)).join('')}
+                    </div>
+                `;
+
+                container.appendChild(categoryDiv);
+            });
+
+            // Add event listeners
+            addPreferenceListeners();
+            updateProgress();
+        }
+
+        function renderKinkItem(item) {
+            const preference = preferences[item.name];
+            const currentLevel = preference ? preference.level : 'not-entered';
+            const currentDualLevel = preference ? preference.dualLevel : 'not-entered';
+            
+            if (item.hasDualPreference && item.dualLabels) {
+                return `
+                    <div class="kink-item">
+                        <div class="item-name">${item.name}</div>
+                        ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
+                        <div class="dual-preferences">
+                            <div>
+                                <div class="dual-label">${item.dualLabels.first}</div>
+                                <div class="preference-buttons" data-item="${item.name}" data-dual="first">
+                                    ${renderPreferenceButtons(currentLevel)}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="dual-label">${item.dualLabels.second}</div>
+                                <div class="preference-buttons" data-item="${item.name}" data-dual="second">
+                                    ${renderPreferenceButtons(currentDualLevel)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="kink-item">
+                        <div class="item-name">${item.name}</div>
+                        ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
+                        <div class="preference-buttons" data-item="${item.name}">
+                            ${renderPreferenceButtons(currentLevel)}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderPreferenceButtons(currentLevel) {
+            const levels = ['favorite', 'like', 'indifferent', 'maybe', 'limit'];
+            return levels.map(level => `
+                <button class="pref-btn pref-${level} ${currentLevel === level ? 'active' : ''}" 
+                        data-level="${level}" 
+                        title="${level.charAt(0).toUpperCase() + level.slice(1)}">
+                    ${level.charAt(0).toUpperCase()}
+                </button>
+            `).join('');
+        }
+
+        function addPreferenceListeners() {
+            document.querySelectorAll('.pref-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const level = e.target.dataset.level;
+                    const container = e.target.closest('.preference-buttons');
+                    const itemName = container.dataset.item;
+                    const dualType = container.dataset.dual;
+                    
+                    setPreference(itemName, level, !!dualType, dualType);
+                });
+            });
+        }
+
+        // Reset functionality
+        function resetAll() {
+            if (confirm('Are you sure you want to reset all preferences?')) {
+                preferences = {};
+                localStorage.removeItem('kinklist-preferences');
+                renderKinklist();
+            }
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
