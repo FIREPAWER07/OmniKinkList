@@ -725,4 +725,78 @@ body {
         margin-top: 30px;
         flex-wrap: wrap;
     }
+    /* Preference button styles with white outline for selected state */
+    .pref-btn {
+        padding: 8px 12px;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        transition: var(--transition);
+        opacity: 0.8;
+        min-width: 36px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+
+    .pref-btn:hover {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+
+    .pref-btn.active {
+        opacity: 1;
+        transform: scale(1.1);
+        box-shadow: var(--shadow-sm);
+        /* White outline for selected buttons */
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+        outline-offset: 2px;
+    }
+
+    /* Ensure the outline is visible on all preference colors */
+    .pref-favorite.active { 
+        background-color: var(--color-favorite); 
+        color: white; 
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .pref-like.active { 
+        background-color: var(--color-like); 
+        color: white; 
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .pref-indifferent.active { 
+        background-color: var(--color-indifferent); 
+        color: white; 
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .pref-maybe.active { 
+        background-color: var(--color-maybe); 
+        color: white; 
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .pref-limit.active { 
+        background-color: var(--color-limit); 
+        color: white; 
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    /* For light mode, use a darker outline */
+    .light .pref-btn.active {
+        outline: 2px solid rgba(0, 0, 0, 0.7);
+    }
+
+    .light .pref-favorite.active,
+    .light .pref-like.active,
+    .light .pref-indifferent.active,
+    .light .pref-maybe.active,
+    .light .pref-limit.active {
+        outline: 2px solid rgba(0, 0, 0, 0.7);
+    }
 }
