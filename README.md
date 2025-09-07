@@ -2,14 +2,12 @@
 
 A modern, interactive web app designed for degenerates who want to **explore, track, and share their personal preferences**—with style, efficiency, and full customization.  
 
----
 
 [![GitHub issues](https://img.shields.io/github/issues/FIREPAWER07/OmniKinkList)](https://github.com/FIREPAWER07/OmniKinkList/issues)
 [![License](https://img.shields.io/github/license/FIREPAWER07/OmniKinkList)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/For_Live_Demo-Click_Here-red)](https://firepawer07.github.io/OmniKinkList/)
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D31CKA7D)
 
----
 
 ## ✨ Features  
 
@@ -20,7 +18,6 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
 * 📱 **Responsive Design** – Smooth experience across desktop & mobile  
 * 🎨 **Polished UI** – Sleek, modern interface built for effortless navigation  
 
----
 
 ## 🚀 How to Use  
 
@@ -28,15 +25,12 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
 2. **Set Your Preferences** → Click the color-coded buttons to mark your likes, dislikes, and everything in-between  
 3. **Export & Share** → Save as HTML or JSON to revisit or share with friends (or enemies 👀)  
 
----
-
 ## 🛠️ Technical Details  
 
 * Built with **pure HTML, CSS, and JavaScript** (no frameworks, no nonsense)  
 * Uses **local storage** for quick saving  
 * Fully **mobile-responsive** design  
 
----
 
 ## 🔗 Links  
 
@@ -44,7 +38,6 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
 * [🐞 Report Issues](https://github.com/FIREPAWER07/OmniKinkList/issues)  
 * [☕ Support on Ko-fi](https://ko-fi.com/D1D31CKA7D)  
 
----
 
 ## ⚙️ Other Projects I've Made  
 
@@ -64,5 +57,3 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
     </td>
   </tr>
 </table>
-
----
