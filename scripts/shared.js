@@ -434,7 +434,7 @@ const kinklistData = {
 ? Sexual scenarios involving the wearing of diapers.
 * Cum play
 ? Various activities focused on semen.
-* Saliva/Spit
+* Salivia/Spit
 ? Sexual play involving saliva or spitting.
 * Squirting
 ? Female ejaculation during sexual activity.
@@ -1121,7 +1121,9 @@ function parseKinkListData(data) {
 
                 let dualLabels;
                 if (isDualPreference) {
-                    if (currentSubcategory?.includes('Giving, Receiving')) {
+                    if (itemName === "Birth") {
+                        dualLabels = { first: 'Giving', second: 'Witnessing' };
+                    } else if (currentSubcategory?.includes('Giving, Receiving')) {
                         dualLabels = { first: 'Giving', second: 'Receiving' };
                     } else if (currentSubcategory?.includes('As Dominant, As Submissive')) {
                         dualLabels = { first: 'As Dominant', second: 'As Submissive' };
