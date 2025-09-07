@@ -13,6 +13,33 @@ function init() {
     
     // Add scroll to top functionality
     initScrollToTop();
+    
+    // Handle page navigation based on URL hash
+    handlePageNavigation();
+}
+
+// Handle page navigation based on URL hash
+function handlePageNavigation() {
+    const hash = window.location.hash;
+    
+    if (hash === '#kinklist' && currentListType) {
+        showKinklist();
+    } else if (hash === '#completion') {
+        showCompletion();
+    } else {
+        showListSelection();
+    }
+}
+
+// Update URL hash for page navigation
+function updateUrlHash(page) {
+    if (page === 'list-selection') {
+        history.replaceState(null, null, ' ');
+    } else if (page === 'kinklist-page') {
+        history.replaceState(null, null, '#kinklist');
+    } else if (page === 'completion-page') {
+        history.replaceState(null, null, '#completion');
+    }
 }
 
 // Initialize scroll to top button
@@ -31,6 +58,9 @@ function initScrollToTop() {
                 scrollBtn.style.display = 'none';
             }
         });
+        
+        // Initially hide the button
+        scrollBtn.style.display = 'none';
     }
 }
 
@@ -69,7 +99,7 @@ function initEventListeners() {
     // List selection buttons
     document.querySelectorAll('.list-type-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            selectListType(e.target.dataset.type);
+            selectListType(e.currentTarget.dataset.type);
         });
     });
     
@@ -86,6 +116,7 @@ function initEventListeners() {
     document.getElementById('complete-export').addEventListener('click', showCompletion);
     document.getElementById('back-to-edit').addEventListener('click', showKinklist);
     document.getElementById('start-over').addEventListener('click', showListSelection);
+    document.getElementById('quick-complete-export').addEventListener('click', showCompletion);
     
     // Export buttons
     document.getElementById('export-json').addEventListener('click', () => {
@@ -100,9 +131,10 @@ function initEventListeners() {
 // Page navigation
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => {
-        page.classList.add('hidden');
+        page.classList.remove('active');
     });
-    document.getElementById(pageId).classList.remove('hidden');
+    document.getElementById(pageId).classList.add('active');
+    updateUrlHash(pageId);
 }
 
 function showListSelection() {
@@ -215,6 +247,8 @@ function renderKinklist() {
 
 function renderKinkItem(item) {
     const preference = preferences[item.name];
+    const currentLevel = preference ? preference.level : 'not-entered';
+    const currentDualLevel = preference ? preference.dualLevel : 'not-entered';
     
     if (item.hasDualPreference && item.dualLabels) {
         return `
@@ -225,13 +259,13 @@ function renderKinkItem(item) {
                     <div>
                         <div class="dual-label">${item.dualLabels.first}</div>
                         <div class="preference-buttons" data-item="${item.name}" data-dual="first">
-                            ${renderPreferenceButtons(preference?.level)}
+                            ${renderPreferenceButtons(currentLevel)}
                         </div>
                     </div>
                     <div>
                         <div class="dual-label">${item.dualLabels.second}</div>
                         <div class="preference-buttons" data-item="${item.name}" data-dual="second">
-                            ${renderPreferenceButtons(preference?.dualLevel)}
+                            ${renderPreferenceButtons(currentDualLevel)}
                         </div>
                     </div>
                 </div>
@@ -243,7 +277,7 @@ function renderKinkItem(item) {
                 <div class="item-name">${item.name}</div>
                 ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
                 <div class="preference-buttons" data-item="${item.name}">
-                    ${renderPreferenceButtons(preference?.level)}
+                    ${renderPreferenceButtons(currentLevel)}
                 </div>
             </div>
         `;
@@ -301,6 +335,11 @@ function importPreferences(event) {
                     btn.classList.remove('active');
                 });
                 
+                const activeBtn = document.querySelector(`.list-type-btn[data-type="${currentListType}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                }
+                
                 kinkData = parseKinkListData(kinklistData[currentListType]);
                 renderKinklist();
                 showKinklist();
@@ -317,4 +356,4 @@ function importPreferences(event) {
 }
 
 // Start the app
-init();
+document.addEventListener('DOMContentLoaded', init);
