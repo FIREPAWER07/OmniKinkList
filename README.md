@@ -2,11 +2,12 @@
 
 A modern, interactive web app designed for perverts who want to **explore, track, and share their personal preferences**—all with full customization!
 
+--- 
+
 [![GitHub issues](https://img.shields.io/github/issues/FIREPAWER07/OmniKinkList)](https://github.com/FIREPAWER07/OmniKinkList/issues)
 [![License](https://img.shields.io/github/license/FIREPAWER07/OmniKinkList)](LICENSE)
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D31CKA7D)
 [![Live Demo](https://img.shields.io/badge/For_Live_Demo-Click_Here-red)](https://firepawer07.github.io/OmniKinkList/)
-
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D31CKA7D)
 
 ---
 
