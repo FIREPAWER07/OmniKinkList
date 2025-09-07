@@ -194,12 +194,18 @@
             if (!preferences[itemName]) {
                 preferences[itemName] = {
                     itemName,
-                    level: 'not-entered'
+                    level: 'not-entered',
+                    dualLevel: 'not-entered' // Initialize dualLevel
                 };
             }
 
             if (isDual && dualType) {
-                preferences[itemName].dualLevel = level;
+                // For Small/Large dual preferences
+                if (dualType === 'first') {
+                    preferences[itemName].level = level;
+                } else if (dualType === 'second') {
+                    preferences[itemName].dualLevel = level;
+                }
             } else {
                 preferences[itemName].level = level;
             }

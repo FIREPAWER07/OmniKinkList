@@ -221,38 +221,38 @@ const exportUtils = {
             </div>
         </div>
         
-        ${kinkData.map(category => `
-            <div class="category">
-                <h2 class="category-title">${category.name}</h2>
-                <div class="items-grid">
-                    ${category.items.filter(item => preferences[item.name]).map(item => {
-                        const pref = preferences[item.name];
-                        return `
-                            <div class="item">
-                                <div class="item-name">${item.name}</div>
-                                ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
-                                ${item.hasDualPreference && item.dualLabels ? `
-                                    <div class="dual-prefs">
-                                        <div>
-                                            <span class="dual-label">${item.dualLabels.first}:</span>
-                                            <span class="preference pref-${pref.level}">${pref.level.charAt(0).toUpperCase() + pref.level.slice(1)}</span>
-                                        </div>
-                                        ${pref.dualLevel ? `
-                                            <div>
-                                                <span class="dual-label">${item.dualLabels.second}:</span>
-                                                <span class="preference pref-${pref.dualLevel}">${pref.dualLevel.charAt(0).toUpperCase() + pref.dualLevel.slice(1)}</span>
-                                            </div>
-                                        ` : ''}
+    ${kinkData.map(category => `
+        <div class="category">
+            <h2 class="category-title">${category.name}</h2>
+            <div class="items-grid">
+                ${category.items.filter(item => preferences[item.name] && 
+                    (preferences[item.name].level !== 'not-entered' || 
+                     preferences[item.name].dualLevel !== 'not-entered')).map(item => {
+                    const pref = preferences[item.name];
+                    return `
+                        <div class="item">
+                            <div class="item-name">${item.name}</div>
+                            ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
+                            ${item.hasDualPreference && item.dualLabels ? `
+                                <div class="dual-prefs">
+                                    <div>
+                                        <span class="dual-label">${item.dualLabels.first}:</span>
+                                        <span class="preference pref-${pref.level}">${pref.level !== 'not-entered' ? pref.level.charAt(0).toUpperCase() + pref.level.slice(1) : 'Not set'}</span>
                                     </div>
-                                ` : `
-                                    <span class="preference pref-${pref.level}">${pref.level.charAt(0).toUpperCase() + pref.level.slice(1)}</span>
-                                `}
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
+                                    <div>
+                                        <span class="dual-label">${item.dualLabels.second}:</span>
+                                        <span class="preference pref-${pref.dualLevel}">${pref.dualLevel !== 'not-entered' ? pref.dualLevel.charAt(0).toUpperCase() + pref.dualLevel.slice(1) : 'Not set'}</span>
+                                    </div>
+                                </div>
+                            ` : `
+                                <span class="preference pref-${pref.level}">${pref.level !== 'not-entered' ? pref.level.charAt(0).toUpperCase() + pref.level.slice(1) : 'Not set'}</span>
+                            `}
+                        </div>
+                    `;
+                }).join('')}
             </div>
-        `).join('')}
+        </div>
+    `).join('')}
     </div>
 </body>
 </html>`;
