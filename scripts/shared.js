@@ -183,23 +183,18 @@ const kinklistData = {
 * Needle play`,
 
     detailed: `#Bodies
+(Small, Large)
+* Breasts
+? Expresses an interest in breasts that are particularly small, sometimes to the point of appearing absent or particularly large.
+* Cocks
+? Expresses an interest in cocks that are below average size or above average size.
+* Butts
+? Expresses an interest in butts that are particularly small or particularly large.
 (General)
 * Skinny
 ? Expresses an interest in characters that are waifish, thin, or slender.
 * Chubby
 ? Expresses an interest in characters that are well-rounded, full in form, and pudgy.
-* Small breasts
-? Expresses an interest in breasts that are particularly small, sometimes to the point of appearing absent.
-* Large breasts
-? Expresses an interest in breasts that are particularly large.
-* Small cocks
-? Expresses an interest in cocks that are below average size.
-* Large cocks
-? Expresses an interest in cocks that are above average size.
-* Small butts
-? Expresses an interest in butts that are particularly small.
-* Big Butts
-? Expresses an interest in butts that are particularly large.
 * Muscular
 ? Expresses an interest in well-defined, athletic physiques.
 * Curvy
@@ -629,23 +624,18 @@ const kinklistData = {
 ? No set expectations, responses when convenient for both parties.`,
 
     extended: `#Bodies
+(Small, Large)
+* Breasts
+? Expresses an interest in breasts that are particularly small, sometimes to the point of appearing absent or particularly large.
+* Cocks
+? Expresses an interest in cocks that are below average size or above average size.
+* Butts
+? Expresses an interest in butts that are particularly small or particularly large.
 (General)
 * Skinny
 ? Expresses an interest in characters that are waifish, thin, or slender.
 * Chubby
 ? Expresses an interest in characters that are well-rounded, full in form, and pudgy.
-* Small breasts
-? Expresses an interest in breasts that are particularly small, sometimes to the point of appearing absent.
-* Large breasts
-? Expresses an interest in breasts that are particularly large.
-* Small cocks
-? Expresses an interest in cocks that are below average size.
-* Large cocks
-? Expresses an interest in cocks that are above average size.
-* Small butts
-? Expresses an interest in butts that are particularly small.
-* Big Butts
-? Expresses an interest in butts that are particularly large.
 * Muscular
 ? Expresses an interest in well-defined, athletic physiques.
 * Curvy
@@ -1106,7 +1096,7 @@ function parseKinkListData(data) {
                     currentSubcategory.includes('Actor, Subject') ||
                     currentSubcategory.includes('Aggressor, Target') ||
                     currentSubcategory.includes('Self, Partner') ||
-                    currentSubcategory.includes('Small, Large')
+                    currentSubcategory.includes('Small, Large')  // Added this case
                 );
 
                 let dualLabels;
@@ -1122,7 +1112,7 @@ function parseKinkListData(data) {
                     } else if (currentSubcategory?.includes('Self, Partner')) {
                         dualLabels = { first: 'For Self', second: 'For Partner' };
                     } else if (currentSubcategory?.includes('Small, Large')) {
-                        dualLabels = { first: 'Small', second: 'Large' };
+                        dualLabels = { first: 'Small', second: 'Large' };  // Added this case
                     }
                 }
 
