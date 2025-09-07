@@ -1,4 +1,4 @@
-# 🔥 OmniKinkList | The Ultimate Kink Preference Explorer 🔥
+## 🔥 OmniKinkList | The BEST Kink Preference List For Perverts~ 🔥
 
 A modern, interactive web app designed for perverts who want to **explore, track, and share their personal preferences**—all with full customization!
 
