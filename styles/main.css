@@ -18,21 +18,22 @@
   --transition: all 0.2s ease;
   --transition-slow: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  --primary: #a855f7;
-  --primary-dark: #7c3aed;
+  --primary: #8b5cf6;
+  --accent: #a855f7;
   --primary-foreground: white;
-  --secondary: #60a5fa;
-  --card: #ffffff;
-  --background: #f9fafb;
-  --foreground: #111827;
-  --muted-foreground: #6b7280;
+  --secondary: #c084fc;
+  --secondary-foreground: black;
+  --background: #ffffff;
+  --card: #f9fafb;
   --border: #e5e7eb;
-  --color-favorite: #f43f5e;
-  --color-like: #60a5fa;
-  --color-indifferent: #eab308;
-  --color-maybe: #ec4899;
-  --color-limit: #14b8a6;
-  --color-not-entered: #f9fafb;
+  --foreground: #1f2937;
+  --muted-foreground: #64748b;
+  --color-favorite: #ff0000;
+  --color-like: #00ff00;
+  --color-indifferent: #0000ff;
+  --color-maybe: #ffff00;
+  --color-limit: #ff00ff;
+  --color-not-entered: #808080;
 }
 
 body {
@@ -228,6 +229,7 @@ body::before {
   gap: 12px;
   align-items: center;
   flex-shrink: 0;
+  min-width: fit-content;
 }
 
 /* Card Styles */
@@ -351,29 +353,45 @@ body::before {
 }
 
 .btn-icon {
-  padding: 10px;
+  padding: 12px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark, #7c3aed));
+  background: linear-gradient(135deg, var(--primary), var(--accent));
   color: var(--primary-foreground);
   font-size: 18px;
   font-weight: bold;
-  min-width: 44px;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-icon::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transition: all 0.4s ease;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+}
+
+.btn-icon:hover::before {
+  width: 100px;
+  height: 100px;
 }
 
 .btn-icon:hover {
-  transform: translateY(-3px) scale(1.1);
+  transform: translateX(-3px) scale(1.1);
   box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5);
-  background: linear-gradient(135deg, #8b5cf6, var(--primary));
+  background: linear-gradient(135deg, var(--accent), var(--primary));
 }
 
 .btn-icon:active {
-  transform: translateY(-1px) scale(1.05);
+  transform: translateX(-1px) scale(1.05);
 }
 
 .btn-fab {
@@ -522,8 +540,7 @@ body::before {
 }
 
 @keyframes progressGlow {
-  0%,
-  100% {
+  0% {
     opacity: 0.5;
   }
   100% {
@@ -557,27 +574,15 @@ body::before {
   position: relative;
 }
 
-/* Added missing progress-fill styles with gradient and animation */
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary), #60a5fa, var(--primary));
-  background-size: 200% 100%;
-  border-radius: var(--radius-md);
-  transition: width 0.5s ease-in-out;
-  animation: progressGlow 2s ease-in-out infinite;
-  position: relative;
-  overflow: hidden;
-}
-
-.progress-fill::after {
+.progress-bar::before {
   content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  animation: progressShine 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: progressShine 2s ease-in-out infinite;
 }
 
 @keyframes progressShine {
@@ -589,15 +594,33 @@ body::before {
   }
 }
 
-.progress-bar::before {
+.progress-fill {
+  background: linear-gradient(90deg, var(--color-favorite), var(--color-like));
+  height: 100%;
+  transition: width 0.8s var(--bounce);
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill::after {
   content: "";
   position: absolute;
   top: 0;
-  left: -100%;
+  left: 0;
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: progressShine 2s ease-in-out infinite;
+  animation: fillShine 1.5s ease-in-out infinite;
+}
+
+@keyframes fillShine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .progress-stats {
@@ -1294,22 +1317,10 @@ body::before {
   }
 
   .sticky-header {
-    flex-direction: row;
-    gap: 10px;
-    text-align: left;
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
     padding: 15px 0;
-  }
-
-  .header-content h1 {
-    font-size: 1.5rem;
-  }
-
-  .header-content p {
-    font-size: 0.9rem;
-  }
-
-  .header-actions {
-    gap: 8px;
   }
 
   .items-grid {
@@ -1361,8 +1372,8 @@ body::before {
   }
 
   .btn {
-    padding: 10px 15px;
-    font-size: 13px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 
   .category {
