@@ -19,8 +19,7 @@
                 <p>Select your preferences for each item</p>
             </div>
             <div class="header-actions">
-                <!-- Enhanced arrow with better Unicode character and styling -->
-                <a href="index.html" class="btn btn-icon" title="Back to list selection">⬅</a>
+                <a href="index.html" class="btn btn-icon" title="Back to list selection">←</a>
                 <button class="btn btn-secondary" id="reset-all">Reset All</button>
                 <button class="btn btn-primary" id="complete-export">Complete & Export</button>
             </div>
@@ -334,6 +333,17 @@
                     const dualType = container.dataset.dual;
                     
                     setPreference(itemName, level, !!dualType, dualType);
+                });
+            });
+            
+            // Add mouse tracking for category hover effects
+            document.querySelectorAll('.category').forEach(category => {
+                category.addEventListener('mousemove', (e) => {
+                    const rect = category.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    category.style.setProperty('--mouse-x', x + '%');
+                    category.style.setProperty('--mouse-y', y + '%');
                 });
             });
         }

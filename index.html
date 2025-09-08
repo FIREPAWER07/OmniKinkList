@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles/theme.css">
     <link rel="stylesheet" href="styles/main.css">
 </head>
-<body class="dark">
+<body>
     <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
         <span id="theme-icon">🌙</span>
     </button>
@@ -28,10 +28,10 @@
             <div class="card-header">
                 <h2>Get Started</h2>
                 <p>Choose how you'd like to begin your exploration</p>
-                <h2>Choose Your List Type</h2>
-                <p>Select the version that best fits your needs</p>
             </div>
             <div class="card-content">
+                <h3 style="margin-bottom: 15px; color: var(--foreground);">Choose Your List Type</h3>
+                <p style="margin-bottom: 20px; color: var(--muted-foreground);">Select the version that best fits your needs</p>
                 <div class="list-selector">
                     <button class="list-type-btn" data-type="classic">
                         <span class="list-icon">🔍</span>
@@ -85,7 +85,9 @@
         // Initialize theme
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             
+            // Default to dark mode if no preference is saved
             if (savedTheme === 'light') {
                 document.body.classList.remove('dark');
                 document.getElementById('theme-icon').textContent = '🌙';
@@ -121,35 +123,17 @@
             });
         });
 
-        // Import functionality
-        document.getElementById('import-button').addEventListener('click', () => {
-            document.getElementById('import-file').click();
-        });
-
-        document.getElementById('import-file').addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (data.preferences && data.listType) {
-                        localStorage.setItem('selectedListType', data.listType);
-                        localStorage.setItem('kinklist-preferences', JSON.stringify(data.preferences));
-                        window.location.href = 'kinklist.html';
-                    } else {
-                        alert('Invalid file format');
-                    }
-                } catch (error) {
-                    alert('Error reading file: ' + error.message);
-                }
-            };
-            reader.readAsText(file);
-        });
-
         // Initialize
         initTheme();
+        
+        // Add staggered animation to list type buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('.list-type-btn');
+            buttons.forEach((btn, index) => {
+                btn.style.animationDelay = `${index * 0.1}s`;
+                btn.style.animation = 'fadeIn 0.6s ease-out both';
+            });
+        });
     </script>
 </body>
 </html>
