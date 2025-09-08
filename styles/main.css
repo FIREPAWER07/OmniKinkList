@@ -147,17 +147,22 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 40px;
-    margin: 0 -20px 30px -20px;
+    padding: 20px 0;
     margin-bottom: 30px;
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
-    background: var(--card);
+    background: var(--background);
     z-index: 100;
     backdrop-filter: blur(10px);
-    border-radius: var(--radius-lg);
     transition: var(--transition);
+}
+
+.sticky-header:hover {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    margin: 0 -20px 30px -20px;
+    padding: 20px 40px;
 }
 
 .sticky-header .header-content h1 {
