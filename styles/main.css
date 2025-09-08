@@ -19,6 +19,8 @@
   --transition-slow: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   --primary: #a855f7;
+  --primary-dark: #7c3aed;
+  --primary-foreground: white;
   --secondary: #60a5fa;
   --card: #ffffff;
   --background: #f9fafb;
@@ -200,6 +202,8 @@ body::before {
   z-index: 100;
   backdrop-filter: blur(10px);
   transition: var(--transition);
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .sticky-header:hover {
@@ -223,6 +227,7 @@ body::before {
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 /* Card Styles */
@@ -348,58 +353,27 @@ body::before {
 .btn-icon {
   padding: 10px;
   border-radius: 50%;
-}
-
-/* Enhanced back arrow button styling for better visibility and coolness */
-.btn-icon[title="Back to list selection"] {
-  background: linear-gradient(135deg, var(--primary), #60a5fa);
-  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark, #7c3aed));
+  color: var(--primary-foreground);
   font-size: 18px;
   font-weight: bold;
-  width: 44px;
-  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+  transition: all 0.3s ease;
 }
 
-.btn-icon[title="Back to list selection"]:hover {
-  transform: translateX(-3px) scale(1.1);
-  box-shadow: 0 6px 25px rgba(168, 85, 247, 0.6);
-  border-color: rgba(255, 255, 255, 0.4);
+.btn-icon:hover {
+  transform: translateY(-3px) scale(1.1);
+  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5);
+  background: linear-gradient(135deg, #8b5cf6, var(--primary));
 }
 
-.btn-icon[title="Back to list selection"]::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.btn-icon[title="Back to list selection"]:hover::before {
-  left: 100%;
-}
-
-.btn-icon[title="Back to list selection"]::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.btn-icon[title="Back to list selection"]:hover::after {
-  opacity: 1;
+.btn-icon:active {
+  transform: translateY(-1px) scale(1.05);
 }
 
 .btn-fab {
@@ -1320,9 +1294,22 @@ body::before {
   }
 
   .sticky-header {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
+    flex-direction: row;
+    gap: 10px;
+    text-align: left;
+    padding: 15px 0;
+  }
+
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-content p {
+    font-size: 0.9rem;
+  }
+
+  .header-actions {
+    gap: 8px;
   }
 
   .items-grid {
