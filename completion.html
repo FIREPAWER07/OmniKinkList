@@ -139,13 +139,6 @@
                     </div>
                 </div>
             `;
-            
-            // Add staggered animation to stats
-            const statElements = statsContainer.querySelectorAll('.stat');
-            statElements.forEach((stat, index) => {
-                stat.style.animationDelay = `${index * 0.1}s`;
-                stat.style.animation = 'fadeIn 0.6s ease-out both';
-            });
 
             // Set up export functionality
             document.getElementById('export-html').addEventListener('click', () => {

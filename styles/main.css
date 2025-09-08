@@ -5,6 +5,7 @@
 }
 
 :root {
+<<<<<<< HEAD
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -80,10 +81,36 @@ body::before {
   padding: 20px;
   position: relative;
   z-index: 1;
+=======
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --transition: all 0.2s ease;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: var(--background);
+    color: var(--foreground);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
 }
 
 /* Header Styles */
 .header {
+<<<<<<< HEAD
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -153,6 +180,30 @@ body::before {
   opacity: 0.9;
   max-width: 600px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+=======
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 40px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+    border-radius: var(--radius-xl);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.header-content h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.header-content p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 600px;
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
 }
 
 .header-graphic {
@@ -161,6 +212,7 @@ body::before {
 }
 
 .graphic-circle {
+<<<<<<< HEAD
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -212,6 +264,27 @@ body::before {
   border-radius: var(--radius-lg);
   margin: 0 -20px 30px -20px;
   padding: 20px 40px;
+=======
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.sticky-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--background);
+    z-index: 100;
+    backdrop-filter: blur(10px);
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
 }
 
 .sticky-header .header-content h1 {
@@ -234,6 +307,7 @@ body::before {
 
 /* Card Styles */
 .card {
+<<<<<<< HEAD
   background: var(--card);
   border-radius: var(--radius-xl);
   padding: 24px;
@@ -270,6 +344,18 @@ body::before {
   margin-bottom: 20px;
   position: relative;
   z-index: 1;
+=======
+    background: var(--card);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+}
+
+.card-header {
+    margin-bottom: 20px;
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
 }
 
 .card-header h2 {
@@ -285,13 +371,18 @@ body::before {
 }
 
 .card-content {
+<<<<<<< HEAD
   padding: 10px 0;
   position: relative;
   z-index: 1;
+=======
+    padding: 10px 0;
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
 }
 
 /* Button Styles */
 .btn {
+<<<<<<< HEAD
   padding: 12px 20px;
   border: none;
   border-radius: var(--radius-md);
@@ -344,6 +435,29 @@ body::before {
 
 .btn-primary:hover {
   box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4);
+=======
+    padding: 12px 20px;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: var(--transition);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
 }
 
 .btn-secondary {
@@ -395,6 +509,7 @@ body::before {
 }
 
 .btn-fab {
+<<<<<<< HEAD
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -441,6 +556,27 @@ body::before {
   50% {
     transform: translateY(-3px);
   }
+=======
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-export {
+    flex-direction: column;
+    padding: 20px;
+    min-width: 140px;
+    text-align: center;
+}
+
+.btn-export .btn-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
 }
 
 /* List Selector */
@@ -451,6 +587,7 @@ body::before {
 }
 
 .list-type-btn {
+<<<<<<< HEAD
   padding: 24px 20px;
   border: 2px solid var(--border);
   background: var(--card);
@@ -504,6 +641,35 @@ body::before {
 
 .list-type-btn:hover .list-icon {
   transform: scale(1.2) rotate(5deg);
+=======
+    padding: 24px 20px;
+    border: 2px solid var(--border);
+    background: var(--card);
+    color: var(--card-foreground);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.list-type-btn:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.list-type-btn.active {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border-color: var(--primary);
+}
+
+.list-icon {
+    font-size: 32px;
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
 }
 
 /* Controls */
@@ -517,6 +683,7 @@ body::before {
 
 /* Progress Section */
 .progress-section {
+<<<<<<< HEAD
   background: var(--card);
   border-radius: var(--radius-lg);
   padding: 20px;
@@ -551,6 +718,14 @@ body::before {
 .progress-section:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+=======
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
 }
 
 .progress-header {
@@ -566,6 +741,7 @@ body::before {
 }
 
 .progress-bar {
+<<<<<<< HEAD
   background: var(--secondary);
   border-radius: var(--radius-md);
   height: 10px;
@@ -621,6 +797,20 @@ body::before {
   100% {
     transform: translateX(100%);
   }
+=======
+    background: var(--secondary);
+    border-radius: var(--radius-md);
+    height: 10px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: linear-gradient(90deg, var(--color-favorite), var(--color-like));
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: var(--radius-md);
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
 }
 
 .progress-stats {
@@ -1443,6 +1633,7 @@ body::before {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     min-width: 100px;
+<<<<<<< HEAD
   }
 
   .stat-number {
@@ -1452,11 +1643,23 @@ body::before {
   }
 
   .stat-label {
+=======
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--foreground);
+}
+
+.stat-label {
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
     font-size: 0.85rem;
     color: var(--muted-foreground);
     margin-top: 5px;
   }
 
+<<<<<<< HEAD
   .controls {
     display: flex;
     gap: 15px;
@@ -1476,3 +1679,501 @@ body::before {
     transition-duration: 0.01ms !important;
   }
 }
+=======
+/* Category Styles */
+.category {
+    margin-bottom: 40px;
+    background: var(--card);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+}
+
+.category-header {
+    margin-bottom: 20px;
+}
+
+.category-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--foreground);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.category-title::before {
+    content: "";
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #8b5cf6, #a855f7);
+}
+
+.category-description {
+    color: var(--muted-foreground);
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.subcategory {
+    margin-bottom: 20px;
+}
+
+.subcategory-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--muted-foreground);
+    padding-left: 10px;
+    border-left: 3px solid var(--primary);
+}
+
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.kink-item {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    transition: var(--transition);
+}
+
+.kink-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.item-name {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--foreground);
+    font-size: 1rem;
+}
+
+.item-description {
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.preference-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.dual-preferences {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dual-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    margin-bottom: 5px;
+}
+
+.pref-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: var(--transition);
+    opacity: 0.8;
+    min-width: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pref-btn:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.pref-btn.active {
+    opacity: 1;
+    transform: scale(1.1);
+    box-shadow: var(--shadow-sm);
+}
+
+.pref-favorite { background-color: var(--color-favorite); color: white; }
+.pref-like { background-color: var(--color-like); color: white; }
+.pref-indifferent { background-color: var(--color-indifferent); color: white; }
+.pref-maybe { background-color: var(--color-maybe); color: white; }
+.pref-limit { background-color: var(--color-limit); color: white; }
+.pref-not-entered { background-color: var(--color-not-entered); color: var(--foreground); }
+
+/* Preference Legend */
+.preference-legend {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin: 30px 0;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.preference-legend h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.preference-legend h3::before {
+    content: "❓";
+    font-size: 1.2rem;
+}
+
+.legend-items {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+
+.legend-label {
+    font-size: 0.9rem;
+    color: var(--foreground);
+}
+
+/* Completion Page */
+.completion-page {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.completion-header {
+    margin-bottom: 40px;
+}
+
+.completion-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.completion-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--foreground);
+}
+
+.completion-page p {
+    font-size: 1.1rem;
+    color: var(--muted-foreground);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+/* Floating Actions */
+.floating-actions {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: var(--transition);
+    z-index: 1000;
+    box-shadow: var(--shadow-md);
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+/* Utility Classes */
+.hidden {
+    display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .header {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px 20px;
+        gap: 20px;
+    }
+    
+    .header-content h1 {
+        font-size: 2rem;
+    }
+    
+    .header-graphic {
+        justify-content: center;
+    }
+    
+    .sticky-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .items-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .list-selector {
+        grid-template-columns: 1fr;
+    }
+    
+    .progress-stats {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .legend-items {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .export-buttons {
+        flex-direction: column;
+    }
+    
+    .floating-actions {
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .floating-actions .btn {
+        font-size: 12px;
+        padding: 10px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-content h1 {
+        font-size: 1.8rem;
+    }
+    
+    .btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+    
+    .category {
+        padding: 20px 15px;
+    }
+    
+    .kink-item {
+        padding: 15px;
+    }
+    
+    .preference-buttons {
+        justify-content: center;
+    }
+        /* Completion page specific styles */
+    .completion-page {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .completion-header {
+        margin-bottom: 40px;
+    }
+
+    .completion-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+    }
+
+    .completion-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: var(--foreground);
+    }
+
+    .completion-page p {
+        font-size: 1.1rem;
+        color: var(--muted-foreground);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+
+    .stats-container {
+        margin: 30px 0;
+    }
+
+    .stats {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .stat {
+        text-align: center;
+        padding: 16px;
+        background: var(--card);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        min-width: 100px;
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--foreground);
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--muted-foreground);
+        margin-top: 5px;
+    }
+
+    .controls {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+    /* Preference button styles with white outline for selected state */
+    .pref-btn {
+        padding: 8px 12px;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        transition: var(--transition);
+        opacity: 0.8;
+        min-width: 36px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+
+    .pref-btn:hover {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+
+    .pref-btn.active {
+        opacity: 1;
+        transform: scale(1.1);
+        box-shadow: var(--shadow-sm);
+        /* White outline for selected buttons */
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+        outline-offset: 2px;
+    }
+
+    /* Ensure the outline is visible on all preference colors */
+    .pref-favorite.active { 
+        background-color: var(--color-favorite); 
+        color: white; 
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .pref-like.active { 
+        background-color: var(--color-like); 
+        color: white; 
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .pref-indifferent.active { 
+        background-color: var(--color-indifferent); 
+        color: white; 
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .pref-maybe.active { 
+        background-color: var(--color-maybe); 
+        color: white; 
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .pref-limit.active { 
+        background-color: var(--color-limit); 
+        color: white; 
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    /* For light mode, use a darker outline */
+    .light .pref-btn.active {
+        outline: 2px solid rgba(0, 0, 0, 0.7);
+    }
+
+    .light .pref-favorite.active,
+    .light .pref-like.active,
+    .light .pref-indifferent.active,
+    .light .pref-maybe.active,
+    .light .pref-limit.active {
+        outline: 2px solid rgba(0, 0, 0, 0.7);
+    }
+}
+>>>>>>> parent of 86f1347 (Enhance KinkList Explorer Design)
