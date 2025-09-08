@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles/theme.css">
     <link rel="stylesheet" href="styles/main.css">
 </head>
-<body>
+<body class="dark">
     <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
         <span id="theme-icon">🌙</span>
     </button>
@@ -85,9 +85,7 @@
         // Initialize theme
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             
-            // Default to dark mode if no preference is saved
             if (savedTheme === 'light') {
                 document.body.classList.remove('dark');
                 document.getElementById('theme-icon').textContent = '🌙';
