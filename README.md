@@ -9,7 +9,7 @@
 
 A modern, interactive web app designed for degenerates who want to **explore, track, and share their personal preferences**—with style, efficiency, and full customization.  
 
-## ✨ Features  
+## 🚀 Features  
 
 * 🎯 **Multiple List Types** – Choose between Classic, Detailed, or Extended views  
 * 🌙 **Theme Toggle** – Instantly swap between Dark and Light modes  
@@ -19,13 +19,13 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
 * 🎨 **Polished UI** – Sleek, modern interface built for effortless navigation  
 
 
-## 🚀 How to Use  
+## 🛠️ How to Use  
 
 1. **Pick Your List Type** → Classic, Detailed, or Extended  
 2. **Set Your Preferences** → Click the color-coded buttons to mark your likes, dislikes, and everything in-between  
 3. **Export & Share** → Save as HTML or JSON to revisit or share with friends (or enemies 👀)  
 
-## 🛠️ Technical Details  
+## ⚡ Technical Details  
 
 * Built with **pure HTML, CSS, and JavaScript** (no frameworks, no nonsense)  
 * Uses **local storage** for quick saving  
