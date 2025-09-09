@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KinkList - Preferences</title>
+    <title>OmniKinkList - Preferences</title>
     <link rel="stylesheet" href="styles/theme.css">
     <link rel="stylesheet" href="styles/main.css">
 </head>
@@ -15,12 +15,12 @@
     <div class="container">
         <div class="sticky-header">
             <div class="header-content">
-                <h1>Your Kinklist</h1>
+                <h1>Your OmniKinklist</h1>
                 <p>Select your preferences for each item</p>
             </div>
             <div class="header-actions">
                 <a href="index.html" class="btn btn-icon" title="Back to list selection">
-                    <span>←</span>
+                    <span></span>
                 </a>
                 <button class="btn btn-secondary" id="reset-all">Reset All</button>
                 <button class="btn btn-primary" id="complete-export">Complete & Export</button>
@@ -67,8 +67,8 @@
                     <span class="legend-label">Maybe</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color pref-limit"></span>
-                    <span class="legend-label">Limit</span>
+                    <span class="legend-color pref-dislike"></span>
+                    <span class="legend-label">Dislike</span>
                 </div>
             </div>
         </div>
@@ -324,7 +324,7 @@
         }
 
         function renderPreferenceButtons(currentLevel) {
-            const levels = ['favorite', 'like', 'indifferent', 'maybe', 'limit'];
+            const levels = ['favorite', 'like', 'indifferent', 'maybe', 'dislike'];
             return levels.map(level => `
                 <button class="pref-btn pref-${level} ${currentLevel === level ? 'active' : ''}" 
                         data-level="${level}" 

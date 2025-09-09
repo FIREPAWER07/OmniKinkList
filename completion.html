@@ -105,7 +105,7 @@
                 like: 0,
                 indifferent: 0,
                 maybe: 0,
-                limit: 0
+                dislike: 0
             };
 
             Object.values(preferences).forEach(pref => {
@@ -138,8 +138,16 @@
                         <div class="stat-label">Likes</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-number">${stats.limit}</div>
-                        <div class="stat-label">Limits</div>
+                        <div class="stat-number">${stats.indifferent}</div>
+                        <div class="stat-label">Indifferent</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">${stats.maybe}</div>
+                        <div class="stat-label">Maybe</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">${stats.dislike}</div>
+                        <div class="stat-label">Dislikes</div>
                     </div>
                 </div>
             `;

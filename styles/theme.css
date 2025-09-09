@@ -19,47 +19,72 @@
     --color-like: #4ecdc4;
     --color-indifferent: #ffd93d;
     --color-maybe: #ff8c42;
-    --color-limit: #ff4757;
+    --color-dislike: #ff4757;
     --color-not-entered: #374151;
     
     /* New accent colors from image */
     --accent-pink: #ff6b9d;
-    --accent-teal: #4ecdc4;
     --accent-purple: #a55eea;
     --accent-orange: #ff8c42;
+    
+    /* Sticky header colors */
+    --sticky-header-bg: rgba(26, 26, 26, 0.95);
+    --sticky-header-bg-scrolled: rgba(26, 26, 26, 0.98);
 }
 
 .light {
-    --background: #ffffff;
-    --foreground: #0a0a0a;
-    --card: #f8f9fa;
-    --card-foreground: #0a0a0a;
-    --primary: #e91e63;
+    /* Pastel color scheme inspired by the image */
+    --background: linear-gradient(135deg, #f8c6ff 0%, #fff0fe 50%, #f8c6ff 100%);
+    --foreground: #2d3748;
+    --card: rgba(255, 255, 255, 0.8);
+    --card-foreground: #2d3748;
+    --primary: #ec4899;
     --primary-foreground: #ffffff;
-    --secondary: #f4f4f5;
-    --secondary-foreground: #18181b;
-    --muted: #f4f4f5;
-    --muted-foreground: #71717a;
-    --border: #e4e4e7;
-    --input: #e4e4e7;
-    --ring: #a1a1aa;
+    --secondary: rgba(243, 232, 255, 0.7);
+    --secondary-foreground: #553c9a;
+    --muted: rgba(243, 232, 255, 0.5);
+    --muted-foreground: #6b7280;
+    --border: rgba(219, 234, 254, 0.6);
+    --input: rgba(243, 232, 255, 0.7);
+    --ring: #c084fc;
     
-    --color-favorite: #e91e63;
-    --color-like: #26a69a;
-    --color-indifferent: #ffc107;
-    --color-maybe: #ff7043;
-    --color-limit: #f44336;
+    /* Pastel preference colors */
+    --color-favorite: #f472b6;
+    --color-like: #34d399;
+    --color-indifferent: #fbbf24;
+    --color-maybe: #fb923c;
+    --color-limit: #f87171;
     --color-not-entered: #e2e8f0;
     
-    /* Light mode accent colors */
-    --accent-pink: #e91e63;
-    --accent-teal: #26a69a;
-    --accent-purple: #9c27b0;
-    --accent-orange: #ff7043;
+    /* Pastel accent colors */
+    --primary: #ff6b9d;
+    --accent-teal: #34d399;
+    --accent-purple: #c084fc;
+    --accent-orange: #fb923c;
+    
+    /* Sticky header colors for light theme */
+    --sticky-header-bg: rgba(255, 255, 255, 0.85);
+    --sticky-header-bg-scrolled: rgba(255, 255, 255, 0.95);
 }
 
 /* Set dark mode as default */
 body {
-    background-color: var(--background);
+    background: var(--background);
     color: var(--foreground);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Light theme specific background */
+body.light {
+    background: var(--background);
+    background-attachment: fixed;
+}
+
+/* Theme transition effects */
+.theme-transitioning {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.theme-transitioning * {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }

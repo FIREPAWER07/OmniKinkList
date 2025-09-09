@@ -22,11 +22,12 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background-color: var(--background);
+    background: var(--background);
     color: var(--foreground);
     line-height: 1.6;
     min-height: 100vh;
     overflow-x: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Animated background elements */
@@ -39,11 +40,20 @@ body::before {
     height: 100%;
     background: 
         radial-gradient(circle at 20% 80%, rgba(255, 107, 157, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(180, 78, 205, 0.1) 0%, transparent 50%),
         radial-gradient(circle at 40% 40%, rgba(165, 94, 234, 0.05) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
     animation: backgroundFloat 20s ease-in-out infinite;
+    transition: opacity 0.4s ease;
+}
+
+/* Light theme background overlay */
+body.light::before {
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(244, 114, 182, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(52, 211, 153, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(192, 132, 252, 0.06) 0%, transparent 50%);
 }
 
 @keyframes backgroundFloat {
@@ -76,6 +86,7 @@ body::before {
     overflow: hidden;
     box-shadow: var(--shadow-xl);
     animation: headerGlow 3s ease-in-out infinite alternate;
+    transition: all 0.4s ease;
 }
 
 @keyframes headerGlow {
@@ -159,26 +170,39 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 40px; /* same as hover */
-    margin: 0 -20px 30px -20px; /* same as hover */
+    padding: 20px 40px;
+    margin: 0 -20px 30px -20px;
     border-bottom: 1px solid var(--border);
-    position: sticky;
     top: 0;
-    background: #1a1a1a;
+    background: var(--sticky-header-bg);
     z-index: 100;
     backdrop-filter: blur(10px);
-    transition: var(--transition);
-    transition: all 0.3s ease;
-    border-radius: var(--radius-lg); /* keep consistent */
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Sticky header when scrolled */
+.sticky-header.scrolled {
+    background: var(--sticky-header-bg-scrolled);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+/* Light theme sticky header adjustments */
+body.light .sticky-header {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+body.light .sticky-header.scrolled {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
 
 .sticky-header:hover {
-    background: var(--card);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     transform: scale(1.02);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
 }
-
 
 .sticky-header .header-content h1 {
     font-size: 1.8rem;
@@ -207,6 +231,8 @@ body::before {
     transition: var(--transition-slow);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .card::before {
@@ -324,7 +350,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     text-decoration: none;
     transition: var(--transition-slow);
@@ -335,18 +361,37 @@ body::before {
     overflow: hidden;
 }
 
-.btn-icon::before {
+.btn-icon span {
+    position: relative;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+}
+
+.btn-icon span::before {
     content: '';
     position: absolute;
     top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(255, 107, 157, 0.2);
-    border-radius: 50%;
-    transition: width 0.3s ease, height 0.3s ease;
-    transform: translate(-50%, -50%);
-    z-index: 0;
+    left: 2px;
+    width: 8px;
+    height: 2px;
+    background: currentColor;
+    transform: translateY(-50%);
+    border-radius: 1px;
+}
+
+.btn-icon span::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    border-top: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    transform: translateY(-50%) rotate(-135deg);
+    border-radius: 1px;
 }
 
 .btn-icon:hover::before {
@@ -360,6 +405,16 @@ body::before {
     color: var(--primary-foreground);
     border-color: var(--primary);
     box-shadow: var(--shadow-lg);
+}
+
+.btn-icon:hover span::before {
+    width: 10px;
+    left: 1px;
+}
+
+.btn-icon:hover span::after {
+    left: 1px;
+    transform: translateY(-50%) rotate(-135deg) scale(1.1);
 }
 
 .btn-icon:active {
@@ -426,6 +481,8 @@ body::before {
     gap: 12px;
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .list-type-btn::before {
@@ -488,6 +545,8 @@ body::before {
     transition: var(--transition-slow);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .progress-section::before {
@@ -497,7 +556,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, var(--accent-pink), var(--accent-teal), var(--accent-purple));
+    background: linear-gradient(90deg, var(--accent-pink), var(--accent-purple));
     animation: progressGlow 2s ease-in-out infinite alternate;
 }
 
@@ -549,7 +608,7 @@ body::before {
 }
 
 .progress-fill {
-    background: linear-gradient(90deg, var(--accent-pink), var(--accent-teal));
+    background: linear-gradient(90deg, var(--accent-pink), var(--accent-purple));
     height: 100%;
     transition: width 0.8s var(--bounce);
     border-radius: var(--radius-md);
@@ -596,6 +655,8 @@ body::before {
     transition: var(--transition-slow);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .stat::before {
@@ -648,6 +709,8 @@ body::before {
     transition: var(--transition-slow);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .category::before {
@@ -754,13 +817,15 @@ body::before {
 }
 
 .kink-item {
-    background: var(--background);
+    background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 20px;
     transition: var(--transition-slow);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .kink-item::before {
@@ -887,7 +952,7 @@ body::before {
 .pref-like { background-color: var(--color-like); color: white; }
 .pref-indifferent { background-color: var(--color-indifferent); color: white; }
 .pref-maybe { background-color: var(--color-maybe); color: white; }
-.pref-limit { background-color: var(--color-limit); color: white; }
+.pref-dislike { background-color: var(--color-dislike); color: white; }
 .pref-not-entered { background-color: var(--color-not-entered); color: var(--foreground); }
 
 /* Preference Legend */
@@ -901,6 +966,8 @@ body::before {
     transition: var(--transition-slow);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .preference-legend::before {
@@ -910,7 +977,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, var(--accent-pink), var(--accent-teal), var(--color-indifferent), var(--color-maybe), var(--color-limit));
+    background: linear-gradient(90deg, var(--accent-pink), var(--accent-purple));
     animation: legendGlow 3s ease-in-out infinite alternate;
 }
 
