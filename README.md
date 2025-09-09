@@ -1,5 +1,7 @@
 # 💗 OmniKinkList (By FIREPAWER07 and redboy4313) 💗
 
+![OmniKinkList Banner](https://i.imgur.com/qPC78QY.png)
+
 A modern, interactive web app designed for degenerates who want to **explore, track, and share their personal preferences**—with style, efficiency, and full customization.  
 
 
