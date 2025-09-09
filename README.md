@@ -1,4 +1,4 @@
-# 🔥 OmniKinkList 🔥 The BEST Kink List Explorer For Perverts~  
+# 💗 OmniKinkList (By FIREPAWER07 and redboy4313) 💗
 
 A modern, interactive web app designed for degenerates who want to **explore, track, and share their personal preferences**—with style, efficiency, and full customization.  
 
