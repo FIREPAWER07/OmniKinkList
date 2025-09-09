@@ -224,6 +224,9 @@ const exportUtils = {
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 0, 0, 0.5);
             position: relative;
             z-index: 4;
+            line-height: 1.1;
+            word-break: break-word;
+            hyphens: auto;
         }
 
         .header p {
@@ -232,6 +235,9 @@ const exportUtils = {
             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 0, 0, 0.4);
             position: relative;
             z-index: 4;
+            line-height: 1.3;
+            word-break: break-word;
+            hyphens: auto;
         }
         
         .promo-text {
@@ -241,6 +247,9 @@ const exportUtils = {
             position: relative;
             z-index: 4;
             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 0, 0, 0.4);
+            line-height: 1.4;
+            word-break: break-word;
+            hyphens: auto;
         }
         
         .promo-text a {
@@ -302,6 +311,7 @@ const exportUtils = {
             margin: 30px 0;
             justify-content: center;
             flex-wrap: wrap;
+            padding: 0 10px;
         }
         
         .stat {
@@ -311,6 +321,8 @@ const exportUtils = {
             border-radius: var(--radius-lg);
             border: 1px solid var(--border);
             min-width: 100px;
+            flex: 1;
+            max-width: 150px;
             transition: var(--transition-slow);
             position: relative;
             overflow: hidden;
@@ -405,10 +417,23 @@ const exportUtils = {
             transition: var(--transition);
             position: relative;
             z-index: 1;
+            cursor: pointer;
+            user-select: none;
+            padding: 8px;
+            margin: -8px -8px 12px -8px;
+            border-radius: var(--radius-md);
         }
 
         .category:hover .category-title {
             color: var(--primary);
+        }
+
+        .category-title:hover {
+            background: var(--muted);
+        }
+
+        .category-title:active {
+            transform: scale(0.98);
         }
 
         .category-title::before {
@@ -432,12 +457,48 @@ const exportUtils = {
             box-shadow: 0 0 10px rgba(255, 107, 157, 0.5);
         }
         
+        .category-toggle {
+            margin-left: auto;
+            font-size: 1.2rem;
+            transition: var(--transition);
+            color: var(--muted-foreground);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--muted);
+        }
+
+        .category-toggle:hover {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            transform: scale(1.1);
+        }
+
+        .category.collapsed .category-toggle {
+            transform: rotate(180deg);
+        }
+
+        .category.collapsed .category-toggle:hover {
+            transform: rotate(180deg) scale(1.1);
+        }
         .items-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 15px;
             position: relative;
             z-index: 1;
+            transition: var(--transition-slow);
+            overflow: hidden;
+        }
+
+        .category.collapsed .items-grid {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+            padding-top: 0;
         }
         
         .item {
@@ -451,6 +512,8 @@ const exportUtils = {
             overflow: hidden;
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
+            word-break: break-word;
+            hyphens: auto;
         }
 
         .item::before {
@@ -481,6 +544,9 @@ const exportUtils = {
             position: relative;
             z-index: 1;
             transition: var(--transition);
+            word-break: break-word;
+            hyphens: auto;
+            line-height: 1.3;
         }
 
         .item:hover .item-name {
@@ -494,6 +560,8 @@ const exportUtils = {
             line-height: 1.4;
             position: relative;
             z-index: 1;
+            word-break: break-word;
+            hyphens: auto;
         }
         
         .preference {
@@ -527,6 +595,7 @@ const exportUtils = {
             margin-top: 8px;
             position: relative;
             z-index: 1;
+            align-items: flex-start;
         }
         
         .dual-label {
@@ -534,6 +603,8 @@ const exportUtils = {
             color: var(--muted-foreground);
             margin-right: 5px;
             font-weight: 500;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         
         @media (max-width: 768px) {
@@ -543,42 +614,313 @@ const exportUtils = {
             
             .header {
                 padding: 30px 20px;
+                margin-bottom: 30px;
+                aspect-ratio: 2 / 1;
+                min-height: 180px;
             }
 
             .header h1 {
-                font-size: 2rem;
+                font-size: 2.2rem;
+                margin-bottom: 8px;
+            }
+
+            .header p {
+                font-size: 1.2rem;
+            }
+
+            .promo-text {
+                font-size: 1.1rem;
+                margin-top: 15px;
+                padding: 0 10px;
             }
             
             .stats {
-                flex-direction: column;
-                align-items: center;
+                gap: 10px;
+                margin: 20px 0;
+                padding: 0 5px;
+            }
+
+            .stat {
+                padding: 15px 10px;
+                min-width: 80px;
+                max-width: none;
+                flex: 1;
             }
             
             .items-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 12px;
             }
 
             .category {
                 padding: 20px 15px;
+                margin: 20px 0;
+            }
+
+            .category-title {
+                font-size: 1.3rem;
+                margin-bottom: 15px;
             }
 
             .item {
                 padding: 15px;
             }
+
+            .dual-prefs {
+                gap: 8px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .dual-prefs > div {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .preference {
+                font-size: 0.75rem;
+                padding: 3px 10px;
+            }
+
+            .theme-toggle {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+                top: 15px;
+                right: 15px;
+            }
         }
 
         @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 0;
+            }
+
+            .header {
+                padding: 25px 15px;
+                margin-bottom: 25px;
+                aspect-ratio: 1.5 / 1;
+                min-height: 160px;
+            }
+
             .header h1 {
                 font-size: 1.8rem;
+                margin-bottom: 6px;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .promo-text {
+                font-size: 0.95rem;
+                margin-top: 12px;
+                padding: 0 5px;
+            }
+
+            .stats {
+                gap: 8px;
+                margin: 15px 0;
+                padding: 0;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
             }
 
             .stat {
-                min-width: 80px;
-                padding: 15px;
+                min-width: 70px;
+                max-width: none;
+                padding: 12px 8px;
+                flex: none;
             }
 
             .stat-number {
                 font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+                line-height: 1.2;
+            }
+
+            .items-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .category {
+                padding: 15px 10px;
+                margin: 15px 0;
+            }
+
+            .category-title {
+                font-size: 1.2rem;
+                margin-bottom: 12px;
+            }
+
+            .item {
+                padding: 12px;
+            }
+
+            .item-name {
+                font-size: 0.95rem;
+                margin-bottom: 6px;
+            }
+
+            .item-description {
+                font-size: 0.85rem;
+                margin-bottom: 10px;
+            }
+
+            .dual-label {
+                font-size: 0.75rem;
+                margin-right: 3px;
+            }
+
+            .preference {
+                font-size: 0.7rem;
+                padding: 2px 8px;
+                margin: 1px;
+            }
+
+            .theme-toggle {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+                top: 10px;
+                right: 10px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .header h1 {
+                font-size: 1.6rem;
+            }
+
+            .header p {
+                font-size: 0.9rem;
+            }
+
+            .promo-text {
+                font-size: 0.85rem;
+            }
+
+            .stats {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
+
+            .stat {
+                padding: 10px 6px;
+            }
+
+            .stat-number {
+                font-size: 1.3rem;
+            }
+
+            .stat-label {
+                font-size: 0.7rem;
+            }
+
+            .category {
+                padding: 12px 8px;
+            }
+
+            .item {
+                padding: 10px;
+            }
+
+            .item-name {
+                font-size: 0.9rem;
+            }
+
+            .item-description {
+                font-size: 0.8rem;
+            }
+
+            .preference {
+                font-size: 0.65rem;
+                padding: 2px 6px;
+            }
+        }
+
+        /* Landscape phone orientation */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .header {
+                aspect-ratio: 3 / 1;
+                min-height: 120px;
+                padding: 20px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .promo-text {
+                font-size: 0.9rem;
+                margin-top: 10px;
+            }
+
+            .stats {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .stat {
+                flex: 0 1 auto;
+                min-width: 70px;
+                max-width: 100px;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .theme-toggle {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .item {
+                padding: 18px;
+            }
+
+            .preference {
+                padding: 6px 12px;
+                margin: 3px;
+                min-height: 28px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .dual-prefs > div {
+                margin-bottom: 5px;
+            }
+        }
+
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .header {
+                background-size: cover;
+            }
+
+            .item-name,
+            .item-description,
+            .category-title {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
             }
         }
 
@@ -650,7 +992,10 @@ const exportUtils = {
             
             return `
             <div class="category">
-                <h2 class="category-title">${category.name}</h2>
+                <h2 class="category-title" onclick="toggleCategory(this)">
+                    ${category.name}
+                    <span class="category-toggle">▼</span>
+                </h2>
                 <div class="items-grid">
                     ${categoryItems.map(item => {
                         const pref = preferences[item.name];
@@ -719,6 +1064,41 @@ const exportUtils = {
         document.addEventListener('DOMContentLoaded', function() {
             initTheme();
             document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        });
+
+        // Category toggle functionality
+        function toggleCategory(titleElement) {
+            const category = titleElement.parentElement;
+            category.classList.toggle('collapsed');
+            
+            // Save collapsed state to localStorage
+            const categoryName = titleElement.textContent.trim().replace('▼', '').replace('▲', '');
+            const collapsedCategories = JSON.parse(localStorage.getItem('kinklist-collapsed-categories') || '[]');
+            
+            if (category.classList.contains('collapsed')) {
+                if (!collapsedCategories.includes(categoryName)) {
+                    collapsedCategories.push(categoryName);
+                }
+            } else {
+                const index = collapsedCategories.indexOf(categoryName);
+                if (index > -1) {
+                    collapsedCategories.splice(index, 1);
+                }
+            }
+            
+            localStorage.setItem('kinklist-collapsed-categories', JSON.stringify(collapsedCategories));
+        }
+
+        // Restore collapsed state on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const collapsedCategories = JSON.parse(localStorage.getItem('kinklist-collapsed-categories') || '[]');
+            
+            document.querySelectorAll('.category-title').forEach(title => {
+                const categoryName = title.textContent.trim().replace('▼', '').replace('▲', '');
+                if (collapsedCategories.includes(categoryName)) {
+                    title.parentElement.classList.add('collapsed');
+                }
+            });
         });
     </script>
 </body>
