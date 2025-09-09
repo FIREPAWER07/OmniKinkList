@@ -1,4 +1,4 @@
-# Kink List Data Structure
+# Kink List Data Structure (Shared.js)
 
 This document explains how the kink list data is structured and how to add new kinks to the system.
 
