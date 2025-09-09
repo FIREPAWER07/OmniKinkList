@@ -1,4 +1,4 @@
-# 💗 OmniKinkList (By FIREPAWER07 and redboy4313) 💗
+# 💗 OmniKinkList (By [FIREPAWER07](https://github.com/FIREPAWER07) and [redboy4313](https://github.com/redboy4313)) 💗
 
 ![OmniKinkList Banner](https://i.imgur.com/qPC78QY.png)
 
