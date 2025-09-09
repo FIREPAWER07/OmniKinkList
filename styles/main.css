@@ -38,9 +38,9 @@ body::before {
     width: 100%;
     height: 100%;
     background: 
-        radial-gradient(circle at 20% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+        radial-gradient(circle at 20% 80%, rgba(255, 107, 157, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(165, 94, 234, 0.05) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
     animation: backgroundFloat 20s ease-in-out infinite;
@@ -66,8 +66,9 @@ body::before {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 40px;
-    padding: 40px;
-    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%);
+    padding: 0;
+    background: url('../images/Bdsm_test_logo_wip_1.png') center/cover no-repeat;
+    min-height: 300px;
     border-radius: var(--radius-xl);
     color: white;
     position: relative;
@@ -76,9 +77,20 @@ body::before {
     animation: headerGlow 3s ease-in-out infinite alternate;
 }
 
+.header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 107, 157, 0.8) 0%, rgba(165, 94, 234, 0.8) 50%, rgba(78, 205, 196, 0.8) 100%);
+    z-index: 1;
+}
+
 @keyframes headerGlow {
-    0% { box-shadow: var(--shadow-xl); }
-    100% { box-shadow: var(--shadow-xl), var(--shadow-glow); }
+    0% { box-shadow: var(--shadow-xl), 0 0 30px rgba(255, 107, 157, 0.3); }
+    100% { box-shadow: var(--shadow-xl), 0 0 50px rgba(255, 107, 157, 0.5); }
 }
 
 .header::before {
@@ -91,12 +103,19 @@ body::before {
     background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
     animation: headerShine 4s ease-in-out infinite;
     pointer-events: none;
+    z-index: 2;
 }
 
 @keyframes headerShine {
     0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
     50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
     100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+}
+
+.header-content {
+    position: relative;
+    z-index: 3;
+    padding: 40px;
 }
 
 .header-content h1 {
@@ -122,6 +141,9 @@ body::before {
 .header-graphic {
     display: flex;
     gap: 12px;
+    position: relative;
+    z-index: 3;
+    padding: 40px;
 }
 
 .graphic-circle {
@@ -201,7 +223,7 @@ body::before {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 107, 157, 0.1), transparent);
     transition: left 0.5s ease;
 }
 
@@ -288,11 +310,11 @@ body::before {
 .btn-primary {
     background-color: var(--primary);
     color: var(--primary-foreground);
-    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+    box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
 }
 
 .btn-primary:hover {
-    box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4);
+    box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4);
 }
 
 .btn-secondary {
@@ -375,7 +397,7 @@ body::before {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 107, 157, 0.1), transparent);
     transition: left 0.6s ease;
 }
 
@@ -437,7 +459,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, var(--primary), var(--color-favorite), var(--color-like));
+    background: linear-gradient(90deg, var(--accent-pink), var(--accent-teal), var(--accent-purple));
     animation: progressGlow 2s ease-in-out infinite alternate;
 }
 
@@ -489,7 +511,7 @@ body::before {
 }
 
 .progress-fill {
-    background: linear-gradient(90deg, var(--color-favorite), var(--color-like));
+    background: linear-gradient(90deg, var(--accent-pink), var(--accent-teal));
     height: 100%;
     transition: width 0.8s var(--bounce);
     border-radius: var(--radius-md);
@@ -597,7 +619,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 107, 157, 0.05) 0%, transparent 50%);
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
@@ -610,7 +632,7 @@ body::before {
 .category:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-xl);
-    border-color: rgba(168, 85, 247, 0.3);
+    border-color: rgba(255, 107, 157, 0.3);
 }
 
 .category-header {
@@ -640,7 +662,7 @@ body::before {
     width: 12px;
     height: 12px;
     border-radius: 4px;
-    background: linear-gradient(135deg, #8b5cf6, #a855f7);
+    background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
     transition: var(--transition);
     animation: titleDot 2s ease-in-out infinite;
 }
@@ -652,7 +674,7 @@ body::before {
 
 .category:hover .category-title::before {
     transform: scale(1.3);
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 10px rgba(255, 107, 157, 0.5);
 }
 
 .category-description {
@@ -681,7 +703,7 @@ body::before {
 }
 
 .category:hover .subcategory-title {
-    border-left-color: var(--color-favorite);
+    border-left-color: var(--accent-teal);
     padding-left: 15px;
 }
 
@@ -710,7 +732,7 @@ body::before {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.05), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 107, 157, 0.05), transparent);
     transition: left 0.5s ease;
 }
 
@@ -850,7 +872,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, var(--color-favorite), var(--color-like), var(--color-indifferent), var(--color-maybe), var(--color-limit));
+    background: linear-gradient(90deg, var(--accent-pink), var(--accent-teal), var(--color-indifferent), var(--color-maybe), var(--color-limit));
     animation: legendGlow 3s ease-in-out infinite alternate;
 }
 
@@ -974,7 +996,7 @@ body::before {
 
 @keyframes titleGlow {
     0% { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-    100% { text-shadow: 0 2px 4px rgba(168, 85, 247, 0.3); }
+    100% { text-shadow: 0 2px 4px rgba(255, 107, 157, 0.3); }
 }
 
 .completion-page p {
@@ -1110,8 +1132,13 @@ body::before {
     .header {
         flex-direction: column;
         text-align: center;
-        padding: 30px 20px;
+        min-height: 250px;
         gap: 20px;
+    }
+    
+    .header-content,
+    .header-graphic {
+        padding: 20px;
     }
     
     .header-content h1 {
@@ -1172,6 +1199,15 @@ body::before {
 }
 
 @media (max-width: 480px) {
+    .header {
+        min-height: 200px;
+    }
+    
+    .header-content,
+    .header-graphic {
+        padding: 15px;
+    }
+    
     .header-content h1 {
         font-size: 1.8rem;
     }
