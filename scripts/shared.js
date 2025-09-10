@@ -1,1446 +1,1007 @@
+// Kink list data and parsing functionality
+
 // Category explanations
 const categoryExplanations = {
-    "Bodies": "Physical attributes and body type preferences, including size preferences for various body parts.",
-    "Clothing": "Attire, garments, and dress-up preferences that enhance or are part of sexual scenarios.",
-    "Roles & Dynamics": "Character roles, gender expressions, and power dynamics in sexual scenarios.",
-    "Group Scenarios": "Partner configurations and group dynamics for sexual encounters.",
-    "General": "Basic sexual activities, romantic interactions, and fundamental intimate acts.",
-    "Ass play": "Activities focused on anal stimulation, penetration, and related practices.",
-    "Restrictive": "Bondage, restraints, and activities that limit movement or control.",
-    "Toys": "Sex toys, devices, and implements used for sexual stimulation and play.",
-    "Domination": "Power exchange dynamics, control scenarios, and dominance/submission activities.",
-    "No consent": "Fantasy scenarios involving non-consensual elements (fantasy only, not real consent violations).",
-    "Taboo": "Socially forbidden or unconventional scenarios and relationship dynamics.",
-    "Fluids": "Activities involving various bodily fluids and related fetishes.",
-    "Degradation": "Humiliation, verbal abuse, and activities focused on psychological dominance.",
-    "Touch & Stimulation": "Various forms of physical contact, sensation play, and stimulation techniques.",
-    "Misc. Fetish": "Diverse fetishes and kinks that don't fit into other specific categories.",
-    "Pain": "Activities involving physical discomfort, impact play, and pain-based stimulation.",
-    "Meta": "Roleplay preferences, writing styles, and communication preferences for scenes.",
-    "Surrealism": "Fantasy elements, supernatural scenarios, and non-realistic character types.",
-    "Medium": "Communication platforms and methods for engaging in roleplay or sexual communication.",
-    "Time-Scale": "Response timing expectations and scene duration preferences for roleplay."
+    "General": "Basic kinks and fetishes that are commonly explored.",
+    "Toys": "Various toys and implements used in intimate activities.",
+    "Clothing": "Clothing-related fetishes and preferences.",
+    "Roleplay": "Different scenarios and character-based activities.",
+    "Bondage": "Restraint and control-based activities.",
+    "Pain": "Activities involving various levels of physical sensation.",
+    "Taboo": "More extreme or unconventional preferences.",
+    "Romantic": "Intimate and emotionally connected activities.",
+    "Locations": "Different settings and environments for activities.",
+    "Misc": "Other preferences that don't fit into standard categories."
 };
 
-// Kinklist data (embedded)
+// Kink list data for different versions
 const kinklistData = {
-    classic: `#Bodies
-(Small, Large)
-* Breasts
-? Expresses an interest in breasts that are particularly small, sometimes to the point of appearing absent or particularly large.
-* Cocks
-? Expresses an interest in cocks that are below average size or above average size.
-* Butts
-? Expresses an interest in butts that are particularly small or particularly large.
-(General)
-* Skinny
-? Expresses an interest in characters that are waifish, thin, or slender.
-* Chubby
-? Expresses an interest in characters that are well-rounded, full in form, and pudgy.
-* Muscular
-? Expresses an interest in well-defined, athletic physiques.
-* Curvy
-? Expresses an interest in pronounced body curves and fuller figures.
-
-#Clothing
-(Self, Partner)
-* Clothed sex
-? Engaging in sexual activity while you and/or your partner remain partially or fully dressed.
-* Lingerie
-? Expresses an interest in the inclusion of lingerie in sexual contexts.
-* Stockings
-? Expresses an interest in the inclusion of stockings in sexual contexts.
-* Heels
-? Expresses an interest in the inclusion of high heeled shoes in sexual contexts.
-* Leather
-? Expresses an interest in the inclusion of leather clothing in sexual contexts.
-* Latex
-? The usage of latex and/or rubber material worn as clothing.
-* Uniform / costume
-? Expresses an interest in the inclusion of uniforms or costumes in sexual contexts.
-* Cross-dressing
-? Engaging in scenarios where one or more participants dress in clothes typically associated with a different gender.
-* Corsets
-? Structured undergarments that shape and support the torso.
-* Boots
-? Interest in boots as part of sexual play or aesthetic.
-
-#Roles & Dynamics
-(General)
-* Playing as Male
-? Taking on the role of a male character in sexual scenarios.
-* Playing as Female
-? Taking on the role of a female character in sexual scenarios.
-* Playing as Femboy
-? Taking on the role of a feminine male character.
-* Playing as Futa
-? Taking on the role of a character with both male and female characteristics.
-* Playing as MtF trans
-? Taking on the role of a male-to-female transgender character.
-* Playing as FtM trans
-? Taking on the role of a female-to-male transgender character.
-* Playing as Celebrity
-? Role-playing as famous personalities or public figures.
-* Being Dominant
-? Taking control and leading sexual encounters and dynamics.
-* Being Submissive
-? Following commands and being led in sexual encounters and dynamics.
-* Being a Switch
-? Alternating between dominant and submissive roles depending on the situation.
-
-#Group Scenarios
-(General)
-* One-on-One (Male Partner)
-? Sexual scenarios involving you and one male partner.
-* One-on-One (Female Partner)
-? Sexual scenarios involving you and one female partner.
-* One-on-One (MtF Trans Partner)
-? Sexual scenarios involving you and one male-to-female transgender partner.
-* One-on-One (FtM Trans Partner)
-? Sexual scenarios involving you and one female-to-male transgender partner.
-* Threesome (?MF)
-? Sexual scenarios involving you one male, and one female.
-* Threesome (?MM)
-? Sexual scenarios involving you and two males.
-* Threesome (?FF)
-? Sexual scenarios involving you and two females.
-* Group Sex / Orgy
-? Sexual scenarios involving multiple participants of various genders.
-
+    classic: `
 #General
-(Giving, Receiving)
-* Romance / Affection
-? Displaying or expressing love or strong affection, passion, either during intimate moments or during normal interactions.
-* Handjob / Fingering
-? Sexual stimulation by direct, physical contact of the hands or fingers to the genitals.
-* Blowjob
-? Sexual stimulation by direct, physical contact of the mouth or tongue to male genitals.
-* Deep throat
-? The act of oral penetration to the depths where it enters the back of the mouth cavity and/or throat.
-* Swallowing
-? The act of orally consuming semen, either directly or indirectly.
-* Facials
-? The act of ejaculating directly onto one's face.
-* Cunnilingus
-? Sexual stimulation by direct, physical contact of the mouth or tongue to female genitals.
-* Face-sitting
-? A sexual practice where someone sits on another's face with their buttocks or genitals.
-* Edging
-? Keeping on the edge of climax without reaching orgasm.
-* Teasing
-? Extended scenes of foreplay prior to explicit sexual activity, which may be physical and/or verbal.
-* Mutual masturbation
-? Partners stimulating themselves while watching each other.
-* 69
-? Simultaneous oral stimulation between partners where both give and receive.
-* Kissing
-? Intimate lip contact and tongue play between partners.
-* Making out
-? Extended passionate kissing and intimate touching.
+* Anal play
+? Activities involving anal stimulation and penetration.
+@ Giving,Receiving
 
-#Ass play
-(Giving, Receiving)
-* Anal toys
-? The inclusion of anal penetration with sex toys, including dildos, vibrators, anal beads, etc.
-* Anal sex/pegging
-? Being penetrated by a partner, with a penis or strap-on.
-* Rimming
-? The act of giving oral stimulation to a partner's anus.
-* Double penetration
-? The act of penetrating multiple orifices simultaneously.
-* Anal fisting
-? The act of inserting one's hand(s) and/or arm(s) into one's partner's anus.
-* Anal training
-? Gradual preparation and stretching for anal activities.
+* Oral sex
+? Various forms of oral stimulation.
+@ Giving,Receiving
 
-#Restrictive
-(Self, Partner)
-* Gag
-? The act of placing an object in someone's mouth to restrict speech and breathing.
-* Collar
-? Wearing a collar around the neck as a symbol of submission or aesthetic choice.
-* Leash
-? Being led around on a leash, often in conjunction with collar play.
-* Chastity
-? Sexual abstinence, either willing or forced, sometimes involving devices that prevent sexual activity.
-* Bondage (Light)
-? The use of restraints that are mild or moderate in intensity and duration.
-* Bondage (Heavy)
-? The use of restraints that are extreme in position, duration, discomfort, or immobilization.
-* Encasement
-? Having one's whole body wrapped up in latex, sleepsacks, or other restrictive materials.
-* Rope bondage
-? The art of restraining using rope in decorative and functional patterns.
-* Handcuffs
-? Metal restraints typically used on wrists or ankles.
+* Spanking
+? Light to moderate impact play using hands.
+@ Giving,Receiving
+
+* Hair pulling
+? Tugging or pulling hair during intimate moments.
+
+* Dirty talk
+? Verbal communication during intimate activities.
 
 #Toys
-(Self, Partner)
-* Dildos
-? Objects shaped like genitals used for sexual stimulation.
-* Plugs
-? Sex toys designed to be inserted and remain in place.
 * Vibrators
-? Vibrating devices used for sexual stimulation.
-* Sounding
-? The act of inserting smooth rods into the urethra.
-* Cock rings
-? Rings worn around the base of the penis to maintain erection.
-* Ben wa balls
-? Small weighted balls inserted vaginally for stimulation.
+? Electronic devices for stimulation.
 
-#Domination
-(As Dominant, As Submissive)
-* General Dom / General Sub
-? Catchall for Dominant/Submissive activities and dynamics.
-* Domestic servitude
-? Being served by or serving as a butler, maid, or other service role.
-* Slavery
-? Serving at someone's complete command without choice in the matter.
-* Pet play
-? Role play where the focus is on entering the mindset of a different species.
-* DD/lg, MD/lb
-? Daddy/Mommy Dom and Little Girl/Boy dynamics focusing on care and guidance.
-* Discipline
-? The use of rewards and punishments to train obedience to commands.
-* Begging
-? The act of pleading as a form of submission.
-* Forced orgasm
-? Consensual play where a person is made to orgasm beyond their control.
-* Orgasm control
-? The dominant controlling when the submissive achieves orgasm.
-* Orgasm denial
-? The dominant denying the submissive orgasm entirely.
-* Power exchange
-? A relationship dynamic with service and control at its core.
-* Worship
-? Showing reverence and adoration for a partner or specific body parts.
+* Dildos
+? Non-vibrating penetrative toys.
 
-#No consent
-(Aggressor, Target)
-* Dubious consent
-? Situations where one partner's consent is questionable though not outright refused.
-* Non-con / rape
-? Taking or being taken against one's will, often through force (fantasy only).
-* Blackmail / coercion
-? Using threats or pressure to obtain sexual compliance.
-* Kidnapping
-? The act of abducting someone for sexual purposes (fantasy only).
-* Drugs
-? The use of substances to alter mental state in sexual contexts.
-* Alcohol
-? The use of alcohol to lower inhibitions or alter mental state.
-* Sleep play
-? Engaging in sexual acts with an unconscious or sleeping partner.
-* Intoxication play
-? Sexual activity while under the influence of substances.
+* Butt plugs
+? Toys designed for anal play.
+@ Small,Medium,Large
 
-#Taboo
-(General)
-* Incest
-? Sexual activity between family members (fantasy only).
-* Age Gap
-? Significant differences in age between partners (all participants adult).
-* Interracial
-? Sexual interactions between people of different races without relying on stereotypes.
-* Raceplay
-? Sexual scenarios that incorporate racial elements or stereotypes.
-* Bestiality
-? Sexual activity with animals (fantasy only).
-* Necrophilia
-? Sexual activity with the deceased (fantasy only).
-* Cheating
-? Infidelity scenarios where one or both partners are unfaithful.
-* Exhibitionism
-? Sexual activity in public or semi-public settings.
-* Voyeurism
-? Deriving sexual pleasure from watching others in intimate situations.
-* Public sex
-? Sexual activity in public spaces with risk of being seen.
-
-#Fluids
-(General)
-* Blood
-? The inclusion of blood in sexual contexts.
-* Watersports
-? The inclusion of urine in sexual activities.
-* Scat
-? The inclusion of fecal matter in sexual activities.
-* Lactation
-? The production and consumption of breast milk in sexual contexts.
-* Diapers
-? Sexual scenarios involving the wearing of diapers.
-* Cum play
-? Various activities focused on semen.
-* Saliva/Spit
-? Sexual play involving saliva or spitting.
-* Squirting
-? Female ejaculation during sexual activity.
-* Amniotic fluid
-? The inclusion of amniotic fluid in sexual contexts.
-
-#Degradation
-(Giving, Receiving)
-* Glory hole
-? Sexual activity through a barrier with anonymous partners.
-* Name calling
-? Using derogatory terms as part of sexual play.
-* Humiliation
-? Causing embarrassment as a form of sexual gratification.
-* Verbal abuse
-? Using harsh language as part of sexual dynamics.
-* Public humiliation
-? Embarrassment in front of others as part of sexual play.
-
-#Touch & Stimulation
-(Actor, Subject)
-* Cock/Pussy worship
-? Focused attention and reverence for genitalia.
-* Ass worship
-? Focused attention and reverence for buttocks.
-* Foot play
-? Incorporating feet into sexual activities.
-* Tickling
-? Using tickling as a form of sexual stimulation.
-* Sensation play
-? Using various sensations to arouse and stimulate.
-* Electro stimulation
-? Using electrical current for sexual stimulation.
-* Temperature play
-? Using hot and cold sensations for sexual stimulation.
-* Massage
-? Therapeutic and sensual touching for relaxation and arousal.
-
-#Misc. Fetish
-(Giving, Receiving)
-* Fisting
-? Inserting a hand or fist into body cavities.
-* Gangbang
-? Multiple partners engaging with a single person.
-* Breath play
-? Controlling breathing for sexual enhancement.
-* Impregnation
-? The fantasy or act of causing pregnancy.
-* Pregnancy
-? Sexual attraction to pregnant individuals.
-* Feminization
-? Making someone adopt traditionally feminine characteristics.
-* Cuckold / Cuckquean
-? Watching one's partner with someone else.
-* Shaving
-? Removing body hair as part of sexual play.
-* Medical play
-? Role playing medical scenarios and procedures.
-* Age play
-? Role playing different ages (all participants adult).
-* Gore
-? Fetishism involving the use or depiction of blood or bodily fluids.
-* Birth
-? Fetishism involving the act of giving birth or witnessing it.
-* Feet
-? Fetishism involving the feet.
-
-#Pain
-(Giving, Receiving)
-* Light pain
-? Mild physical discomfort for sexual enhancement.
-* Heavy pain
-? Intense physical discomfort for sexual enhancement.
-* Nipple clamps
-? Devices that apply pressure to nipples.
-* Clothes pins
-? Using clothespins to pinch skin.
-* Caning
-? Striking with a flexible cane.
-* Flogging
-? Striking with whips, floggers, or similar implements.
-* Gagging / Choking
-? Restricting breathing or causing gag reflex.
-* Beating
-? Striking with fists or objects.
-* Spanking
-? Striking the buttocks for sexual pleasure.
-* Cock/Pussy slapping
-? Striking genitalia for sexual stimulation.
-* Cock/Pussy torture
-? Causing pain to genitalia for sexual purposes.
-* Hot Wax
-? Using heated wax for sexual stimulation.
-* Scratching
-? Using nails or claws to mark skin.
-* Biting
-? Using teeth to cause sensation or pain.
-* Cutting
-? Making small cuts for sexual purposes.
-* Needle play
-? Using needles for sensation or pain.
-
-#Meta
-(Self, Partner)
-* First Person
-* Third Person
-* Short Post Length (~1-3 sentences)
-* Medium Post Length (~3-7 sentences)
-* Long Post Length (~2-4 paragraphs)
-* Story (3+ paragraphs)
-* Dynamic Post Length
-
-#Surrealism
-(Self, Partner)
-* Futanari/Futa
-? characters who have an overall feminine body, but have both female and male genitalia (although testicles are not always present)
-* Furry
-? Anthropomorphic animal characters.
-* Vore
-? The act of physically consuming another character
-* Transformation
-? The act of causing the physical characteristics of a participant of an RP, possibly including one's self, by magical or chemical means, to change in a dramatic fashion; may refer to a myriad of different types of transformations, and connotates receiving sexual pleasure from the act of transformation itself.
-* Tentacles
-? Engaging in an RP in which self-sentient tentacles or tentacle-like appendages will penetrate a character; often implies multiple penetration.
-* Monster or Alien
-? Various types of monsters, Extraterrestrials, and aesthetically challenging characters.
-* Ghost
-? The formerly living, not currently in posession of a body
-* Shapeshifting
-? Characters with the ability to change their physical form at will, including species, gender, or body parts.
-* Size Play (Macro/Micro)
-? Scenarios involving dramatic size differences between characters, from giant to tiny proportions.
-* Multiple Limbs
-? Characters with additional arms, legs, or other appendages beyond normal human anatomy.
-* Elemental Beings
-? Characters made of or controlling elements like fire, water, earth, air, or other natural forces.
-* Cyborgs/Androids
-? Characters that are part machine, artificial intelligence, or robotic beings with human-like qualities.
-* Vampires/Supernatural
-? Immortal beings, vampires, werewolves, and other classic supernatural creatures.
-* Mythical Creatures
-? Dragons, phoenixes, unicorns, and other creatures from mythology and fantasy.
-* Plant/Nature Beings
-? Characters that are plant-based, tree-like, or have botanical characteristics.
-* Energy Beings
-? Characters made of pure energy, light, or other non-physical substances.
-
-#Medium
-(General)
-* Skype
-* Kik
-* Reddit
-* E-Mail
-* Discord
-* Other
-* Telegram
-? Secure messaging platform with advanced features for private communication.
-* WhatsApp
-? Popular mobile messaging application for text and voice communication.
-* Signal
-? Privacy-focused messaging app with end-to-end encryption.
-* Steam
-? Gaming platform with built-in messaging and chat features.
-* Twitter/X DMs
-? Direct messaging through Twitter/X social media platform.
-* Instagram DMs
-? Direct messaging through Instagram social media platform.
-* Snapchat
-? Mobile app focused on disappearing messages and multimedia sharing.
-* Facebook Messenger
-? Facebook's dedicated messaging platform for text and video communication.
-* Forums/Boards
-? Traditional forum-style communication with threaded discussions.
-* Custom Platforms
-? Specialized roleplay websites and custom communication tools.
-
-#Time-Scale
-(Self, Partner)
-* Short-Term Scenes
-* Medium-Term Scenes
-* Long-Term Scenes
-* Ultra-Quick Replies (0~5 mins)
-? Immediate responses expected within minutes for rapid-fire roleplay.
-* Quick Replies (0~10 mins)
-* Fast Replies (10~30 mins)
-* Normal Replies (30min ~ 2hours)
-* Slow Replies (2~8 hours)
-* Glacial Replies (8-24 hours)
-* Occasional Replies (24+ hours)
-* Weekly Replies (1~7 days)
-? Responses expected within a week, suitable for detailed, thoughtful posts.
-* Monthly Replies (Weeks to months)
-? Very slow-paced roleplay with responses every few weeks to months.
-* Seasonal Replies (Months between)
-? Extremely slow-paced with responses separated by months, for epic long-term stories.
-* Real-time Sessions
-? Live, synchronous roleplay sessions with immediate back-and-forth interaction.
-* Flexible Timing
-? No set expectations, responses when convenient for both parties.`,
-
-    detailed: `#Bodies
-(Small, Large)
-* Breasts
-? Expresses an interest in breasts that are particularly small, sometimes to the point of appearing absent or particularly large.
-* Cocks
-? Expresses an interest in cocks that are below average size or above average size.
-* Butts
-? Expresses an interest in butts that are particularly small or particularly large.
-(General)
-* Skinny
-? Expresses an interest in characters that are waifish, thin, or slender.
-* Chubby
-? Expresses an interest in characters that are well-rounded, full in form, and pudgy.
-* Muscular
-? Expresses an interest in well-defined, athletic physiques.
-* Curvy
-? Expresses an interest in pronounced body curves and fuller figures.
+* Handcuffs
+? Restraint devices for wrists.
 
 #Clothing
-(Self, Partner)
-* Clothed sex
-? Engaging in sexual activity while you and/or your partner remain partially or fully dressed.
 * Lingerie
-? Expresses an interest in the inclusion of lingerie in sexual contexts.
-* Stockings
-? Expresses an interest in the inclusion of stockings in sexual contexts.
-* Heels
-? Expresses an interest in the inclusion of high heeled shoes in sexual contexts.
+? Sexy undergarments and intimate apparel.
+@ Wearing,Partner wearing
+
 * Leather
-? Expresses an interest in the inclusion of leather clothing in sexual contexts.
-* Latex
-? The usage of latex and/or rubber material worn as clothing.
-* Uniform / costume
-? Expresses an interest in the inclusion of uniforms or costumes in sexual contexts.
-* Cross-dressing
-? Engaging in scenarios where one or more participants dress in clothes typically associated with a different gender.
-* Corsets
-? Structured undergarments that shape and support the torso.
-* Boots
-? Interest in boots as part of sexual play or aesthetic.
+? Clothing and accessories made from leather.
+@ Wearing,Partner wearing
 
-#Roles & Dynamics
-(General)
-* Playing as Male
-? Taking on the role of a male character in sexual scenarios.
-* Playing as Female
-? Taking on the role of a female character in sexual scenarios.
-* Playing as Femboy
-? Taking on the role of a feminine male character.
-* Playing as Futa
-? Taking on the role of a character with both male and female characteristics.
-* Playing as MtF trans
-? Taking on the role of a male-to-female transgender character.
-* Playing as FtM trans
-? Taking on the role of a female-to-male transgender character.
-* Playing as Celebrity
-? Role-playing as famous personalities or public figures.
-* Being Dominant
-? Taking control and leading sexual encounters and dynamics.
-* Being Submissive
-? Following commands and being led in sexual encounters and dynamics.
-* Being a Switch
-? Alternating between dominant and submissive roles depending on the situation.
+* Latex/Rubber
+? Tight-fitting synthetic materials.
+@ Wearing,Partner wearing
 
-#Group Scenarios
-(General)
-* One-on-One (Male Partner)
-? Sexual scenarios involving you and one male partner.
-* One-on-One (Female Partner)
-? Sexual scenarios involving you and one female partner.
-* One-on-One (MtF Trans Partner)
-? Sexual scenarios involving you and one male-to-female transgender partner.
-* One-on-One (FtM Trans Partner)
-? Sexual scenarios involving you and one female-to-male transgender partner.
-* Threesome (?MF)
-? Sexual scenarios involving you one male, and one female.
-* Threesome (?MM)
-? Sexual scenarios involving you and two males.
-* Threesome (?FF)
-? Sexual scenarios involving you and two females.
-* Group Sex / Orgy
-? Sexual scenarios involving multiple participants of various genders.
+#Roleplay
+* Teacher/Student
+? Educational authority dynamic roleplay.
+@ Teacher,Student
 
-#General
-(Giving, Receiving)
-* Romance / Affection
-? Displaying or expressing love or strong affection, passion, either during intimate moments or during normal interactions.
-* Handjob / Fingering
-? Sexual stimulation by direct, physical contact of the hands or fingers to the genitals.
-* Blowjob
-? Sexual stimulation by direct, physical contact of the mouth or tongue to male genitals.
-* Deep throat
-? The act of oral penetration to the depths where it enters the back of the mouth cavity and/or throat.
-* Swallowing
-? The act of orally consuming semen, either directly or indirectly.
-* Facials
-? The act of ejaculating directly onto one's face.
-* Cunnilingus
-? Sexual stimulation by direct, physical contact of the mouth or tongue to female genitals.
-* Face-sitting
-? A sexual practice where someone sits on another's face with their buttocks or genitals.
-* Edging
-? Keeping on the edge of climax without reaching orgasm.
-* Teasing
-? Extended scenes of foreplay prior to explicit sexual activity, which may be physical and/or verbal.
-* Mutual masturbation
-? Partners stimulating themselves while watching each other.
-* 69
-? Simultaneous oral stimulation between partners where both give and receive.
-* Kissing
-? Intimate lip contact and tongue play between partners.
-* Making out
-? Extended passionate kissing and intimate touching.
+* Doctor/Patient
+? Medical examination roleplay scenarios.
+@ Doctor,Patient
 
-#Ass play
-(Giving, Receiving)
-* Anal toys
-? The inclusion of anal penetration with sex toys, including dildos, vibrators, anal beads, etc.
-* Anal sex/pegging
-? Being penetrated by a partner, with a penis or strap-on.
-* Rimming
-? The act of giving oral stimulation to a partner's anus.
-* Double penetration
-? The act of penetrating multiple orifices simultaneously.
-* Anal fisting
-? The act of inserting one's hand(s) and/or arm(s) into one's partner's anus.
-* Anal training
-? Gradual preparation and stretching for anal activities.
+* Boss/Employee
+? Workplace power dynamic scenarios.
+@ Boss,Employee
 
-#Restrictive
-(Self, Partner)
-* Gag
-? The act of placing an object in someone's mouth to restrict speech and breathing.
-* Collar
-? Wearing a collar around the neck as a symbol of submission or aesthetic choice.
-* Leash
-? Being led around on a leash, often in conjunction with collar play.
-* Chastity
-? Sexual abstinence, either willing or forced, sometimes involving devices that prevent sexual activity.
-* Bondage (Light)
-? The use of restraints that are mild or moderate in intensity and duration.
-* Bondage (Heavy)
-? The use of restraints that are extreme in position, duration, discomfort, or immobilization.
-* Encasement
-? Having one's whole body wrapped up in latex, sleepsacks, or other restrictive materials.
+#Bondage
 * Rope bondage
-? The art of restraining using rope in decorative and functional patterns.
-* Handcuffs
-? Metal restraints typically used on wrists or ankles.
+? Using rope for restraint and artistic purposes.
+@ Tying,Being tied
 
-#Toys
-(Self, Partner)
-* Dildos
-? Objects shaped like genitals used for sexual stimulation.
-* Plugs
-? Sex toys designed to be inserted and remain in place.
-* Vibrators
-? Vibrating devices used for sexual stimulation.
-* Sounding
-? The act of inserting smooth rods into the urethra.
-* Cock rings
-? Rings worn around the base of the penis to maintain erection.
-* Ben wa balls
-? Small weighted balls inserted vaginally for stimulation.
+* Blindfolding
+? Removing the sense of sight during activities.
+@ Blindfolding,Being blindfolded
 
-#Domination
-(As Dominant, As Submissive)
-* General Dom / General Sub
-? Catchall for Dominant/Submissive activities and dynamics.
-* Domestic servitude
-? Being served by or serving as a butler, maid, or other service role.
-* Slavery
-? Serving at someone's complete command without choice in the matter.
-* Pet play
-? Role play where the focus is on entering the mindset of a different species.
-* DD/lg, MD/lb
-? Daddy/Mommy Dom and Little Girl/Boy dynamics focusing on care and guidance.
-* Discipline
-? The use of rewards and punishments to train obedience to commands.
-* Begging
-? The act of pleading as a form of submission.
-* Forced orgasm
-? Consensual play where a person is made to orgasm beyond their control.
-* Orgasm control
-? The dominant controlling when the submissive achieves orgasm.
-* Orgasm denial
-? The dominant denying the submissive orgasm entirely.
-* Power exchange
-? A relationship dynamic with service and control at its core.
-* Worship
-? Showing reverence and adoration for a partner or specific body parts.
-
-#No consent
-(Aggressor, Target)
-* Dubious consent
-? Situations where one partner's consent is questionable though not outright refused.
-* Non-con / rape
-? Taking or being taken against one's will, often through force (fantasy only).
-* Blackmail / coercion
-? Using threats or pressure to obtain sexual compliance.
-* Kidnapping
-? The act of abducting someone for sexual purposes (fantasy only).
-* Drugs
-? The use of substances to alter mental state in sexual contexts.
-* Alcohol
-? The use of alcohol to lower inhibitions or alter mental state.
-* Sleep play
-? Engaging in sexual acts with an unconscious or sleeping partner.
-* Intoxication play
-? Sexual activity while under the influence of substances.
-
-#Taboo
-(General)
-* Incest
-? Sexual activity between family members (fantasy only).
-* Age Gap
-? Significant differences in age between partners (all participants adult).
-* Interracial
-? Sexual interactions between people of different races without relying on stereotypes.
-* Raceplay
-? Sexual scenarios that incorporate racial elements or stereotypes.
-* Bestiality
-? Sexual activity with animals (fantasy only).
-* Necrophilia
-? Sexual activity with the deceased (fantasy only).
-* Cheating
-? Infidelity scenarios where one or both partners are unfaithful.
-* Exhibitionism
-? Sexual activity in public or semi-public settings.
-* Voyeurism
-? Deriving sexual pleasure from watching others in intimate situations.
-* Public sex
-? Sexual activity in public spaces with risk of being seen.
-
-#Fluids
-(General)
-* Blood
-? The inclusion of blood in sexual contexts.
-* Watersports
-? The inclusion of urine in sexual activities.
-* Scat
-? The inclusion of fecal matter in sexual activities.
-* Lactation
-? The production and consumption of breast milk in sexual contexts.
-* Diapers
-? Sexual scenarios involving the wearing of diapers.
-* Cum play
-? Various activities focused on semen.
-* Saliva/Spit
-? Sexual play involving saliva or spitting.
-* Squirting
-? Female ejaculation during sexual activity.
-* Amniotic fluid
-? The inclusion of amniotic fluid in sexual contexts.
-
-#Degradation
-(Giving, Receiving)
-* Glory hole
-? Sexual activity through a barrier with anonymous partners.
-* Name calling
-? Using derogatory terms as part of sexual play.
-* Humiliation
-? Causing embarrassment as a form of sexual gratification.
-* Verbal abuse
-? Using harsh language as part of sexual dynamics.
-* Public humiliation
-? Embarrassment in front of others as part of sexual play.
-
-#Touch & Stimulation
-(Actor, Subject)
-* Cock/Pussy worship
-? Focused attention and reverence for genitalia.
-* Ass worship
-? Focused attention and reverence for buttocks.
-* Foot play
-? Incorporating feet into sexual activities.
-* Tickling
-? Using tickling as a form of sexual stimulation.
-* Sensation play
-? Using various sensations to arouse and stimulate.
-* Electro stimulation
-? Using electrical current for sexual stimulation.
-* Temperature play
-? Using hot and cold sensations for sexual stimulation.
-* Massage
-? Therapeutic and sensual touching for relaxation and arousal.
-
-#Misc. Fetish
-(Giving, Receiving)
-* Fisting
-? Inserting a hand or fist into body cavities.
-* Gangbang
-? Multiple partners engaging with a single person.
-* Breath play
-? Controlling breathing for sexual enhancement.
-* Impregnation
-? The fantasy or act of causing pregnancy.
-* Pregnancy
-? Sexual attraction to pregnant individuals.
-* Feminization
-? Making someone adopt traditionally feminine characteristics.
-* Cuckold / Cuckquean
-? Watching one's partner with someone else.
-* Shaving
-? Removing body hair as part of sexual play.
-* Medical play
-? Role playing medical scenarios and procedures.
-* Age play
-? Role playing different ages (all participants adult).
-* Gore
-? Fetishism involving the use or depiction of blood or bodily fluids.
-* Birth
-? Fetishism involving the act of giving birth or witnessing it.
-* Feet
-? Fetishism involving the feet.
+* Gagging
+? Restricting speech during intimate moments.
+@ Gagging,Being gagged
 
 #Pain
-(Giving, Receiving)
-* Light pain
-? Mild physical discomfort for sexual enhancement.
-* Heavy pain
-? Intense physical discomfort for sexual enhancement.
+* Light spanking
+? Gentle impact play for sensation.
+@ Giving,Receiving
+
 * Nipple clamps
 ? Devices that apply pressure to nipples.
-* Clothes pins
-? Using clothespins to pinch skin.
-* Caning
-? Striking with a flexible cane.
-* Flogging
-? Striking with whips, floggers, or similar implements.
-* Gagging / Choking
-? Restricting breathing or causing gag reflex.
-* Beating
-? Striking with fists or objects.
+
+* Ice play
+? Using cold temperatures for sensation.
+@ Giving,Receiving
+
+#Romantic
+* Massage
+? Sensual touching and body work.
+@ Giving,Receiving
+
+* Kissing
+? Various forms of lip and mouth contact.
+
+* Cuddling
+? Close physical contact and embracing.
+
+#Locations
+* Bedroom
+? Traditional intimate space.
+
+* Shower/Bath
+? Water-based intimate activities.
+
+* Outdoors
+? Nature-based intimate encounters.
+
+#Misc
+* Photography
+? Taking pictures during intimate moments.
+@ Taking photos,Being photographed
+
+* Role reversal
+? Switching typical roles or dynamics.
+
+* Sensory play
+? Activities focusing on different senses.
+@ Giving,Receiving
+`,
+
+    detailed: `
+#General
+* Anal play
+? Activities involving anal stimulation, fingering, toys, or penetration with varying intensity levels.
+@ Giving,Receiving,Watching
+
+* Oral sex
+? Various forms of oral stimulation including different techniques and positions.
+@ Giving,Receiving,Mutual
+
 * Spanking
-? Striking the buttocks for sexual pleasure.
-* Cock/Pussy slapping
-? Striking genitalia for sexual stimulation.
-* Cock/Pussy torture
-? Causing pain to genitalia for sexual purposes.
-* Hot Wax
-? Using heated wax for sexual stimulation.
-* Scratching
-? Using nails or claws to mark skin.
-* Biting
-? Using teeth to cause sensation or pain.
-* Cutting
-? Making small cuts for sexual purposes.
-* Needle play
-? Using needles for sensation or pain.
+? Impact play using hands on buttocks or other body parts, ranging from light to firm.
+@ Giving,Receiving,Watching
 
-#Meta
-(Self, Partner)
-* First Person
-* Third Person
-* Short Post Length (~1-3 sentences)
-* Medium Post Length (~3-7 sentences)
-* Long Post Length (~2-4 paragraphs)
-* Story (3+ paragraphs)
-* Dynamic Post Length
+* Hair pulling
+? Tugging or pulling hair during intimate moments, from gentle to firm grip.
+@ Doing,Receiving
 
-#Surrealism
-(Self, Partner)
-* Futanari/Futa
-? characters who have an overall feminine body, but have both female and male genitalia (although testicles are not always present)
-* Furry
-? Anthropomorphic animal characters.
-* Vore
-? The act of physically consuming another character
-* Transformation
-? The act of causing the physical characteristics of a participant of an RP, possibly including one's self, by magical or chemical means, to change in a dramatic fashion; may refer to a myriad of different types of transformations, and connotates receiving sexual pleasure from the act of transformation itself.
-* Tentacles
-? Engaging in an RP in which self-sentient tentacles or tentacle-like appendages will penetrate a character; often implies multiple penetration.
-* Monster or Alien
-? Various types of monsters, Extraterrestrials, and aesthetically challenging characters.
-* Ghost
-? The formerly living, not currently in posession of a body
-* Shapeshifting
-? Characters with the ability to change their physical form at will, including species, gender, or body parts.
-* Size Play (Macro/Micro)
-? Scenarios involving dramatic size differences between characters, from giant to tiny proportions.
-* Multiple Limbs
-? Characters with additional arms, legs, or other appendages beyond normal human anatomy.
-* Elemental Beings
-? Characters made of or controlling elements like fire, water, earth, air, or other natural forces.
-* Cyborgs/Androids
-? Characters that are part machine, artificial intelligence, or robotic beings with human-like qualities.
-* Vampires/Supernatural
-? Immortal beings, vampires, werewolves, and other classic supernatural creatures.
-* Mythical Creatures
-? Dragons, phoenixes, unicorns, and other creatures from mythology and fantasy.
-* Plant/Nature Beings
-? Characters that are plant-based, tree-like, or have botanical characteristics.
-* Energy Beings
-? Characters made of pure energy, light, or other non-physical substances.
+* Dirty talk
+? Verbal communication during intimate activities, including descriptions and commands.
+@ Talking,Listening
 
-#Medium
-(General)
-* Skype
-* Kik
-* Reddit
-* E-Mail
-* Discord
-* Other
-* Telegram
-? Secure messaging platform with advanced features for private communication.
-* WhatsApp
-? Popular mobile messaging application for text and voice communication.
-* Signal
-? Privacy-focused messaging app with end-to-end encryption.
-* Steam
-? Gaming platform with built-in messaging and chat features.
-* Twitter/X DMs
-? Direct messaging through Twitter/X social media platform.
-* Instagram DMs
-? Direct messaging through Instagram social media platform.
-* Snapchat
-? Mobile app focused on disappearing messages and multimedia sharing.
-* Facebook Messenger
-? Facebook's dedicated messaging platform for text and video communication.
-* Forums/Boards
-? Traditional forum-style communication with threaded discussions.
-* Custom Platforms
-? Specialized roleplay websites and custom communication tools.
+* Fingering
+? Manual stimulation using fingers for various forms of touch and penetration.
+@ Giving,Receiving
 
-#Time-Scale
-(Self, Partner)
-* Short-Term Scenes
-* Medium-Term Scenes
-* Long-Term Scenes
-* Ultra-Quick Replies (0~5 mins)
-? Immediate responses expected within minutes for rapid-fire roleplay.
-* Quick Replies (0~10 mins)
-* Fast Replies (10~30 mins)
-* Normal Replies (30min ~ 2hours)
-* Slow Replies (2~8 hours)
-* Glacial Replies (8-24 hours)
-* Occasional Replies (24+ hours)
-* Weekly Replies (1~7 days)
-? Responses expected within a week, suitable for detailed, thoughtful posts.
-* Monthly Replies (Weeks to months)
-? Very slow-paced roleplay with responses every few weeks to months.
-* Seasonal Replies (Months between)
-? Extremely slow-paced with responses separated by months, for epic long-term stories.
-* Real-time Sessions
-? Live, synchronous roleplay sessions with immediate back-and-forth interaction.
-* Flexible Timing
-? No set expectations, responses when convenient for both parties.`,
+* Masturbation
+? Self-stimulation activities, solo or in presence of others.
+@ Solo,Mutual,Watching
 
-    extended: `#Bodies
-(Small, Large)
-* Breasts
-? Expresses an interest in breasts that are particularly small, sometimes to the point of appearing absent or particularly large.
-* Cocks
-? Expresses an interest in cocks that are below average size or above average size.
-* Butts
-? Expresses an interest in butts that are particularly small or particularly large.
-(General)
-* Skinny
-? Expresses an interest in characters that are waifish, thin, or slender.
-* Chubby
-? Expresses an interest in characters that are well-rounded, full in form, and pudgy.
-* Muscular
-? Expresses an interest in well-defined, athletic physiques.
-* Curvy
-? Expresses an interest in pronounced body curves and fuller figures.
+#Toys
+* Vibrators
+? Electronic devices for stimulation with various speeds, patterns, and intensities.
+@ Using on self,Using on partner,Partner using on me
+
+* Dildos
+? Non-vibrating penetrative toys in various sizes and materials.
+@ Using,Partner using,Double-ended
+
+* Butt plugs
+? Toys designed specifically for anal play and training in different sizes.
+@ Small,Medium,Large,Wearing long-term
+
+* Handcuffs
+? Metal or fabric restraint devices for wrists, ranging from decorative to secure.
+@ Using,Wearing,Fuzzy,Metal
+
+* Cock rings
+? Rings worn around penis or testicles for enhanced sensation and endurance.
+@ Wearing,Partner wearing,Vibrating
+
+* Strap-ons
+? Harness and dildo combinations for penetrative play.
+@ Wearing,Partner wearing,Receiving
 
 #Clothing
-(Self, Partner)
-* Clothed sex
-? Engaging in sexual activity while you and/or your partner remain partially or fully dressed.
 * Lingerie
-? Expresses an interest in the inclusion of lingerie in sexual contexts.
-* Stockings
-? Expresses an interest in the inclusion of stockings in sexual contexts.
-* Heels
-? Expresses an interest in the inclusion of high heeled shoes in sexual contexts.
+? Sexy undergarments including bras, panties, corsets, and intimate apparel.
+@ Wearing,Partner wearing,Shopping for
+
 * Leather
-? Expresses an interest in the inclusion of leather clothing in sexual contexts.
-* Latex
-? The usage of latex and/or rubber material worn as clothing.
-* Uniform / costume
-? Expresses an interest in the inclusion of uniforms or costumes in sexual contexts.
-* Cross-dressing
-? Engaging in scenarios where one or more participants dress in clothes typically associated with a different gender.
-* Corsets
-? Structured undergarments that shape and support the torso.
-* Boots
-? Interest in boots as part of sexual play or aesthetic.
+? Clothing and accessories made from leather including pants, corsets, and harnesses.
+@ Wearing,Partner wearing,Smell
 
-#Roles & Dynamics
-(General)
-* Playing as Male
-? Taking on the role of a male character in sexual scenarios.
-* Playing as Female
-? Taking on the role of a female character in sexual scenarios.
-* Playing as Femboy
-? Taking on the role of a feminine male character.
-* Playing as Futa
-? Taking on the role of a character with both male and female characteristics.
-* Playing as MtF trans
-? Taking on the role of a male-to-female transgender character.
-* Playing as FtM trans
-? Taking on the role of a female-to-male transgender character.
-* Playing as Celebrity
-? Role-playing as famous personalities or public figures.
-* Being Dominant
-? Taking control and leading sexual encounters and dynamics.
-* Being Submissive
-? Following commands and being led in sexual encounters and dynamics.
-* Being a Switch
-? Alternating between dominant and submissive roles depending on the situation.
+* Latex/Rubber
+? Tight-fitting synthetic materials that create unique sensations and appearance.
+@ Wearing,Partner wearing,Full body
 
-#Group Scenarios
-(General)
-* One-on-One (Male Partner)
-? Sexual scenarios involving you and one male partner.
-* One-on-One (Female Partner)
-? Sexual scenarios involving you and one female partner.
-* One-on-One (MtF Trans Partner)
-? Sexual scenarios involving you and one male-to-female transgender partner.
-* One-on-One (FtM Trans Partner)
-? Sexual scenarios involving you and one female-to-male transgender partner.
-* Threesome (?MF)
-? Sexual scenarios involving you one male, and one female.
-* Threesome (?MM)
-? Sexual scenarios involving you and two males.
-* Threesome (?FF)
-? Sexual scenarios involving you and two females.
-* Group Sex / Orgy
-? Sexual scenarios involving multiple participants of various genders.
+* Stockings/Pantyhose
+? Leg coverings that enhance appearance and provide tactile sensations.
+@ Wearing,Partner wearing,Ripping off
 
-#General
-(Giving, Receiving)
-* Romance / Affection
-? Displaying or expressing love or strong affection, passion, either during intimate moments or during normal interactions.
-* Handjob / Fingering
-? Sexual stimulation by direct, physical contact of the hands or fingers to the genitals.
-* Blowjob
-? Sexual stimulation by direct, physical contact of the mouth or tongue to male genitals.
-* Deep throat
-? The act of oral penetration to the depths where it enters the back of the mouth cavity and/or throat.
-* Swallowing
-? The act of orally consuming semen, either directly or indirectly.
-* Facials
-? The act of ejaculating directly onto one's face.
-* Cunnilingus
-? Sexual stimulation by direct, physical contact of the mouth or tongue to female genitals.
-* Face-sitting
-? A sexual practice where someone sits on another's face with their buttocks or genitals.
-* Edging
-? Keeping on the edge of climax without reaching orgasm.
-* Teasing
-? Extended scenes of foreplay prior to explicit sexual activity, which may be physical and/or verbal.
-* Mutual masturbation
-? Partners stimulating themselves while watching each other.
-* 69
-? Simultaneous oral stimulation between partners where both give and receive.
-* Kissing
-? Intimate lip contact and tongue play between partners.
-* Making out
-? Extended passionate kissing and intimate touching.
+* High heels
+? Footwear that changes posture and adds height, often considered sexy.
+@ Wearing,Partner wearing,Worship
 
-#Ass play
-(Giving, Receiving)
-* Anal toys
-? The inclusion of anal penetration with sex toys, including dildos, vibrators, anal beads, etc.
-* Anal sex/pegging
-? Being penetrated by a partner, with a penis or strap-on.
-* Rimming
-? The act of giving oral stimulation to a partner's anus.
-* Double penetration
-? The act of penetrating multiple orifices simultaneously.
-* Anal fisting
-? The act of inserting one's hand(s) and/or arm(s) into one's partner's anus.
-* Anal training
-? Gradual preparation and stretching for anal activities.
+* Uniforms
+? Specific clothing associated with professions or roles for roleplay scenarios.
+@ Wearing,Partner wearing,Multiple types
 
-#Restrictive
-(Self, Partner)
-* Gag
-? The act of placing an object in someone's mouth to restrict speech and breathing.
-* Collar
-? Wearing a collar around the neck as a symbol of submission or aesthetic choice.
-* Leash
-? Being led around on a leash, often in conjunction with collar play.
-* Chastity
-? Sexual abstinence, either willing or forced, sometimes involving devices that prevent sexual activity.
-* Bondage (Light)
-? The use of restraints that are mild or moderate in intensity and duration.
-* Bondage (Heavy)
-? The use of restraints that are extreme in position, duration, discomfort, or immobilization.
-* Encasement
-? Having one's whole body wrapped up in latex, sleepsacks, or other restrictive materials.
+#Roleplay
+* Teacher/Student
+? Educational authority dynamic with power exchange and learning scenarios.
+@ Teacher,Student,Detention
+
+* Doctor/Patient
+? Medical examination scenarios with professional and intimate elements.
+@ Doctor,Patient,Nurse
+
+* Boss/Employee
+? Workplace power dynamics with authority and submission elements.
+@ Boss,Employee,Interview
+
+* Maid/Master
+? Service-oriented roleplay with domestic and personal care elements.
+@ Maid,Master,French maid
+
+* Police/Criminal
+? Law enforcement scenarios with authority, interrogation, and consequences.
+@ Police,Criminal,Arrest
+
+* Stranger scenarios
+? Meeting and interacting as if meeting for the first time in various settings.
+@ Pickup,Bar meeting,Online dating
+
+#Bondage
 * Rope bondage
-? The art of restraining using rope in decorative and functional patterns.
-* Handcuffs
-? Metal restraints typically used on wrists or ankles.
+? Using rope for restraint, artistic purposes, and creating beautiful patterns on the body.
+@ Tying,Being tied,Shibari,Suspension
 
-#Toys
-(Self, Partner)
-* Dildos
-? Objects shaped like genitals used for sexual stimulation.
-* Plugs
-? Sex toys designed to be inserted and remain in place.
-* Vibrators
-? Vibrating devices used for sexual stimulation.
-* Sounding
-? The act of inserting smooth rods into the urethra.
-* Cock rings
-? Rings worn around the base of the penis to maintain erection.
-* Ben wa balls
-? Small weighted balls inserted vaginally for stimulation.
+* Blindfolding
+? Removing the sense of sight to heighten other senses and create anticipation.
+@ Blindfolding,Being blindfolded,Sensory deprivation
 
-#Domination
-(As Dominant, As Submissive)
-* General Dom / General Sub
-? Catchall for Dominant/Submissive activities and dynamics.
-* Domestic servitude
-? Being served by or serving as a butler, maid, or other service role.
-* Slavery
-? Serving at someone's complete command without choice in the matter.
-* Pet play
-? Role play where the focus is on entering the mindset of a different species.
-* DD/lg, MD/lb
-? Daddy/Mommy Dom and Little Girl/Boy dynamics focusing on care and guidance.
-* Discipline
-? The use of rewards and punishments to train obedience to commands.
-* Begging
-? The act of pleading as a form of submission.
-* Forced orgasm
-? Consensual play where a person is made to orgasm beyond their control.
-* Orgasm control
-? The dominant controlling when the submissive achieves orgasm.
-* Orgasm denial
-? The dominant denying the submissive orgasm entirely.
-* Power exchange
-? A relationship dynamic with service and control at its core.
-* Worship
-? Showing reverence and adoration for a partner or specific body parts.
+* Gagging
+? Restricting speech using various gags from simple to elaborate designs.
+@ Gagging,Being gagged,Ball gag,Tape
 
-#No consent
-(Aggressor, Target)
-* Dubious consent
-? Situations where one partner's consent is questionable though not outright refused.
-* Non-con / rape
-? Taking or being taken against one's will, often through force (fantasy only).
-* Blackmail / coercion
-? Using threats or pressure to obtain sexual compliance.
-* Kidnapping
-? The act of abducting someone for sexual purposes (fantasy only).
-* Drugs
-? The use of substances to alter mental state in sexual contexts.
-* Alcohol
-? The use of alcohol to lower inhibitions or alter mental state.
-* Sleep play
-? Engaging in sexual acts with an unconscious or sleeping partner.
-* Intoxication play
-? Sexual activity while under the influence of substances.
+* Spreader bars
+? Devices that keep legs or arms apart, preventing closure and creating vulnerability.
+@ Using,Wearing,Ankle,Wrist
 
-#Taboo
-(General)
-* Incest
-? Sexual activity between family members (fantasy only).
-* Age Gap
-? Significant differences in age between partners (all participants adult).
-* Interracial
-? Sexual interactions between people of different races without relying on stereotypes.
-* Raceplay
-? Sexual scenarios that incorporate racial elements or stereotypes.
-* Bestiality
-? Sexual activity with animals (fantasy only).
-* Necrophilia
-? Sexual activity with the deceased (fantasy only).
-* Cheating
-? Infidelity scenarios where one or both partners are unfaithful.
-* Exhibitionism
-? Sexual activity in public or semi-public settings.
-* Voyeurism
-? Deriving sexual pleasure from watching others in intimate situations.
-* Public sex
-? Sexual activity in public spaces with risk of being seen.
+* Restraint furniture
+? Specialized furniture designed for bondage including crosses, benches, and frames.
+@ Using,Being restrained,St. Andrew's cross
 
-#Fluids
-(General)
-* Blood
-? The inclusion of blood in sexual contexts.
-* Watersports
-? The inclusion of urine in sexual activities.
-* Scat
-? The inclusion of fecal matter in sexual activities.
-* Lactation
-? The production and consumption of breast milk in sexual contexts.
-* Diapers
-? Sexual scenarios involving the wearing of diapers.
-* Cum play
-? Various activities focused on semen.
-* Saliva/Spit
-? Sexual play involving saliva or spitting.
-* Squirting
-? Female ejaculation during sexual activity.
-* Amniotic fluid
-? The inclusion of amniotic fluid in sexual contexts.
-
-#Degradation
-(Giving, Receiving)
-* Glory hole
-? Sexual activity through a barrier with anonymous partners.
-* Name calling
-? Using derogatory terms as part of sexual play.
-* Humiliation
-? Causing embarrassment as a form of sexual gratification.
-* Verbal abuse
-? Using harsh language as part of sexual dynamics.
-* Public humiliation
-? Embarrassment in front of others as part of sexual play.
-
-#Touch & Stimulation
-(Actor, Subject)
-* Cock/Pussy worship
-? Focused attention and reverence for genitalia.
-* Ass worship
-? Focused attention and reverence for buttocks.
-* Foot play
-? Incorporating feet into sexual activities.
-* Tickling
-? Using tickling as a form of sexual stimulation.
-* Sensation play
-? Using various sensations to arouse and stimulate.
-* Electro stimulation
-? Using electrical current for sexual stimulation.
-* Temperature play
-? Using hot and cold sensations for sexual stimulation.
-* Massage
-? Therapeutic and sensual touching for relaxation and arousal.
-
-#Misc. Fetish
-(Giving, Receiving)
-* Fisting
-? Inserting a hand or fist into body cavities.
-* Gangbang
-? Multiple partners engaging with a single person.
-* Breath play
-? Controlling breathing for sexual enhancement.
-* Impregnation
-? The fantasy or act of causing pregnancy.
-* Pregnancy
-? Sexual attraction to pregnant individuals.
-* Feminization
-? Making someone adopt traditionally feminine characteristics.
-* Cuckold / Cuckquean
-? Watching one's partner with someone else.
-* Shaving
-? Removing body hair as part of sexual play.
-* Medical play
-? Role playing medical scenarios and procedures.
-* Age play
-? Role playing different ages (all participants adult).
-* Gore
-? Fetishism involving the use or depiction of blood or bodily fluids.
-* Birth
-? Fetishism involving the act of giving birth or witnessing it.
-* Feet
-? Fetishism involving the feet.
+* Chastity devices
+? Devices that prevent sexual activity or stimulation for extended periods.
+@ Wearing,Partner wearing,Key holding
 
 #Pain
-(Giving, Receiving)
-* Light pain
-? Mild physical discomfort for sexual enhancement.
-* Heavy pain
-? Intense physical discomfort for sexual enhancement.
-* Nipple clamps
-? Devices that apply pressure to nipples.
-* Clothes pins
-? Using clothespins to pinch skin.
-* Caning
-? Striking with a flexible cane.
+* Light spanking
+? Gentle impact play using hands for warming up and light sensation.
+@ Giving,Receiving,Over clothes,Bare
+
+* Paddle spanking
+? Using paddles for more intense impact play with different materials and textures.
+@ Giving,Receiving,Leather,Wood
+
 * Flogging
-? Striking with whips, floggers, or similar implements.
-* Gagging / Choking
-? Restricting breathing or causing gag reflex.
-* Beating
-? Striking with fists or objects.
+? Using floggers with multiple tails for varied sensations across the body.
+@ Giving,Receiving,Leather,Suede
+
+* Caning
+? Using canes for precise, intense impact play that creates specific sensations.
+@ Giving,Receiving,Light,Heavy
+
+* Nipple clamps
+? Devices that apply adjustable pressure to nipples for pain and pleasure.
+@ Wearing,Partner wearing,Chain,Weights
+
+* Hot wax
+? Dripping warm wax on the body for temperature play and sensation.
+@ Giving,Receiving,Candles,Different temperatures
+
+* Ice play
+? Using cold temperatures for contrasting sensations and temperature play.
+@ Giving,Receiving,Cubes,Melting
+
+* Pinching
+? Using fingers or devices to create sharp, localized sensations.
+@ Giving,Receiving,Nipples,Thighs
+
+#Taboo
+* Age play
+? Roleplay involving age differences or regression scenarios with consenting adults.
+@ Older,Younger,Caregiver,Little
+
+* Pet play
+? Taking on animal personas with associated behaviors and care dynamics.
+@ Pet,Owner,Puppy,Kitten
+
+* Watersports
+? Activities involving urine in various contexts and scenarios.
+@ Giving,Receiving,Golden shower,Marking
+
+* Exhibitionism
+? Being seen by others during intimate activities or in states of undress.
+@ Being watched,Watching,Public,Semi-public
+
+* Voyeurism
+? Watching others during intimate activities with their knowledge and consent.
+@ Watching,Being watched,Couples,Solo
+
+* Group activities
+? Intimate activities involving more than two people in various configurations.
+@ Threesome,Foursome,Orgy,Swinging
+
+#Romantic
+* Massage
+? Sensual touching and body work for relaxation, arousal, and connection.
+@ Giving,Receiving,Full body,Erotic
+
+* Kissing
+? Various forms of lip and mouth contact from gentle to passionate.
+@ Light,Deep,Neck,Body
+
+* Cuddling
+? Close physical contact and embracing for comfort and intimacy.
+@ Big spoon,Little spoon,Face to face
+
+* Sensual bathing
+? Intimate washing and care activities in water settings.
+@ Giving,Receiving,Together,Bubble bath
+
+* Romantic dinner
+? Intimate dining experiences that enhance connection and anticipation.
+@ Cooking,Being cooked for,Feeding,Aphrodisiacs
+
+* Dancing
+? Moving together to music in intimate and sensual ways.
+@ Leading,Following,Slow,Grinding
+
+#Locations
+* Bedroom
+? Traditional intimate space with comfort and privacy.
+@ Own,Partner's,Hotel,Different beds
+
+* Shower/Bath
+? Water-based intimate activities with unique sensations and cleanliness.
+@ Shower,Bath,Hot tub,Pool
+
+* Outdoors
+? Nature-based intimate encounters with risk and natural settings.
+@ Forest,Beach,Garden,Balcony
+
+* Car
+? Vehicle-based intimate activities with space constraints and mobility.
+@ Backseat,Front seat,Parked,Moving
+
+* Public places
+? Semi-public locations with risk of discovery and excitement.
+@ Bathroom,Changing room,Office,Elevator
+
+* Kitchen
+? Food-related intimate activities and domestic settings.
+@ Counter,Table,Floor,With food
+
+#Misc
+* Photography
+? Taking pictures during intimate moments for memory and artistic purposes.
+@ Taking photos,Being photographed,Video,Polaroid
+
+* Role reversal
+? Switching typical roles or dynamics for variety and exploration.
+@ Dom/sub,Top/bottom,Active/passive
+
+* Sensory play
+? Activities focusing on different senses beyond sight including touch, sound, taste.
+@ Giving,Receiving,Feathers,Textures
+
+* Edging
+? Bringing to the brink of climax repeatedly without allowing release.
+@ Giving,Receiving,Self,Extended
+
+* Orgasm control
+? Managing and controlling climax timing and intensity.
+@ Controlling,Being controlled,Denial,Permission
+
+* Aftercare
+? Post-activity care and attention for emotional and physical well-being.
+@ Giving,Receiving,Cuddling,Talking
+`,
+
+    extended: `
+#General
+* Anal play
+? Comprehensive anal activities including fingering, rimming, toys, and penetration with various techniques and intensities.
+@ Giving,Receiving,Watching,Rimming,Fingering,Toys,Penetration
+
+* Oral sex
+? Extensive oral stimulation techniques including different positions, depths, and styles of giving and receiving pleasure.
+@ Giving,Receiving,Mutual,Deep throat,Teasing,Swallowing,69
+
 * Spanking
-? Striking the buttocks for sexual pleasure.
-* Cock/Pussy slapping
-? Striking genitalia for sexual stimulation.
-* Cock/Pussy torture
-? Causing pain to genitalia for sexual purposes.
-* Hot Wax
-? Using heated wax for sexual stimulation.
+? Impact play using hands on various body parts with different intensities, positions, and emotional contexts.
+@ Giving,Receiving,Watching,Light,Hard,Over clothes,Bare,Punishment,Playful
+
+* Hair pulling
+? Various techniques of hair manipulation from gentle tugging to firm grips during different activities.
+@ Doing,Receiving,Gentle,Firm,During sex,During kissing
+
+* Dirty talk
+? Verbal communication during intimate activities including descriptions, commands, praise, and degradation.
+@ Talking,Listening,Commanding,Praising,Degrading,Begging
+
+* Fingering
+? Manual stimulation using fingers with various techniques, speeds, and combinations for different types of pleasure.
+@ Giving,Receiving,Vaginal,Anal,Multiple fingers,G-spot,Squirting
+
+* Masturbation
+? Self-stimulation activities in various contexts including solo, mutual, instructed, and watched scenarios.
+@ Solo,Mutual,Watching,Being watched,Instructed,Phone sex,Video chat
+
+* Grinding
+? Rubbing bodies together for stimulation through clothing or skin-to-skin contact in various positions.
+@ Giving,Receiving,Clothed,Naked,Lap dancing,Dry humping
+
+#Toys
+* Vibrators
+? Electronic stimulation devices with various features, intensities, and applications for different body parts.
+@ Using on self,Using on partner,Partner using on me,Bullet,Wand,Rabbit,Remote control
+
+* Dildos
+? Non-vibrating penetrative toys in various sizes, shapes, and materials for different types of play.
+@ Using,Partner using,Double-ended,Realistic,Fantasy,Glass,Silicone
+
+* Butt plugs
+? Anal toys designed for insertion and wearing with various sizes, shapes, and special features.
+@ Small,Medium,Large,Wearing long-term,Tail plugs,Jeweled,Inflatable
+
+* Handcuffs
+? Restraint devices for wrists in various materials and styles from decorative to secure bondage.
+@ Using,Wearing,Fuzzy,Metal,Leather,Chain,Behind back,To bed
+
+* Cock rings
+? Rings for penis and testicles with various features for enhanced sensation, endurance, and appearance.
+@ Wearing,Partner wearing,Vibrating,Adjustable,Metal,Silicone,With prostate stimulator
+
+* Strap-ons
+? Harness and dildo combinations for penetrative play with various configurations and accessories.
+@ Wearing,Partner wearing,Receiving,Double-ended,Strapless,Hollow,Realistic
+
+* Nipple toys
+? Devices and accessories specifically designed for nipple stimulation and sensation play.
+@ Clamps,Suction,Vibrating,Weights,Chains,Pumps,Jewelry
+
+* Anal beads
+? Graduated beads designed for anal insertion and removal for unique sensations.
+@ Using,Partner using,Small,Large,Vibrating,Removal during orgasm
+
+#Clothing
+* Lingerie
+? Sexy undergarments and intimate apparel including various styles, materials, and purposes.
+@ Wearing,Partner wearing,Shopping for,Bras,Panties,Corsets,Babydolls,Crotchless
+
+* Leather
+? Clothing and accessories made from leather including various garments and their associated sensations.
+@ Wearing,Partner wearing,Smell,Pants,Corsets,Harnesses,Gloves,Boots
+
+* Latex/Rubber
+? Tight-fitting synthetic materials that create unique sensations, appearance, and psychological effects.
+@ Wearing,Partner wearing,Full body,Catsuit,Gloves,Masks,Smell,Shining
+
+* Stockings/Pantyhose
+? Leg coverings that enhance appearance and provide tactile sensations in various styles and contexts.
+@ Wearing,Partner wearing,Ripping off,Thigh highs,Fishnet,Seamed,Worship
+
+* High heels
+? Footwear that changes posture and adds height, often considered sexy and used in various scenarios.
+@ Wearing,Partner wearing,Worship,Trampling,Stilettos,Boots,During sex
+
+* Uniforms
+? Specific clothing associated with professions or roles for roleplay scenarios and fantasy fulfillment.
+@ Wearing,Partner wearing,Nurse,Police,Military,School,Maid,Business
+
+* Crossdressing
+? Wearing clothing typically associated with a different gender for various purposes and scenarios.
+@ Self,Partner,Full transformation,Partial,Makeup,Wigs,Public
+
+* Nudity
+? Being without clothing in various contexts and settings for different purposes and sensations.
+@ Self,Partner,Public,Semi-public,Home,Outdoors,Sleeping,Casual
+
+#Roleplay
+* Teacher/Student
+? Educational authority dynamics with power exchange, learning scenarios, and various educational settings.
+@ Teacher,Student,Detention,Private tutoring,Punishment,Rewards,Uniform
+
+* Doctor/Patient
+? Medical examination scenarios with professional elements, intimate examinations, and healthcare roleplay.
+@ Doctor,Patient,Nurse,Examination,Treatment,Medical equipment,Hospital
+
+* Boss/Employee
+? Workplace power dynamics with authority, submission, professional settings, and career consequences.
+@ Boss,Employee,Interview,Performance review,Overtime,Office,Promotion
+
+* Maid/Master
+? Service-oriented roleplay with domestic duties, personal care, and various levels of formality.
+@ Maid,Master,French maid,Butler,Cleaning,Service,Uniform,Orders
+
+* Police/Criminal
+? Law enforcement scenarios with authority, interrogation, consequences, and justice themes.
+@ Police,Criminal,Arrest,Interrogation,Handcuffs,Uniform,Traffic stop
+
+* Stranger scenarios
+? Meeting and interacting as if strangers in various settings and situations for excitement and novelty.
+@ Pickup,Bar meeting,Online dating,Vacation,Hotel,Fake names,Different personas
+
+* Fantasy characters
+? Taking on fictional or mythical personas for creative and imaginative roleplay scenarios.
+@ Vampire,Werewolf,Fairy,Demon,Angel,Superhero,Villain,Medieval
+
+* Historical periods
+? Roleplay set in different time periods with appropriate costumes, language, and scenarios.
+@ Victorian,Medieval,1950s,Ancient,Pirate,Cowboy,Roman,Egyptian
+
+#Bondage
+* Rope bondage
+? Using rope for restraint, artistic purposes, and creating beautiful patterns with various techniques and styles.
+@ Tying,Being tied,Shibari,Kinbaku,Suspension,Hogtie,Spread eagle,Artistic
+
+* Blindfolding
+? Removing sight to heighten other senses, create anticipation, and enhance psychological elements.
+@ Blindfolding,Being blindfolded,Sensory deprivation,Sleep mask,Scarf,Hood
+
+* Gagging
+? Restricting speech using various types of gags for control, humiliation, and sensory experiences.
+@ Gagging,Being gagged,Ball gag,Bit gag,Tape,Panties,Ring gag,Inflatable
+
+* Spreader bars
+? Devices that keep limbs apart, preventing closure and creating vulnerability in various positions.
+@ Using,Wearing,Ankle,Wrist,Adjustable,Fixed,Standing,Lying
+
+* Restraint furniture
+? Specialized furniture designed for bondage including various pieces for different positions and activities.
+@ Using,Being restrained,St. Andrew's cross,Bondage bed,Stocks,Pillory,Suspension frame
+
+* Chastity devices
+? Devices that prevent sexual activity or stimulation for control, denial, and power exchange.
+@ Wearing,Partner wearing,Key holding,Male,Female,Long-term,Teasing
+
+* Collars
+? Neck accessories that symbolize ownership, submission, and various relationship dynamics.
+@ Wearing,Partner wearing,Day collar,Play collar,Locking,Leash,Training
+
+* Cages
+? Enclosures for confinement, restriction, and psychological dominance in various sizes and styles.
+@ Being caged,Caging,Small,Large,Punishment,Display,Pet cage
+
+#Pain
+* Light spanking
+? Gentle impact play using hands for warming up, light sensation, and playful interactions.
+@ Giving,Receiving,Over clothes,Bare,Playful,Punishment,Warm-up,Cool-down
+
+* Paddle spanking
+? Using paddles for more intense impact play with different materials, textures, and techniques.
+@ Giving,Receiving,Leather,Wood,Rubber,Holes,Textured,Fraternity
+
+* Flogging
+? Using floggers with multiple tails for varied sensations across different body parts and intensities.
+@ Giving,Receiving,Leather,Suede,Rubber,Heavy,Light,Thuddy,Stingy
+
+* Caning
+? Using canes for precise, intense impact play that creates specific sensations and marks.
+@ Giving,Receiving,Light,Heavy,Rattan,Synthetic,Stripes,Punishment
+
+* Whipping
+? Using single-tail whips for advanced impact play requiring skill and creating intense sensations.
+@ Giving,Receiving,Single tail,Bull whip,Signal whip,Cracking,Marking
+
+* Nipple clamps
+? Devices that apply adjustable pressure to nipples for pain, pleasure, and extended sensation.
+@ Wearing,Partner wearing,Chain,Weights,Clover,Clothespin,Magnetic,Vibrating
+
+* Hot wax
+? Dripping warm wax on the body for temperature play, sensation, and artistic purposes.
+@ Giving,Receiving,Candles,Different temperatures,Massage,Removal,Colors
+
+* Ice play
+? Using cold temperatures for contrasting sensations, temperature play, and shock value.
+@ Giving,Receiving,Cubes,Melting,Insertion,Nipples,Genitals,Full body
+
+* Pinching
+? Using fingers or devices to create sharp, localized sensations on various body parts.
+@ Giving,Receiving,Nipples,Thighs,Arms,Clothespins,Fingers,Twisting
+
 * Scratching
-? Using nails or claws to mark skin.
-* Biting
-? Using teeth to cause sensation or pain.
-* Cutting
-? Making small cuts for sexual purposes.
-* Needle play
-? Using needles for sensation or pain.
+? Using nails or implements to create sensations ranging from light to intense on skin.
+@ Giving,Receiving,Nails,Light,Deep,Marking,Back,Chest
 
-#Meta
-(Self, Partner)
-* First Person
-* Third Person
-* Short Post Length (~1-3 sentences)
-* Medium Post Length (~3-7 sentences)
-* Long Post Length (~2-4 paragraphs)
-* Story (3+ paragraphs)
-* Dynamic Post Length
+#Taboo
+* Age play
+? Roleplay involving age differences or regression scenarios with consenting adults in various contexts.
+@ Older,Younger,Caregiver,Little,Daddy,Mommy,Diaper,Pacifier
 
-#Surrealism
-(Self, Partner)
-* Futanari/Futa
-? characters who have an overall feminine body, but have both female and male genitalia (although testicles are not always present)
-* Furry
-? Anthropomorphic animal characters.
-* Vore
-? The act of physically consuming another character
+* Pet play
+? Taking on animal personas with associated behaviors, care dynamics, and various animal types.
+@ Pet,Owner,Puppy,Kitten,Pony,Fox,Training,Collar,Leash
+
+* Watersports
+? Activities involving urine in various contexts, scenarios, and levels of involvement.
+@ Giving,Receiving,Golden shower,Marking,Drinking,Wetting,Desperation
+
+* Scat play
+? Activities involving feces in various contexts and levels of involvement.
+@ Giving,Receiving,Smearing,Eating,Watching,Diaper
+
+* Exhibitionism
+? Being seen by others during intimate activities or in states of undress in various settings.
+@ Being watched,Watching,Public,Semi-public,Strangers,Friends,Online,Windows
+
+* Voyeurism
+? Watching others during intimate activities with their knowledge and consent in various scenarios.
+@ Watching,Being watched,Couples,Solo,Masturbation,Sex,Undressing,Sleeping
+
+* Group activities
+? Intimate activities involving more than two people in various configurations and dynamics.
+@ Threesome,Foursome,Orgy,Swinging,Gang bang,Bukkake,Circle jerk,Daisy chain
+
+* Incest roleplay
+? Fantasy scenarios involving family relationships with consenting adults who are not related.
+@ Parent/child,Sibling,Cousin,Step-family,Taboo talk,Forbidden
+
+#Romantic
+* Massage
+? Sensual touching and body work for relaxation, arousal, and connection with various techniques.
+@ Giving,Receiving,Full body,Erotic,Oil,Nuru,Tantric,Hot stone
+
+* Kissing
+? Various forms of lip and mouth contact from gentle to passionate in different contexts.
+@ Light,Deep,Neck,Body,French,Butterfly,Eskimo,Forehead
+
+* Cuddling
+? Close physical contact and embracing for comfort, intimacy, and emotional connection.
+@ Big spoon,Little spoon,Face to face,Naked,Clothed,After sex,Sleeping
+
+* Sensual bathing
+? Intimate washing and care activities in water settings with various elements and purposes.
+@ Giving,Receiving,Together,Bubble bath,Shower,Hot tub,Washing hair,Soap play
+
+* Romantic dinner
+? Intimate dining experiences that enhance connection, anticipation, and sensual pleasure.
+@ Cooking,Being cooked for,Feeding,Aphrodisiacs,Naked,Formal,Picnic
+
+* Dancing
+? Moving together to music in intimate and sensual ways for connection and arousal.
+@ Leading,Following,Slow,Grinding,Lap dance,Strip tease,Pole dancing
+
+* Love letters
+? Written expressions of desire, love, and intimate thoughts for emotional and sexual connection.
+@ Writing,Receiving,Erotic,Romantic,Poetry,Sexting,Email
+
+* Gifts
+? Giving and receiving presents with intimate, sexual, or romantic significance.
+@ Giving,Receiving,Lingerie,Toys,Jewelry,Flowers,Surprise,Expensive
+
+#Locations
+* Bedroom
+? Traditional intimate space with comfort, privacy, and various furniture and settings.
+@ Own,Partner's,Hotel,Different beds,Floor,Chair,Against wall
+
+* Shower/Bath
+? Water-based intimate activities with unique sensations, cleanliness, and various water features.
+@ Shower,Bath,Hot tub,Pool,Jacuzzi,Steam room,Waterfall,Beach
+
+* Outdoors
+? Nature-based intimate encounters with risk, natural settings, and various outdoor environments.
+@ Forest,Beach,Garden,Balcony,Park,Mountain,Desert,Camping
+
+* Car
+? Vehicle-based intimate activities with space constraints, mobility, and various car types.
+@ Backseat,Front seat,Parked,Moving,Truck,Limo,Motorcycle,RV
+
+* Public places
+? Semi-public locations with risk of discovery, excitement, and various levels of exposure.
+@ Bathroom,Changing room,Office,Elevator,Library,Movie theater,Restaurant
+
+* Kitchen
+? Food-related intimate activities and domestic settings with various surfaces and food items.
+@ Counter,Table,Floor,With food,Refrigerator,Against appliances,Cooking together
+
+* Workplace
+? Professional settings used for intimate activities with power dynamics and risk factors.
+@ Office,Conference room,Desk,After hours,Boss's office,Supply closet,Break room
+
+* Travel locations
+? Various places encountered during travel for adventure and novelty in intimate experiences.
+@ Hotel,Airplane,Train,Cruise ship,Foreign country,Vacation rental,Hostel
+
+#Fetishes
+* Feet
+? Attraction to feet including various activities, worship, and different aspects of feet.
+@ Worship,Massage,Kissing,Licking,Toes,Soles,Shoes,Socks
+
+* Smoking
+? Attraction to smoking or the act of smoking in intimate contexts and scenarios.
+@ Watching,Doing,Cigarettes,Cigars,Pipes,Blowing smoke,Ash play
+
+* Balloons
+? Various activities involving balloons for sensual, sexual, or fetishistic purposes.
+@ Inflating,Popping,Sitting,Rubbing,Latex,Different sizes,Helium
+
+* Food play
+? Using food items in intimate activities for taste, texture, and sensual experiences.
+@ Eating off body,Feeding,Messy,Whipped cream,Chocolate,Fruit,Ice cream
+
+* Medical play
+? Activities involving medical equipment, procedures, and scenarios for various purposes.
+@ Examination,Injection,Enema,Catheter,Speculum,Temperature,Stethoscope
+
+* Breath play
+? Activities involving controlled breathing for enhanced sensations and psychological effects.
+@ Choking,Breath holding,Plastic bags,Gas masks,Underwater,Hyperventilation
+
+* Tickling
+? Using touch to create tickling sensations for playfulness, torture, or sensual purposes.
+@ Giving,Receiving,Light,Intense,Feathers,Fingers,Restraint,Torture
+
 * Transformation
-? The act of causing the physical characteristics of a participant of an RP, possibly including one's self, by magical or chemical means, to change in a dramatic fashion; may refer to a myriad of different types of transformations, and connotates receiving sexual pleasure from the act of transformation itself.
-* Tentacles
-? Engaging in an RP in which self-sentient tentacles or tentacle-like appendages will penetrate a character; often implies multiple penetration.
-* Monster or Alien
-? Various types of monsters, Extraterrestrials, and aesthetically challenging characters.
-* Ghost
-? The formerly living, not currently in posession of a body
-* Shapeshifting
-? Characters with the ability to change their physical form at will, including species, gender, or body parts.
-* Size Play (Macro/Micro)
-? Scenarios involving dramatic size differences between characters, from giant to tiny proportions.
-* Multiple Limbs
-? Characters with additional arms, legs, or other appendages beyond normal human anatomy.
-* Elemental Beings
-? Characters made of or controlling elements like fire, water, earth, air, or other natural forces.
-* Cyborgs/Androids
-? Characters that are part machine, artificial intelligence, or robotic beings with human-like qualities.
-* Vampires/Supernatural
-? Immortal beings, vampires, werewolves, and other classic supernatural creatures.
-* Mythical Creatures
-? Dragons, phoenixes, unicorns, and other creatures from mythology and fantasy.
-* Plant/Nature Beings
-? Characters that are plant-based, tree-like, or have botanical characteristics.
-* Energy Beings
-? Characters made of pure energy, light, or other non-physical substances.
+? Fantasy or roleplay involving changing into different forms, genders, or beings.
+@ Gender,Animal,Object,Size,Age,Species,Magical,Gradual
 
-#Medium
-(General)
-* Skype
-* Kik
-* Reddit
-* E-Mail
-* Discord
-* Other
-* Telegram
-? Secure messaging platform with advanced features for private communication.
-* WhatsApp
-? Popular mobile messaging application for text and voice communication.
-* Signal
-? Privacy-focused messaging app with end-to-end encryption.
-* Steam
-? Gaming platform with built-in messaging and chat features.
-* Twitter/X DMs
-? Direct messaging through Twitter/X social media platform.
-* Instagram DMs
-? Direct messaging through Instagram social media platform.
-* Snapchat
-? Mobile app focused on disappearing messages and multimedia sharing.
-* Facebook Messenger
-? Facebook's dedicated messaging platform for text and video communication.
-* Forums/Boards
-? Traditional forum-style communication with threaded discussions.
-* Custom Platforms
-? Specialized roleplay websites and custom communication tools.
+#Technology
+* Sexting
+? Sending sexually explicit messages, images, or videos through digital communication.
+@ Sending,Receiving,Text,Photos,Videos,Voice messages,Apps,Anonymous
 
-#Time-Scale
-(Self, Partner)
-* Short-Term Scenes
-* Medium-Term Scenes
-* Long-Term Scenes
-* Ultra-Quick Replies (0~5 mins)
-? Immediate responses expected within minutes for rapid-fire roleplay.
-* Quick Replies (0~10 mins)
-* Fast Replies (10~30 mins)
-* Normal Replies (30min ~ 2hours)
-* Slow Replies (2~8 hours)
-* Glacial Replies (8-24 hours)
-* Occasional Replies (24+ hours)
-* Weekly Replies (1~7 days)
-? Responses expected within a week, suitable for detailed, thoughtful posts.
-* Monthly Replies (Weeks to months)
-? Very slow-paced roleplay with responses every few weeks to months.
-* Seasonal Replies (Months between)
-? Extremely slow-paced with responses separated by months, for epic long-term stories.
-* Real-time Sessions
-? Live, synchronous roleplay sessions with immediate back-and-forth interaction.
-* Flexible Timing
-? No set expectations, responses when convenient for both parties.`
+* Cam shows
+? Live video performances for sexual entertainment and interaction with viewers.
+@ Performing,Watching,Private,Public,Couples,Solo,Interactive,Tipping
+
+* Virtual reality
+? Using VR technology for immersive sexual experiences and fantasy scenarios.
+@ Watching,Participating,POV,Interactive,Fantasy worlds,Avatars,Haptic feedback
+
+* Sex machines
+? Mechanical devices designed for sexual stimulation with various features and capabilities.
+@ Using,Partner using,Fucking machine,Sybian,Remote control,Adjustable speed
+
+* Remote control toys
+? Sex toys that can be controlled remotely for long-distance play and public use.
+@ Using,Partner using,Public,Long distance,App controlled,Surprise activation
+
+* Phone sex
+? Intimate conversations over the phone for sexual arousal and satisfaction.
+@ Calling,Receiving,Dirty talk,Masturbation,Roleplay,Stranger,Regular partner
+
+* Online dating
+? Meeting people through digital platforms for various types of relationships and encounters.
+@ Casual,Serious,Hookups,Multiple partners,Profiles,Messaging,Video calls
+
+* Porn watching
+? Viewing pornographic content alone or with others for arousal and education.
+@ Solo,Together,Different genres,Amateur,Professional,Interactive,Making
+
+#Misc
+* Photography
+? Taking pictures during intimate moments for memory, artistic purposes, and sharing.
+@ Taking photos,Being photographed,Video,Polaroid,Professional,Amateur,Nude,Action
+
+* Role reversal
+? Switching typical roles or dynamics for variety, exploration, and power exchange.
+@ Dom/sub,Top/bottom,Active/passive,Gender roles,Age roles,Power dynamics
+
+* Sensory play
+? Activities focusing on different senses beyond sight including touch, sound, taste, and smell.
+@ Giving,Receiving,Feathers,Textures,Blindfolded,Music,Scents,Temperature
+
+* Edging
+? Bringing to the brink of climax repeatedly without allowing release for extended pleasure.
+@ Giving,Receiving,Self,Extended,Multiple times,Ruined orgasm,Denial
+
+* Orgasm control
+? Managing and controlling climax timing, intensity, and permission for power exchange.
+@ Controlling,Being controlled,Denial,Permission,Forced,Multiple,Ruined
+
+* Aftercare
+? Post-activity care and attention for emotional and physical well-being and connection.
+@ Giving,Receiving,Cuddling,Talking,Cleaning,Hydration,Checking in,Debriefing
+
+* Humiliation
+? Activities involving embarrassment, degradation, or shame for psychological arousal.
+@ Giving,Receiving,Verbal,Physical,Public,Private,Mild,Extreme
+
+* Praise
+? Positive reinforcement and compliments during intimate activities for encouragement and arousal.
+@ Giving,Receiving,Good girl/boy,Verbal,Physical,Performance,Appearance,Effort
+
+* Begging
+? Pleading or asking for permission, pleasure, or relief in various intimate contexts.
+@ Doing,Hearing,Permission,Orgasm,Touch,Stop,More,Please
+
+* Teasing
+? Playful or torturous activities that build anticipation and arousal without immediate satisfaction.
+@ Giving,Receiving,Verbal,Physical,Denial,Anticipation,Slow,Extended
+`
 };
 
-// Parse kinklist data
+// Parse kink list data into structured format
 function parseKinkListData(data) {
-    const lines = data.split('\n').filter(line => line.trim());
+    const lines = data.trim().split('\n');
     const categories = [];
     let currentCategory = null;
-    let currentSubcategory = undefined;
-
-    for (const line of lines) {
+    let currentItem = null;
+    
+    for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
+        
         if (line.startsWith('#')) {
-            const categoryName = line.substring(1).trim();
+            // New category
+            if (currentCategory) {
+                categories.push(currentCategory);
+            }
             currentCategory = {
-                name: categoryName,
+                name: line.substring(1).trim(),
                 items: []
             };
-            categories.push(currentCategory);
-            currentSubcategory = undefined;
-        } else if (line.startsWith('(') && line.endsWith(')')) {
-            const subcategoryText = line.substring(1, line.length - 1);
-            currentSubcategory = subcategoryText;
-            if (currentCategory) {
-                currentCategory.subcategory = subcategoryText;
+            currentItem = null;
+        } else if (line.startsWith('*')) {
+            // New item
+            if (currentItem) {
+                currentCategory.items.push(currentItem);
             }
-        } else if (line.startsWith('* ')) {
-            const itemName = line.substring(2).trim();
-            if (currentCategory) {
-                const isDualPreference = currentSubcategory && (
-                    currentSubcategory.includes('Giving, Receiving') ||
-                    currentSubcategory.includes('As Dominant, As Submissive') ||
-                    currentSubcategory.includes('Actor, Subject') ||
-                    currentSubcategory.includes('Aggressor, Target') ||
-                    currentSubcategory.includes('Self, Partner') ||
-                    currentSubcategory.includes('Small, Large')  // Added this case
-                );
-
-                let dualLabels;
-                if (isDualPreference) {
-                    if (itemName === "Birth") {
-                        dualLabels = { first: 'Giving', second: 'Witnessing' };
-                    } else if (currentSubcategory?.includes('Giving, Receiving')) {
-                        dualLabels = { first: 'Giving', second: 'Receiving' };
-                    } else if (currentSubcategory?.includes('As Dominant, As Submissive')) {
-                        dualLabels = { first: 'As Dominant', second: 'As Submissive' };
-                    } else if (currentSubcategory?.includes('Actor, Subject')) {
-                        dualLabels = { first: 'As Actor', second: 'As Subject' };
-                    } else if (currentSubcategory?.includes('Aggressor, Target')) {
-                        dualLabels = { first: 'As Aggressor', second: 'As Target' };
-                    } else if (currentSubcategory?.includes('Self, Partner')) {
-                        dualLabels = { first: 'For Self', second: 'For Partner' };
-                    } else if (currentSubcategory?.includes('Small, Large')) {
-                        dualLabels = { first: 'Small', second: 'Large' };  // Added this case
+            currentItem = {
+                name: line.substring(1).trim(),
+                description: '',
+                subcategories: [],
+                hasSubcategories: false
+            };
+        } else if (line.startsWith('?')) {
+            // Item description
+            if (currentItem) {
+                currentItem.description = line.substring(1).trim();
+            }
+        } else if (line.startsWith('@')) {
+            // Subcategories - new feature
+            if (currentItem) {
+                const subcategoryString = line.substring(1).trim();
+                if (subcategoryString) {
+                    // Parse comma-separated subcategories
+                    const subcategories = subcategoryString
+                        .split(',')
+                        .map(sub => sub.trim())
+                        .filter(sub => sub.length > 0);
+                    
+                    if (subcategories.length > 0) {
+                        currentItem.subcategories = subcategories;
+                        currentItem.hasSubcategories = true;
                     }
                 }
-
-                currentCategory.items.push({
-                    name: itemName,
-                    category: currentCategory.name,
-                    subcategory: currentSubcategory,
-                    hasDualPreference: isDualPreference,
-                    dualLabels
-                });
-            }
-        } else if (line.startsWith('? ')) {
-            const description = line.substring(2).trim();
-            if (currentCategory && currentCategory.items.length > 0) {
-                const lastItem = currentCategory.items[currentCategory.items.length - 1];
-                lastItem.description = description;
             }
         }
     }
-
+    
+    // Add the last item and category
+    if (currentItem && currentCategory) {
+        currentCategory.items.push(currentItem);
+    }
+    if (currentCategory) {
+        categories.push(currentCategory);
+    }
+    
     return categories;
+}
+
+// Validate subcategory string format
+function validateSubcategoryString(subcategoryString) {
+    if (!subcategoryString || typeof subcategoryString !== 'string') {
+        return { valid: false, error: 'Subcategory string must be a non-empty string' };
+    }
+    
+    const trimmed = subcategoryString.trim();
+    if (!trimmed) {
+        return { valid: false, error: 'Subcategory string cannot be empty or whitespace only' };
+    }
+    
+    // Check for valid comma-separated format
+    const subcategories = trimmed.split(',').map(sub => sub.trim()).filter(sub => sub.length > 0);
+    
+    if (subcategories.length === 0) {
+        return { valid: false, error: 'No valid subcategories found after parsing' };
+    }
+    
+    // Check for duplicate subcategories
+    const uniqueSubcategories = [...new Set(subcategories)];
+    if (uniqueSubcategories.length !== subcategories.length) {
+        return { valid: false, error: 'Duplicate subcategories found' };
+    }
+    
+    // Check for reasonable subcategory names (no special characters except spaces, hyphens, slashes)
+    const invalidSubcategories = subcategories.filter(sub => 
+        !/^[a-zA-Z0-9\s\-\/]+$/.test(sub) || sub.length > 50
+    );
+    
+    if (invalidSubcategories.length > 0) {
+        return { 
+            valid: false, 
+            error: `Invalid subcategory names: ${invalidSubcategories.join(', ')}. Only letters, numbers, spaces, hyphens, and slashes allowed. Max 50 characters each.` 
+        };
+    }
+    
+    return { valid: true, subcategories };
+}
+
+// Generate preference choices for an item
+function generatePreferenceChoices(item) {
+    const choices = [];
+    
+    if (item.hasSubcategories && item.subcategories.length > 0) {
+        // Generate individual choices for each subcategory
+        item.subcategories.forEach(subcategory => {
+            choices.push({
+                itemName: item.name,
+                subcategory: subcategory,
+                description: item.description,
+                id: `${item.name}_${subcategory}`,
+                displayName: `${item.name} (${subcategory})`
+            });
+        });
+    } else {
+        // Single choice for items without subcategories
+        choices.push({
+            itemName: item.name,
+            subcategory: null,
+            description: item.description,
+            id: item.name,
+            displayName: item.name
+        });
+    }
+    
+    return choices;
+}
+
+// Get all preference choices for a category
+function getCategoryPreferenceChoices(category) {
+    const allChoices = [];
+    
+    category.items.forEach(item => {
+        const itemChoices = generatePreferenceChoices(item);
+        allChoices.push(...itemChoices);
+    });
+    
+    return allChoices;
+}
+
+// Get all preference choices for entire kink list
+function getAllPreferenceChoices(kinkData) {
+    const allChoices = [];
+    
+    kinkData.forEach(category => {
+        const categoryChoices = getCategoryPreferenceChoices(category);
+        allChoices.push(...categoryChoices);
+    });
+    
+    return allChoices;
+}
+
+// Helper function to find a specific preference choice by ID
+function findPreferenceChoiceById(kinkData, choiceId) {
+    const allChoices = getAllPreferenceChoices(kinkData);
+    return allChoices.find(choice => choice.id === choiceId);
+}
+
+// Helper function to get all subcategories for a specific item
+function getItemSubcategories(kinkData, itemName) {
+    for (const category of kinkData) {
+        const item = category.items.find(item => item.name === itemName);
+        if (item) {
+            return item.hasSubcategories ? item.subcategories : [];
+        }
+    }
+    return [];
+}
+
+// Export functions for use in other scripts
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        kinklistData,
+        categoryExplanations,
+        parseKinkListData,
+        validateSubcategoryString,
+        generatePreferenceChoices,
+        getCategoryPreferenceChoices,
+        getAllPreferenceChoices,
+        findPreferenceChoiceById,
+        getItemSubcategories
+    };
 }

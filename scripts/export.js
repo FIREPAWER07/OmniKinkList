@@ -982,11 +982,12 @@ const exportUtils = {
         </div>        
         
         ${kinkData.map(category => {
-            const categoryItems = category.items.filter(item => preferences[item.name] && 
-                (preferences[item.name].level !== 'not-entered' || 
-                 preferences[item.name].dualLevel !== 'not-entered'));
+            const categoryChoices = getCategoryPreferenceChoices(category);
+            const completedChoices = categoryChoices.filter(choice => 
+                preferences[choice.id] && preferences[choice.id].level !== 'not-entered'
+            );
             
-            if (categoryItems.length === 0) {
+            if (completedChoices.length === 0) {
                 return '';
             }
             
@@ -997,26 +998,13 @@ const exportUtils = {
                     <span class="category-toggle">▼</span>
                 </h2>
                 <div class="items-grid">
-                    ${categoryItems.map(item => {
-                        const pref = preferences[item.name];
+                    ${completedChoices.map(choice => {
+                        const pref = preferences[choice.id];
                         return `
                             <div class="item">
-                                <div class="item-name">${item.name}</div>
-                                ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
-                                ${item.hasDualPreference && item.dualLabels ? `
-                                    <div class="dual-prefs">
-                                        <div>
-                                            <span class="dual-label">${item.dualLabels.first}:</span>
-                                            <span class="preference pref-${pref.level}">${pref.level !== 'not-entered' ? pref.level.charAt(0).toUpperCase() + pref.level.slice(1) : 'Not set'}</span>
-                                        </div>
-                                        <div>
-                                            <span class="dual-label">${item.dualLabels.second}:</span>
-                                            <span class="preference pref-${pref.dualLevel}">${pref.dualLevel !== 'not-entered' ? pref.dualLevel.charAt(0).toUpperCase() + pref.dualLevel.slice(1) : 'Not set'}</span>
-                                        </div>
-                                    </div>
-                                ` : `
-                                    <span class="preference pref-${pref.level}">${pref.level !== 'not-entered' ? pref.level.charAt(0).toUpperCase() + pref.level.slice(1) : 'Not set'}</span>
-                                `}
+                                <div class="item-name">${choice.displayName}</div>
+                                ${choice.description ? `<div class="item-description">${choice.description}</div>` : ''}
+                                <span class="preference pref-${pref.level}">${pref.level !== 'not-entered' ? pref.level.charAt(0).toUpperCase() + pref.level.slice(1) : 'Not set'}</span>
                             </div>
                         `;
                     }).join('')}
@@ -1107,7 +1095,8 @@ const exportUtils = {
 
     // Calculate statistics for export
     calculateStats: function(preferences, kinkData) {
-        const totalItems = kinkData.reduce((sum, category) => sum + category.items.length, 0);
+        const allChoices = getAllPreferenceChoices(kinkData);
+        const totalItems = allChoices.length;
         const completed = Object.keys(preferences).length;
         
         const stats = {
@@ -1123,9 +1112,6 @@ const exportUtils = {
         Object.values(preferences).forEach(pref => {
             if (stats.hasOwnProperty(pref.level)) {
                 stats[pref.level]++;
-            }
-            if (pref.dualLevel && stats.hasOwnProperty(pref.dualLevel)) {
-                stats[pref.dualLevel]++;
             }
         });
 

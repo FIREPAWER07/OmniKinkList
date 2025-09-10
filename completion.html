@@ -95,7 +95,8 @@
             const kinkData = parseKinkListData(kinklistData[listType]);
             
             // Calculate stats
-            const totalItems = kinkData.reduce((sum, category) => sum + category.items.length, 0);
+            const allChoices = getAllPreferenceChoices(kinkData);
+            const totalItems = allChoices.length;
             const completed = Object.keys(preferences).length;
             
             const stats = {
@@ -111,9 +112,6 @@
             Object.values(preferences).forEach(pref => {
                 if (stats.hasOwnProperty(pref.level)) {
                     stats[pref.level]++;
-                }
-                if (pref.dualLevel && stats.hasOwnProperty(pref.dualLevel)) {
-                    stats[pref.dualLevel]++;
                 }
             });
 

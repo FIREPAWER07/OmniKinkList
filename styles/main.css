@@ -880,7 +880,7 @@ body.light .sticky-header.scrolled {
     z-index: 1;
 }
 
-.dual-preferences {
+.subcategory-preferences {
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -888,11 +888,27 @@ body.light .sticky-header.scrolled {
     z-index: 1;
 }
 
-.dual-label {
+.subcategory-choice {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.subcategory-label {
     font-size: 0.85rem;
     font-weight: 500;
     color: var(--muted-foreground);
-    margin-bottom: 5px;
+    padding: 4px 8px;
+    background: var(--secondary);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    transition: var(--transition);
+}
+
+.subcategory-choice:hover .subcategory-label {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    transform: scale(1.02);
 }
 
 .pref-btn {

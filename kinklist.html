@@ -200,38 +200,26 @@
         }
 
         // Preference management
-        function setPreference(itemName, level, isDual = false, dualType = null) {
-            if (!preferences[itemName]) {
-                preferences[itemName] = {
-                    itemName,
+        function setPreference(choiceId, level) {
+            if (!preferences[choiceId]) {
+                preferences[choiceId] = {
+                    choiceId,
                     level: 'not-entered',
-                    dualLevel: 'not-entered' // Initialize dualLevel
                 };
             }
 
-            if (isDual && dualType) {
-                // For Small/Large dual preferences
-                if (dualType === 'first') {
-                    preferences[itemName].level = level;
-                } else if (dualType === 'second') {
-                    preferences[itemName].dualLevel = level;
-                }
-            } else {
-                preferences[itemName].level = level;
-            }
+            preferences[choiceId].level = level;
 
             // Save to localStorage
             localStorage.setItem('kinklist-preferences', JSON.stringify(preferences));
             
             // Update UI
             updateProgress();
-            updatePreferenceButton(itemName, level, isDual, dualType);
+            updatePreferenceButton(choiceId, level);
         }
 
-        function updatePreferenceButton(itemName, level, isDual, dualType) {
-            const selector = isDual ? 
-                `[data-item="${itemName}"][data-dual="${dualType}"]` : 
-                `[data-item="${itemName}"]:not([data-dual])`;
+        function updatePreferenceButton(choiceId, level) {
+            const selector = `[data-choice-id="${choiceId}"]`;
             
             const buttons = document.querySelectorAll(`${selector} .pref-btn`);
             buttons.forEach(btn => btn.classList.remove('active'));
@@ -244,7 +232,8 @@
 
         // Progress tracking
         function updateProgress() {
-            const totalItems = kinkData.reduce((sum, category) => sum + category.items.length, 0);
+            const allChoices = getAllPreferenceChoices(kinkData);
+            const totalItems = allChoices.length;
             const completedItems = Object.keys(preferences).length;
             const percentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
@@ -285,37 +274,43 @@
         }
 
         function renderKinkItem(item) {
-            const preference = preferences[item.name];
-            const currentLevel = preference ? preference.level : 'not-entered';
-            const currentDualLevel = preference ? preference.dualLevel : 'not-entered';
-            
-            if (item.hasDualPreference && item.dualLabels) {
+            if (item.hasSubcategories && item.subcategories.length > 0) {
+                // Render item with multiple subcategory preferences
+                let subcategoryHTML = '';
+                item.subcategories.forEach(subcategory => {
+                    const choiceId = `${item.name}_${subcategory}`;
+                    const preference = preferences[choiceId];
+                    const currentLevel = preference ? preference.level : 'not-entered';
+                    
+                    subcategoryHTML += `
+                        <div class="subcategory-choice">
+                            <div class="subcategory-label">${subcategory}</div>
+                            <div class="preference-buttons" data-choice-id="${choiceId}">
+                                ${renderPreferenceButtons(currentLevel)}
+                            </div>
+                        </div>
+                    `;
+                });
+                
                 return `
                     <div class="kink-item">
                         <div class="item-name">${item.name}</div>
                         ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
-                        <div class="dual-preferences">
-                            <div>
-                                <div class="dual-label">${item.dualLabels.first}</div>
-                                <div class="preference-buttons" data-item="${item.name}" data-dual="first">
-                                    ${renderPreferenceButtons(currentLevel)}
-                                </div>
-                            </div>
-                            <div>
-                                <div class="dual-label">${item.dualLabels.second}</div>
-                                <div class="preference-buttons" data-item="${item.name}" data-dual="second">
-                                    ${renderPreferenceButtons(currentDualLevel)}
-                                </div>
-                            </div>
+                        <div class="subcategory-preferences">
+                            ${subcategoryHTML}
                         </div>
                     </div>
                 `;
             } else {
+                // Render item with single preference
+                const preference = preferences[item.name];
+                const currentLevel = preference ? preference.level : 'not-entered';
+                
                 return `
                     <div class="kink-item">
                         <div class="item-name">${item.name}</div>
                         ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
-                        <div class="preference-buttons" data-item="${item.name}">
+                        <div class="preference-buttons" data-choice-id="${item.name}">
                             ${renderPreferenceButtons(currentLevel)}
                         </div>
                     </div>
@@ -339,10 +334,9 @@
                 btn.addEventListener('click', (e) => {
                     const level = e.target.dataset.level;
                     const container = e.target.closest('.preference-buttons');
-                    const itemName = container.dataset.item;
-                    const dualType = container.dataset.dual;
+                    const choiceId = container.dataset.choiceId;
                     
-                    setPreference(itemName, level, !!dualType, dualType);
+                    setPreference(choiceId, level);
                 });
             });
             
