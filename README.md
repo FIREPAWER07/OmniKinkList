@@ -27,9 +27,9 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
 
 ## ⚡ Technical Details  
 
-* Built with **pure HTML, CSS, and JavaScript** (no frameworks, no nonsense)  
-* Uses **local storage** for quick saving  
-* Fully **mobile-responsive** design  
+* **Easy and intuitive** to use.
+* Uses **local storage** for quick saving.
+* Fully **modern and smooth** design.
 
 
 ## 🔗 Links  
