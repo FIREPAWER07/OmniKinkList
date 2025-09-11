@@ -374,12 +374,12 @@ const exportUtils = {
             margin: 30px 0;
             background: var(--card);
             border-radius: var(--radius-xl);
-            padding: 24px;
+            padding: 24px 24px 30px 24px; /* Added extra bottom padding for hover effects */
             border: 1px solid var(--border);
             box-shadow: var(--shadow-md);
             transition: var(--transition-slow);
             position: relative;
-            overflow: hidden;
+            /* Removed overflow: hidden to prevent clipping of hover effects */
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
@@ -395,6 +395,7 @@ const exportUtils = {
             opacity: 0;
             transition: opacity 0.3s ease;
             pointer-events: none;
+            border-radius: var(--radius-xl);
         }
 
         .category:hover::before {
@@ -485,14 +486,16 @@ const exportUtils = {
         .category.collapsed .category-toggle:hover {
             transform: rotate(180deg) scale(1.1);
         }
+        
         .items-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
+            gap: 20px; /* Increased gap to give more space for hover effects */
             position: relative;
             z-index: 1;
             transition: var(--transition-slow);
-            overflow: hidden;
+            /* Removed overflow: hidden to prevent clipping */
+            padding: 0 5px 5px 5px; /* Added padding to prevent edge items from being clipped */
         }
 
         .category.collapsed .items-grid {
@@ -500,6 +503,8 @@ const exportUtils = {
             opacity: 0;
             margin-top: 0;
             padding-top: 0;
+            padding-bottom: 0;
+            overflow: hidden; /* Keep overflow hidden only when collapsed */
         }
         
         .item {
@@ -515,6 +520,8 @@ const exportUtils = {
             -webkit-backdrop-filter: blur(5px);
             word-break: break-word;
             hyphens: auto;
+            /* Added margin to create safe space around items */
+            margin: 2px;
         }
 
         .item::before {
@@ -526,6 +533,7 @@ const exportUtils = {
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 107, 157, 0.05), transparent);
             transition: left 0.5s ease;
+            border-radius: var(--radius-lg);
         }
 
         .item:hover::before {
@@ -533,9 +541,10 @@ const exportUtils = {
         }
 
         .item:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px) scale(1.03); /* Slightly increased transform for better visibility */
+            box-shadow: var(--shadow-xl); /* Enhanced shadow */
             border-color: var(--primary);
+            z-index: 2; /* Bring hovered item above others */
         }
         
         .item-name {
@@ -650,11 +659,12 @@ const exportUtils = {
             
             .items-grid {
                 grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                gap: 12px;
+                gap: 15px;
+                padding: 0 3px 3px 3px;
             }
 
             .category {
-                padding: 20px 15px;
+                padding: 20px 15px 25px 15px;
                 margin: 20px 0;
             }
 
@@ -665,6 +675,7 @@ const exportUtils = {
 
             .item {
                 padding: 15px;
+                margin: 1px;
             }
 
             .dual-prefs {
@@ -751,11 +762,12 @@ const exportUtils = {
 
             .items-grid {
                 grid-template-columns: 1fr;
-                gap: 10px;
+                gap: 12px;
+                padding: 0 2px 2px 2px;
             }
 
             .category {
-                padding: 15px 10px;
+                padding: 15px 10px 20px 10px;
                 margin: 15px 0;
             }
 
@@ -766,6 +778,7 @@ const exportUtils = {
 
             .item {
                 padding: 12px;
+                margin: 1px;
             }
 
             .item-name {
@@ -829,7 +842,7 @@ const exportUtils = {
             }
 
             .category {
-                padding: 12px 8px;
+                padding: 12px 8px 16px 8px;
             }
 
             .item {
@@ -909,6 +922,11 @@ const exportUtils = {
             .dual-prefs > div {
                 margin-bottom: 5px;
             }
+
+            /* Reduce hover effects on touch devices */
+            .item:hover {
+                transform: translateY(-2px) scale(1.02);
+            }
         }
 
         /* High DPI displays */
@@ -933,6 +951,10 @@ const exportUtils = {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
+            }
+
+            .item:hover {
+                transform: none;
             }
         }
     </style>
