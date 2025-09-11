@@ -1,6 +1,6 @@
 # 💗 OmniKinkList (By [FIREPAWER07](https://github.com/FIREPAWER07) and [redboy4313](https://github.com/redboy4313)) 💗
 
-![OmniKinkList Banner](https://i.imgur.com/qPC78QY.png)](https://firepawer07.github.io/OmniKinkList)
+[![OmniKinkList Banner](https://i.imgur.com/qPC78QY.png)](https://firepawer07.github.io/OmniKinkList)
 
 [![GitHub issues](https://img.shields.io/github/issues/FIREPAWER07/OmniKinkList)](https://github.com/FIREPAWER07/OmniKinkList/issues)
 [![License](https://img.shields.io/github/license/FIREPAWER07/OmniKinkList)](LICENSE)
