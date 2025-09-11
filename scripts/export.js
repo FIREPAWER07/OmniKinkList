@@ -999,17 +999,17 @@ const exportUtils = {
                     ${consolidatedItems.map(item => {
                         if (item.subcategories.length > 1) {
                             // Multiple subcategories - consolidated format
-                            const subcategoryList = item.subcategories.map(sub => 
-                                `${sub.name} ${sub.level.charAt(0).toUpperCase() + sub.level.slice(1)}`
-                            ).join(', ');
                             
                             return `
                                 <div class="item">
-                                    <div class="item-name">${item.itemName}: ${subcategoryList}</div>
+                                    <div class="item-name">${item.itemName}</div>
                                     ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
                                     <div class="dual-prefs">
                                         ${item.subcategories.map(sub => `
-                                            <span class="preference pref-${sub.level}">${sub.name} ${sub.level.charAt(0).toUpperCase() + sub.level.slice(1)}</span>
+                                            <div>
+                                                <span class="dual-label">${sub.name}:</span>
+                                                <span class="preference pref-${sub.level}">${sub.level.charAt(0).toUpperCase() + sub.level.slice(1)}</span>
+                                            </div>
                                         `).join('')}
                                     </div>
                                 </div>
