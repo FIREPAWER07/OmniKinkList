@@ -14,16 +14,16 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
 * 🎯 **Multiple List Types** – Choose between Classic, Detailed, or Extended views  
 * 🌙 **Theme Toggle** – Instantly swap between Dark and Light modes  
 * 📊 **Progress Tracking** – Visual stats to track how much you’ve explored  
-* 💾 **Save & Load Preferences** – Export/import your list as JSON or HTML  
+* 💾 **Save & Load Preferences** – Export/import your list as HTML  
 * 📱 **Responsive Design** – Smooth experience across desktop & mobile  
 * 🎨 **Polished UI** – Sleek, modern interface built for effortless navigation  
 
 
 ## 🛠️ How to Use  
 
-1. **Pick Your List Type** → Classic, Detailed, or Extended  
+1. **Pick Your List Type** → Classic for the lazy ones, Detailed for the horny ones, or Extended for the weird kinky ones!
 2. **Set Your Preferences** → Click the color-coded buttons to mark your likes, dislikes, and everything in-between  
-3. **Export & Share** → Save as HTML or JSON to revisit or share with friends (or enemies 👀)  
+3. **Export & Share** → Save as HTML to revisit or share with friends (or friends with benefits~ ;3)
 
 ## ⚡ Technical Details  
 
