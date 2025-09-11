@@ -17,6 +17,7 @@ const exportUtils = {
     // Generate HTML export content with new theme system
     generateHTMLExport: function(listType, preferences, kinkData) {
         const stats = this.calculateStats(preferences, kinkData);
+        const consolidatedData = this.consolidateSubcategories(kinkData, preferences);
         
         return `<!DOCTYPE html>
 <html lang="en">
@@ -982,12 +983,9 @@ const exportUtils = {
         </div>        
         
         ${kinkData.map(category => {
-            const categoryChoices = getCategoryPreferenceChoices(category);
-            const completedChoices = categoryChoices.filter(choice => 
-                preferences[choice.id] && preferences[choice.id].level !== 'not-entered'
-            );
+            const consolidatedItems = consolidatedData.filter(item => item.categoryName === category.name);
             
-            if (completedChoices.length === 0) {
+            if (consolidatedItems.length === 0) {
                 return '';
             }
             
@@ -998,15 +996,37 @@ const exportUtils = {
                     <span class="category-toggle">▼</span>
                 </h2>
                 <div class="items-grid">
-                    ${completedChoices.map(choice => {
-                        const pref = preferences[choice.id];
-                        return `
-                            <div class="item">
-                                <div class="item-name">${choice.displayName}</div>
-                                ${choice.description ? `<div class="item-description">${choice.description}</div>` : ''}
-                                <span class="preference pref-${pref.level}">${pref.level !== 'not-entered' ? pref.level.charAt(0).toUpperCase() + pref.level.slice(1) : 'Not set'}</span>
-                            </div>
-                        `;
+                    ${consolidatedItems.map(item => {
+                        if (item.subcategories.length > 1) {
+                            // Multiple subcategories - consolidated format
+                            const subcategoryList = item.subcategories.map(sub => 
+                                `${sub.name} ${sub.level.charAt(0).toUpperCase() + sub.level.slice(1)}`
+                            ).join(', ');
+                            
+                            return `
+                                <div class="item">
+                                    <div class="item-name">${item.itemName}: ${subcategoryList}</div>
+                                    ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
+                                    <div class="dual-prefs">
+                                        ${item.subcategories.map(sub => `
+                                            <span class="preference pref-${sub.level}">${sub.name} ${sub.level.charAt(0).toUpperCase() + sub.level.slice(1)}</span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // Single subcategory or no subcategories
+                            const sub = item.subcategories[0];
+                            const displayName = sub.name ? `${item.itemName} (${sub.name})` : item.itemName;
+                            
+                            return `
+                                <div class="item">
+                                    <div class="item-name">${displayName}</div>
+                                    ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
+                                    <span class="preference pref-${sub.level}">${sub.level.charAt(0).toUpperCase() + sub.level.slice(1)}</span>
+                                </div>
+                            `;
+                        }
                     }).join('')}
                 </div>
             </div>`;
@@ -1091,6 +1111,66 @@ const exportUtils = {
     </script>
 </body>
 </html>`;
+    },
+
+    // Consolidate subcategories for identical items
+    consolidateSubcategories: function(kinkData, preferences) {
+        const consolidatedItems = [];
+        const itemMap = new Map();
+        
+        // Process each category
+        kinkData.forEach(category => {
+            const categoryChoices = getCategoryPreferenceChoices(category);
+            
+            // Filter only completed choices
+            const completedChoices = categoryChoices.filter(choice => 
+                preferences[choice.id] && preferences[choice.id].level !== 'not-entered'
+            );
+            
+            // Group choices by item name
+            completedChoices.forEach(choice => {
+                const pref = preferences[choice.id];
+                const itemKey = `${category.name}::${choice.itemName}`;
+                
+                if (!itemMap.has(itemKey)) {
+                    itemMap.set(itemKey, {
+                        categoryName: category.name,
+                        itemName: choice.itemName,
+                        description: choice.description,
+                        subcategories: []
+                    });
+                }
+                
+                const item = itemMap.get(itemKey);
+                item.subcategories.push({
+                    name: choice.subcategory,
+                    level: pref.level,
+                    id: choice.id
+                });
+            });
+        });
+        
+        // Convert map to array and sort subcategories
+        itemMap.forEach(item => {
+            // Sort subcategories by name for consistent ordering
+            item.subcategories.sort((a, b) => {
+                if (!a.name && !b.name) return 0;
+                if (!a.name) return -1;
+                if (!b.name) return 1;
+                return a.name.localeCompare(b.name);
+            });
+            
+            consolidatedItems.push(item);
+        });
+        
+        // Sort items by category and item name
+        consolidatedItems.sort((a, b) => {
+            const categoryCompare = a.categoryName.localeCompare(b.categoryName);
+            if (categoryCompare !== 0) return categoryCompare;
+            return a.itemName.localeCompare(b.itemName);
+        });
+        
+        return consolidatedItems;
     },
 
     // Calculate statistics for export
