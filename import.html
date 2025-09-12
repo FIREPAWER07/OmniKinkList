@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import & Update - OmniKinkList</title>
+    <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body class="dark">
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+        <span id="theme-icon">☀️</span>
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1>Import & Update</h1>
+                <p>Import your exported kinklist and update to the latest version</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Import Your Kinklist</h2>
+                <p>Upload your previously exported HTML file to continue where you left off</p>
+            </div>
+            <div class="card-content">
+                <div class="import-section">
+                    <div class="file-drop-zone" id="file-drop-zone">
+                        <div class="drop-zone-content">
+                            <div class="drop-icon">📁</div>
+                            <h3>Drop your HTML file here</h3>
+                            <p>or click to browse</p>
+                            <input type="file" id="file-input" accept=".html" style="display: none;">
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" id="browse-btn">Browse Files</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="import-results" class="hidden">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Import Results</h2>
+                    <div id="import-status"></div>
+                </div>
+                <div class="card-content">
+                    <div id="version-info"></div>
+                    <div id="migration-summary"></div>
+                    <div id="changelog-section" class="hidden">
+                        <h3>What's New</h3>
+                        <div id="changelog-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" id="continue-editing">Continue Editing</button>
+                <button class="btn btn-secondary" id="export-updated">Export Updated Version</button>
+                <button class="btn btn-secondary" id="start-fresh">Start Fresh Instead</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Manual Import</h2>
+                <p>If you have preferences data in JSON format, paste it here</p>
+            </div>
+            <div class="card-content">
+                <textarea id="manual-import" placeholder='Paste your preferences JSON here, e.g., {"item1": {"level": "favorite"}, ...}'></textarea>
+                <div class="controls">
+                    <button class="btn btn-primary" id="import-json">Import JSON</button>
+                    <button class="btn btn-secondary" id="clear-manual">Clear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/shared.js"></script>
+    <script src="scripts/storage.js"></script>
+    <script src="scripts/import.js"></script>
+    <script>
+        // Initialize theme
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            
+            if (savedTheme === 'light') {
+                document.body.classList.remove('dark');
+                document.body.classList.add('light');
+                document.getElementById('theme-icon').textContent = '🌙';
+            } else {
+                document.body.classList.add('dark');
+                document.body.classList.remove('light');
+                document.getElementById('theme-icon').textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark');
+                body.classList.remove('light');
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+            initImportSystem();
+        });
+    </script>
+</body>
+</html>

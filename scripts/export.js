@@ -25,6 +25,9 @@ const exportUtils = {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My OmniKinklist - ${listType.charAt(0).toUpperCase() + listType.slice(1)}</title>
+    <meta name="kinklist-version" content="2.0.0">
+    <meta name="kinklist-type" content="${listType}">
+    <meta name="kinklist-export-date" content="${new Date().toISOString()}">
     <style>
         /* CSS Variables for theming - Dark mode as default */
         :root {
