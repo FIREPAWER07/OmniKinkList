@@ -44,11 +44,6 @@ If you **can’t code** but want a new kink added, ask a developer and provide:
    ```
    * Kink Name
    ? Description of what this kink involves.
-   ```
-
-3. **🔀 Add preference options (if needed)**
-
-   ```
    @ Giving,Receiving
    ```
 
@@ -62,10 +57,6 @@ If you **can’t code** but want a new kink added, ask a developer and provide:
    ```
    * Your New Kink Name
    ? Description of the new kink.
-   ```
-3. **Add preferences (optional)** with `@`:
-
-   ```
    @ Giving,Receiving
    ```
 4. **Update all three versions** if you want consistency.
@@ -105,6 +96,7 @@ const categoryExplanations = {
 
 * Second kink in new category
 ? Description of second kink.
+@ Option1,Option2
 ```
 
 ---
