@@ -1,4 +1,4 @@
-# 🌐 Kink List Data Structure (`[Shared.js](https://github.com/FIREPAWER07/OmniKinkList/blob/main/scripts/shared.js)`)
+# 🌐 Kink List Data Structure ([Shared.js](https://github.com/FIREPAWER07/OmniKinkList/blob/main/scripts/shared.js))
 
 This document explains how the kink list data is structured and how to add new kinks to the system.
 
