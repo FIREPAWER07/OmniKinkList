@@ -57,3 +57,20 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
     </td>
   </tr>
 </table>
+
+### 🖼️ SendDisImages
+
+<table>
+  <tr>
+    <td width="200">
+      <a href="https://github.com/FIREPAWER07/SendDisImages">
+        <img src="https://i.imgur.com/t0W1fvu.png" alt="SendDisImages Logo" width="180">
+      </a>
+    </td>
+    <td>
+      A modern, lightweight desktop app that lets you easily send one or multiple high-quality images to Discord channels through your bot — with smart compression, Nitro mode support, and a clean, responsive UI.  
+      <br><br>
+      🔗 <a href="https://github.com/FIREPAWER07/SendDisImages">Check it out here!</a>
+    </td>
+  </tr>
+</table>
