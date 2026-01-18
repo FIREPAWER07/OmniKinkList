@@ -3,6 +3,7 @@
 // Category explanations
 const categoryExplanations = {
     "General": "Basic kinks and fetishes that are commonly explored.",
+    "Body": "Preferences of the body.",
     "Toys": "Various toys and implements used in intimate activities.",
     "Clothing": "Clothing-related fetishes and preferences.",
     "Roleplay": "Different scenarios and character-based activities.",
@@ -18,23 +19,60 @@ const categoryExplanations = {
 const kinklistData = {
     common: `
 #General
-* Anal play
-? Activities involving anal stimulation and penetration.
+* Dirty talk
+? Verbal communication during intimate activities.
 @ Giving,Receiving
+
+* Kissing
+? Various forms of lip and mouth contact.
+@ Giving,Receiving
+
+* Tickling
+? The act of tickling in a sexual context.
+@ Giving,Receiving
+
+* Domination
+? The role during intimate activites.
+@ Dominant,Submissive,Switch
 
 * Oral sex
 ? Various forms of oral stimulation.
 @ Giving,Receiving
 
-* Spanking
-? Light to moderate impact play using hands.
+* Masturbation
+? The act of stimulating oneself sexually.
+
+* Handjob/Fingering
+? Activities involving stimulation by hand.
 @ Giving,Receiving
 
-* Hair pulling
-? Tugging or pulling hair during intimate moments.
+* Teasing
+? Physical/verbal foreplay to arouse partner.
+@ Giving,Receiving
 
-* Dirty talk
-? Verbal communication during intimate activities.
+* Anal play
+? Activities involving anal stimulation and penetration.
+@ Giving,Receiving
+
+#Body
+* Size
+? The size of the partner's body.
+@ Skinny,Average,Chubby,Muscular
+
+* Breasts
+? The size of the partner's breasts.
+@ Small,Medium,Big
+
+* Ass
+? The size of the partner's ass.
+@ Small,Medium,Big
+
+* Penis
+? The size of the partner's penis.
+@ Small,Medium,Big
+
+* Pubic Hair
+? The presence of hair in the groin area.
 
 #Toys
 * Vibrators
@@ -75,19 +113,6 @@ const kinklistData = {
 * Boss/Employee
 ? Workplace power dynamic scenarios.
 @ Boss,Employee
-
-#Bondage
-* Rope bondage
-? Using rope for restraint and artistic purposes.
-@ Tying,Being tied
-
-* Blindfolding
-? Removing the sense of sight during activities.
-@ Blindfolding,Being blindfolded
-
-* Gagging
-? Restricting speech during intimate moments.
-@ Gagging,Being gagged
 
 #Pain
 * Light spanking
