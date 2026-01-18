@@ -37,7 +37,7 @@ Each category has a description, and each kink item can have:
 If you **can’t code** but want a new kink added, ask a developer and provide:
 
 1. **📂 The right category**
-   Decide which category your kink belongs in.
+   Decide which category your kink belongs in. Available categories include: General, Toys, Clothing, Roleplay, Bondage, Pain, Taboo, Romantic, Locations, Fetishes, Technology, and Misc.
 
 2. **📝 Follow the format**
 
@@ -47,11 +47,15 @@ If you **can’t code** but want a new kink added, ask a developer and provide:
    @ Giving,Receiving
    ```
 
+3. **⚠️ Validation rules**
+   Subcategories can only contain letters, numbers, spaces, hyphens, and slashes (max 50 characters each).
+
 ---
 
 ## 🧑‍💻 Detailed Explanation: How to Add Kinks
 
-1. **Locate the category** in `kinklistData` (common, uncommon, or omni).
+1. **Locate the category** in `kinklistData` (common, uncommon, or omni). Available categories include: General, Toys, Clothing, Roleplay, Bondage, Pain, Taboo, Romantic, Locations, Fetishes, Technology, and Misc.
+
 2. **Add your kink** using the proper format:
 
    ```
@@ -59,7 +63,16 @@ If you **can’t code** but want a new kink added, ask a developer and provide:
    ? Description of the new kink.
    @ Giving,Receiving
    ```
+
+3. **Follow validation rules** for subcategories:
+   - Only letters, numbers, spaces, hyphens, and slashes allowed
+   - Maximum 50 characters per subcategory
+   - No duplicates allowed
+   - Must be comma-separated
+
 4. **Update all three versions** if you want consistency.
+
+5. **Test your additions** using the `validateSubcategoryString()` function to ensure proper formatting.
 
 ---
 
