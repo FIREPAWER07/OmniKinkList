@@ -22,9 +22,9 @@ Each category has a description, and each kink item can have:
 2. **🗂️ Kink List Data**
    The `kinklistData` object contains **three versions** of the kink list:
 
-   * 🟢 `classic`
-   * 🔵 `detailed`
-   * 🔴 `extended`
+   * 🟢 `common`
+   * 🔵 `uncommon`
+   * 🔴 `omni`
      Same structure, different levels of detail.
 
 3. **🧩 Parser Function**
@@ -51,7 +51,7 @@ If you **can’t code** but want a new kink added, ask a developer and provide:
 
 ## 🧑‍💻 Detailed Explanation: How to Add Kinks
 
-1. **Locate the category** in `kinklistData` (classic, detailed, or extended).
+1. **Locate the category** in `kinklistData` (common, uncommon, or omni).
 2. **Add your kink** using the proper format:
 
    ```

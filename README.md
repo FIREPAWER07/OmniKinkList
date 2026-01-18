@@ -11,7 +11,7 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
 
 ## 🚀 Features  
 
-* 🎯 **Multiple List Types** – Choose between Classic, Detailed, or Extended views  
+* 🎯 **Multiple List Types** – Choose between Common, Uncommon, or Omni kinks  
 * 🌙 **Theme Toggle** – Instantly swap between Dark and Light modes  
 * 📊 **Progress Tracking** – Visual stats to track how much you’ve explored  
 * 💾 **Save & Load Preferences** – Export/import your list as HTML  
@@ -21,7 +21,7 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
 
 ## 🛠️ How to Use  
 
-1. **Pick Your List Type** → Classic for the lazy ones, Detailed for the horny ones, or Extended for the weird kinky ones!
+1. **Pick Your List Type** → Common for the Normies, Uncommon for the horny ones, or Omni for the weird kinky ones!
 2. **Set Your Preferences** → Click the color-coded buttons to mark your likes, dislikes, and everything in-between  
 3. **Export & Share** → Save as HTML to revisit or share with friends (or friends with benefits~ ;3)
 

@@ -16,7 +16,7 @@ const categoryExplanations = {
 
 // Kink list data for different versions
 const kinklistData = {
-    classic: `
+    common: `
 #General
 * Anal play
 ? Activities involving anal stimulation and penetration.
@@ -135,7 +135,7 @@ const kinklistData = {
 @ Giving,Receiving
 `,
 
-    detailed: `
+    uncommon: `
 #General
 * Anal play
 ? Activities involving anal stimulation, fingering, toys, or penetration with varying intensity levels.
@@ -399,7 +399,7 @@ const kinklistData = {
 @ Giving,Receiving,Cuddling,Talking
 `,
 
-    extended: `
+    omni: `
 #General
 * Anal play
 ? Comprehensive anal activities including fingering, rimming, toys, and penetration with various techniques and intensities.

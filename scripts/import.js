@@ -113,7 +113,7 @@ const importSystem = {
 
             return {
                 version: versionInfo.version || '1.0.0',
-                listType: versionInfo.listType || 'classic',
+                listType: versionInfo.listType || 'common',
                 exportDate: versionInfo.exportDate,
                 preferences: preferences
             };
@@ -127,7 +127,7 @@ const importSystem = {
     extractVersionInfo: function(doc) {
         const info = {
             version: '1.0.0',
-            listType: 'classic',
+            listType: 'common',
             exportDate: null
         };
 
@@ -139,10 +139,10 @@ const importSystem = {
 
         // Look for list type in the title or header
         const title = doc.querySelector('title');
-        if (title && title.textContent.includes('Extended')) {
-            info.listType = 'extended';
-        } else if (title && title.textContent.includes('Detailed')) {
-            info.listType = 'detailed';
+        if (title && title.textContent.includes('Omni')) {
+            info.listType = 'omni';
+        } else if (title && title.textContent.includes('Uncommon')) {
+            info.listType = 'uncommon';
         }
 
         // Look for export date in the header
@@ -507,7 +507,7 @@ const importSystem = {
             // Create import data structure
             const importData = {
                 version: '1.0.0', // Assume older version for manual imports
-                listType: 'classic', // Default to classic
+                listType: 'common', // Default to common
                 exportDate: null,
                 preferences: preferences
             };
