@@ -5,12 +5,10 @@ const categoryExplanations = {
     "General": "Basic kinks and fetishes that are commonly explored.",
     "Body": "Preferences of the body.",
     "Toys": "Various toys and implements used in intimate activities.",
-    "Clothing": "Clothing-related fetishes and preferences.",
+    "Clothing and accessories": "Clothing-related fetishes and preferences.",
     "Roleplay": "Different scenarios and character-based activities.",
-    "Bondage": "Restraint and control-based activities.",
-    "Pain": "Activities involving various levels of physical sensation.",
+    "BDSM" : "Activities involving any kind of psycological or physical pain also with the use of restrictions.",
     "Taboo": "More extreme or unconventional preferences.",
-    "Romantic": "Intimate and emotionally connected activities.",
     "Locations": "Different settings and environments for activities.",
     "Misc": "Other preferences that don't fit into standard categories."
 };
@@ -25,6 +23,14 @@ const kinklistData = {
 
 * Kissing
 ? Various forms of lip and mouth contact.
+@ Giving,Receiving
+
+* Massaging
+? The act of massaging in a sexual context.
+@ Giving,Receiving
+
+* Cuddling
+? The act of cuddling during intimate activities.
 @ Giving,Receiving
 
 * Tickling
@@ -74,6 +80,12 @@ const kinklistData = {
 * Pubic Hair
 ? The presence of hair in the groin area.
 
+* Piercings
+? The presence of piercings on the body.
+
+* Tattoos
+? The presence of tattoos on the body.
+
 #Toys
 * Vibrators
 ? Electronic devices for stimulation.
@@ -88,7 +100,7 @@ const kinklistData = {
 * Handcuffs
 ? Restraint devices for wrists.
 
-#Clothing
+#Clothing and accessories.
 * Lingerie
 ? Sexy undergarments and intimate apparel.
 @ Wearing,Partner wearing
@@ -114,7 +126,7 @@ const kinklistData = {
 ? Workplace power dynamic scenarios.
 @ Boss,Employee
 
-#Pain
+#BDSM
 * Light spanking
 ? Gentle impact play for sensation.
 @ Giving,Receiving
@@ -125,17 +137,6 @@ const kinklistData = {
 * Ice play
 ? Using cold temperatures for sensation.
 @ Giving,Receiving
-
-#Romantic
-* Massage
-? Sensual touching and body work.
-@ Giving,Receiving
-
-* Kissing
-? Various forms of lip and mouth contact.
-
-* Cuddling
-? Close physical contact and embracing.
 
 #Locations
 * Bedroom
