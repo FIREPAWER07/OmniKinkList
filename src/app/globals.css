@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. Components only use these semantic colors, so both themes
+ * stay in sync. Shape rules: controls (buttons, inputs, raters) are rounded-lg,
+ * panels and cards are rounded-xl, chips and badges are rounded-full.
+ * Layers: header z-40, sticky bars z-30. Dialogs use the native top layer.
+ */
+:root {
+  --bg: #faf7f6;
+  --surface: #ffffff;
+  --surface-2: #f3eeec;
+  --border: #e7dfdc;
+  --border-strong: #d4c9c5;
+  --fg: #1c1519;
+  --muted: #5f555a;
+  --subtle: #8a7f84;
+  --accent: #d42a66;
+  --accent-hover: #bd2059;
+  --accent-fg: #ffffff;
+  --accent-soft: #fbe4ec;
+  --danger: #c62f2f;
+
+  --lv-favorite: #d42a66;
+  --lv-like: #0f8a5a;
+  --lv-indifferent: #5f6881;
+  --lv-maybe: #b86a06;
+  --lv-dislike: #c62f2f;
+  --on-lv: #ffffff;
+
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0c0a0d;
+  --surface: #151116;
+  --surface-2: #1d181e;
+  --border: #29222b;
+  --border-strong: #3b3240;
+  --fg: #f4eff2;
+  --muted: #b1a7ae;
+  --subtle: #7d737a;
+  --accent: #ff4f8b;
+  --accent-hover: #ff6d9f;
+  --accent-fg: #16070d;
+  --accent-soft: #2a1520;
+  --danger: #f26060;
+
+  --lv-favorite: #ff4f8b;
+  --lv-like: #3ecf8e;
+  --lv-indifferent: #8f98ad;
+  --lv-maybe: #f5a524;
+  --lv-dislike: #f26060;
+  --on-lv: #140c10;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-favorite: var(--lv-favorite);
+  --color-like: var(--lv-like);
+  --color-indifferent: var(--lv-indifferent);
+  --color-maybe: var(--lv-maybe);
+  --color-dislike: var(--lv-dislike);
+  --color-on-level: var(--on-lv);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    scroll-padding-top: 5.5rem;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  dialog::backdrop {
+    background: rgb(8 5 7 / 0.6);
+    backdrop-filter: blur(2px);
+  }
+}
+
+/* Rater buttons appear thousands of times on the big lists, so they get one short class instead of utilities. */
+@layer components {
+  .rater-btn {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    color: var(--subtle);
+    transition:
+      background-color 100ms,
+      border-color 100ms,
+      color 100ms,
+      transform 100ms;
+  }
+  .rater-btn[data-size="sm"] {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  .rater-btn[data-level="favorite"] { --lv: var(--lv-favorite); }
+  .rater-btn[data-level="like"] { --lv: var(--lv-like); }
+  .rater-btn[data-level="indifferent"] { --lv: var(--lv-indifferent); }
+  .rater-btn[data-level="maybe"] { --lv: var(--lv-maybe); }
+  .rater-btn[data-level="dislike"] { --lv: var(--lv-dislike); }
+  @media (hover: hover) {
+    .rater-btn:hover {
+      background: color-mix(in oklab, var(--lv) 12%, transparent);
+      border-color: color-mix(in oklab, var(--lv) 50%, transparent);
+      color: var(--lv);
+    }
+  }
+  .rater-btn:active {
+    transform: scale(0.95);
+  }
+  .rater-btn[aria-checked="true"] {
+    background: var(--lv);
+    border-color: var(--lv);
+    color: var(--on-lv);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
