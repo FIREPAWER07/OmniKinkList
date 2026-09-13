@@ -51,6 +51,7 @@ export const es: Messages = {
   },
   profiles: {
     menu: "Perfiles",
+    current: "Perfil: {name}",
     hint: "Cada perfil guarda sus propias respuestas en este navegador.",
     me: "Yo",
     unnamed: "Sin nombre",

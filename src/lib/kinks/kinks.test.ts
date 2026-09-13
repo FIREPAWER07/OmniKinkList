@@ -11,7 +11,7 @@ import { buildSeedRows } from "@/db/seed";
 import { allChoices, computeStats, listChoices, pruneAnswers, withCustom } from "./choices";
 import { compareAnswers } from "./compare";
 import { generateExportHtml, type ExportLabels } from "./export-html";
-import { entriesFromV1Preferences, matchImport, parseExportJson } from "./import";
+import { entriesFromV1Preferences, matchImport, parseExportJson, parseV1Handoff } from "./import";
 import { emptyListData, sanitizeListData } from "./list-data";
 import { diffLists, localizeList, sameContent, stampAddedDates, type PublishedData } from "./published";
 import { decodeShare, decodeShareInput, encodeShare } from "./share";
@@ -152,6 +152,19 @@ describe("export and import", () => {
     const result = matchImport(list, { kind: "v1-data", listSlug: null, exportedAt: null, data: emptyListData(), entries, noteNames: {} });
     expect(result.data.answers).toEqual({ o2: "favorite", i2: "limit" });
     expect(result.unmatched.map((e) => e.itemName)).toEqual(["Removed thing"]);
+  });
+
+  test("the old site's redirect hands answers over in the URL hash", () => {
+    // Same encoding as the redirect script on the old GitHub Pages site.
+    const payload = JSON.stringify({ type: "test", prefs: { "Oral sex_Receiving": { level: "like" }, "Kïssing": { level: "maybe" } } });
+    const binary = String.fromCharCode(...new TextEncoder().encode(payload));
+    const encoded = btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+    const source = parseV1Handoff(`#v1=${encoded}`);
+    expect(source?.listSlug).toBe("test");
+    expect(source?.entries.map((e) => e.itemName)).toEqual(["Oral sex", "Kïssing"]);
+    expect(matchImport(list, source!).data.answers).toEqual({ o2: "like" });
+    expect(parseV1Handoff("#v1=%%%")).toBeNull();
+    expect(parseV1Handoff("#nothing")).toBeNull();
   });
 });
 

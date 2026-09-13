@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Input, Textarea } from "@/components/ui/field";
 import { LOCALE_NAMES, type Locale } from "@/i18n/config";
@@ -78,18 +78,32 @@ export function TranslationEditor({ draft, locale }: { draft: PublishedData; loc
 function TranslationRow({ row, listSlug, locale, value }: { row: Row; listSlug: string; locale: Locale; value: string }) {
   const [text, setText] = useState(value);
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
+  const lastSaved = useRef(value);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const save = async () => {
-    if (text === value) return;
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  const save = async (next: string) => {
+    clearTimeout(timer.current);
+    if (next === lastSaved.current) return;
+    lastSaved.current = next;
     setState("saving");
-    const result = await saveTranslation({ listSlug, locale, entityKey: row.entityKey, field: row.field, value: text });
+    const result = await saveTranslation({ listSlug, locale, entityKey: row.entityKey, field: row.field, value: next });
     if (result.ok) {
       setState("saved");
       setTimeout(() => setState("idle"), 1500);
     } else {
+      lastSaved.current = value;
       setState("idle");
       toast.error(result.error);
     }
+  };
+
+  const change = (next: string) => {
+    setText(next);
+    // Autosave shortly after typing stops, in addition to saving on blur.
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => void save(next), 1200);
   };
 
   const Control = row.multiline ? Textarea : Input;
@@ -102,8 +116,8 @@ function TranslationRow({ row, listSlug, locale, value }: { row: Row; listSlug: 
       <div className="relative">
         <Control
           value={text}
-          onChange={(e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) => setText(e.target.value)}
-          onBlur={save}
+          onChange={(e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) => change(e.target.value)}
+          onBlur={() => void save(text)}
           lang={locale}
           aria-label={`${LOCALE_NAMES[locale]} translation of ${row.source}`}
           rows={row.multiline ? 2 : undefined}

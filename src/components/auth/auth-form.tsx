@@ -39,7 +39,7 @@ export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; 
     setPending(true);
     setError(null);
     const callbackURL = next;
-    const { error: failure } =
+    const { data, error: failure } =
       mode === "login"
         ? await signIn.email({ email, password, callbackURL, fetchOptions })
         : await signUp.email({
@@ -58,7 +58,8 @@ export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; 
       else setError(failure.message ?? t("auth.errorGeneric"));
       return;
     }
-    if (mode === "signup") {
+    // Without required email verification the new account is signed in right away.
+    if (mode === "signup" && !(data && "token" in data && data.token)) {
       setSentTo(email);
       return;
     }

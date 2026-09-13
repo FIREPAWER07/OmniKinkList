@@ -17,7 +17,7 @@ export function AdminNav({ role, pendingSuggestions }: { role: Role; pendingSugg
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border">
-      <nav className="-mb-px flex gap-1 overflow-x-auto" aria-label="Editor sections">
+      <nav className="-mb-px flex gap-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none]" aria-label="Editor sections">
         {links.map((link) => (
           <Link
             key={link.href}

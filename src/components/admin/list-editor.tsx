@@ -130,7 +130,7 @@ export function ListEditor({
         <PublishBar slug={draft.slug} changes={changes} neverPublished={neverPublished} />
       </div>
 
-      <div className="mt-6 flex gap-1 overflow-x-auto border-b border-border" role="tablist">
+      <div className="mt-6 flex gap-1 overflow-x-auto overflow-y-hidden border-b border-border [scrollbar-width:none]" role="tablist">
         {(["content", ...TRANSLATION_LOCALES] as Mode[]).map((m) => (
           <button
             key={m}
@@ -164,7 +164,7 @@ export function ListEditor({
 
           <div className="mt-4">
             {ordered.length === 0 && <p className="rounded-xl border border-dashed border-border p-10 text-center text-muted">This list has no categories yet. Add one to start.</p>}
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onCategoryDragEnd}>
+            <DndContext id={`categories-${draft.slug}`} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onCategoryDragEnd}>
               <SortableContext items={categoryOrder} strategy={verticalListSortingStrategy} disabled={!!q}>
                 <div className="grid gap-3">
                   {ordered.map((category) => {
@@ -356,7 +356,7 @@ function ItemList({
   };
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+    <DndContext id={`items-${category.id}`} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
       <SortableContext items={order} strategy={verticalListSortingStrategy} disabled={!!filter}>
         <ul className="divide-y divide-border border-t border-border">
           {items.map((item) => (

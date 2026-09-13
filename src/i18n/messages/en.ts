@@ -49,6 +49,7 @@ export const en = {
   },
   profiles: {
     menu: "Profiles",
+    current: "Profile: {name}",
     hint: "Each profile keeps its own answers in this browser.",
     me: "Me",
     unnamed: "Unnamed",

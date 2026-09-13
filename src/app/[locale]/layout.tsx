@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { AgeGate } from "@/components/age-gate";
 import { LevelIconSprite } from "@/components/kinks/level";
 import { Providers } from "@/components/providers";
@@ -49,10 +50,10 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: ACCENT_SCRIPT }} />
-      </head>
       <body className="flex min-h-dvh flex-col">
+        <Script id="accent" strategy="beforeInteractive">
+          {ACCENT_SCRIPT}
+        </Script>
         <LevelIconSprite />
         <Providers locale={locale}>
           <SiteHeader />

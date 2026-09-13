@@ -1,7 +1,7 @@
 "use client";
 
 import { XIcon } from "@phosphor-icons/react";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 /** Thin wrapper around the native <dialog> element (focus trap, Escape, top layer for free). */
@@ -23,6 +23,7 @@ export function Dialog({
   dismissible?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const id = useId();
 
   useEffect(() => {
     const dialog = ref.current;
@@ -34,6 +35,8 @@ export function Dialog({
   return (
     <dialog
       ref={ref}
+      aria-labelledby={`${id}-title`}
+      aria-describedby={description ? `${id}-description` : undefined}
       onCancel={(event) => {
         event.preventDefault();
         if (dismissible) onClose();
@@ -50,8 +53,14 @@ export function Dialog({
         <div className="p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-              {description && <div className="mt-1 text-sm text-muted">{description}</div>}
+              <h2 id={`${id}-title`} className="text-lg font-semibold tracking-tight">
+                {title}
+              </h2>
+              {description && (
+                <div id={`${id}-description`} className="mt-1 text-sm text-muted">
+                  {description}
+                </div>
+              )}
             </div>
             {dismissible && (
               <button

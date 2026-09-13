@@ -3,7 +3,7 @@
 import { CheckIcon, MonitorIcon, MoonIcon, PaletteIcon, SunIcon, TranslateIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { Menu, MenuButton, MenuItem, MenuSeparator } from "@/components/ui/menu";
 import { LOCALE_COOKIE, LOCALE_NAMES, LOCALES, localePath, stripLocale, type Locale } from "@/i18n/config";
 import { useLocale, useT } from "@/i18n/client";
@@ -30,9 +30,13 @@ function setAccent(accent: Accent) {
   } catch {
     // Not persisted, still applied for this page.
   }
+  applyAccent(accent);
+  accentListeners.forEach((listener) => listener());
+}
+
+function applyAccent(accent: Accent) {
   if (accent === "pink") document.documentElement.removeAttribute("data-accent");
   else document.documentElement.setAttribute("data-accent", accent);
-  accentListeners.forEach((listener) => listener());
 }
 
 function rememberLocale(locale: Locale) {
@@ -53,6 +57,11 @@ export function PreferencesMenu() {
     readAccent,
     () => "pink" as Accent,
   );
+
+  // The inline script handles first paint; this re-applies it when a language switch re-renders <html>.
+  useEffect(() => {
+    applyAccent(readAccent());
+  }, []);
 
   const switchLocale = (next: Locale) => {
     rememberLocale(next);
