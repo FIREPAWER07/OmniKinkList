@@ -72,14 +72,23 @@ Set `DISABLE_SIGNUP=true` once your editors have accounts if you do not want new
 | `bun run db:studio` | Browse the database in Drizzle Studio |
 | `bun run user:role <email> <user\|trusted\|admin>` | Change a user's role from the terminal |
 
-## Deploying to Vercel
+## Deploying to Netlify
 
-1. Create a Turso database (Vercel Marketplace or turso.tech) and copy its URL and token.
-2. Import the repository in Vercel. Bun is detected from `bun.lock`.
-3. Set environment variables: `DATABASE_URL`, `DATABASE_AUTH_TOKEN`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` (your production URL), `ADMIN_EMAILS`, and optionally the Discord or GitHub OAuth keys.
-4. Deploy. The `vercel-build` script applies migrations, seeds the lists if the database is empty, then builds.
+1. Create a [Turso](https://turso.tech) database and copy its URL (`libsql://...`) and an auth token.
+2. In Netlify, import the repository. Next.js and Bun (from `bun.lock`) are detected automatically, and [`netlify.toml`](netlify.toml) holds the build settings.
+3. Under **Site configuration > Environment variables**, set:
+   - `DATABASE_URL` and `DATABASE_AUTH_TOKEN`
+   - `BETTER_AUTH_SECRET` (generate with `openssl rand -base64 32`)
+   - `BETTER_AUTH_URL` with your production URL, for example `https://omnikinklist.netlify.app` or your custom domain
+   - `ADMIN_EMAILS`, and optionally the Discord or GitHub OAuth keys
+4. Deploy. Production deploys run migrations and seed the lists if the database is empty, then build.
 
-For OAuth, use `https://<your-domain>/api/auth/callback/discord` (or `/github`) as the redirect URL.
+Notes:
+
+- Deploy previews and branch deploys only build, so a pull request never changes the production database schema. If you want previews to have their own data, set a different `DATABASE_URL` for the *Deploy Previews* context.
+- Sign in works on deploy previews too: `*--<site-name>.netlify.app` is allowed automatically.
+- For OAuth, use `https://<your-domain>/api/auth/callback/discord` (or `/github`) as the redirect URL.
+- If a build ever installs with npm instead of Bun, set the build command to `bun install --frozen-lockfile && bun run db:setup && bun run build`.
 
 ## How the data works
 

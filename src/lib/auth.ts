@@ -29,10 +29,22 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
 
 export const enabledSocialProviders = Object.keys(socialProviders) as ("discord" | "github")[];
 
+/**
+ * The production URL comes from BETTER_AUTH_URL, or from Netlify's `URL` captured at build time.
+ * Netlify deploy previews and branch deploys (`<name>--<site>.netlify.app`) are allowed too,
+ * so auth works on every deploy without extra config.
+ */
+const siteUrl = process.env.BETTER_AUTH_URL || process.env.NETLIFY_SITE_URL || "http://localhost:3000";
+const allowedHosts = [new URL(siteUrl).host];
+if (process.env.NETLIFY_SITE_NAME) {
+  allowedHosts.push(`${process.env.NETLIFY_SITE_NAME}.netlify.app`, `*--${process.env.NETLIFY_SITE_NAME}.netlify.app`);
+}
+if (process.env.NODE_ENV !== "production") allowedHosts.push("localhost:*", "127.0.0.1:*");
+
 export const auth = betterAuth({
   appName: "OmniKinkList",
+  baseURL: { allowedHosts, fallback: siteUrl },
   database: drizzleAdapter(db, { provider: "sqlite", schema }),
-  trustedOrigins: process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [],
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
