@@ -1,23 +1,25 @@
 "use client";
 
-import { HeartIcon, MinusIcon, QuestionIcon, ThumbsDownIcon, ThumbsUpIcon, type Icon } from "@phosphor-icons/react";
+import {
+  HeartIcon,
+  MinusIcon,
+  ProhibitIcon,
+  QuestionIcon,
+  ThumbsDownIcon,
+  ThumbsUpIcon,
+  type Icon,
+} from "@phosphor-icons/react";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/cn";
-import { LEVEL_LABELS, LEVELS, type Level } from "@/lib/kinks/types";
+import { LEVELS, type Level } from "@/lib/kinks/types";
 
 export const LEVEL_ICONS: Record<Level, Icon> = {
-  favorite: HeartIcon,
-  like: ThumbsUpIcon,
-  indifferent: MinusIcon,
-  maybe: QuestionIcon,
+  limit: ProhibitIcon,
   dislike: ThumbsDownIcon,
-};
-
-export const LEVEL_DESCRIPTIONS: Record<Level, string> = {
-  favorite: "A big yes. You love this.",
-  like: "You enjoy it or would happily try it.",
-  indifferent: "Fine either way, no strong feelings.",
-  maybe: "Curious, but only in the right situation.",
-  dislike: "Not for you. A hard or soft limit.",
+  maybe: QuestionIcon,
+  indifferent: MinusIcon,
+  like: ThumbsUpIcon,
+  favorite: HeartIcon,
 };
 
 /**
@@ -49,42 +51,42 @@ export function LevelGlyph({ level, size, filled }: { level: Level; size: number
 
 /** Tailwind classes per level, spelled out so the compiler can see them. */
 export const LEVEL_STYLES: Record<Level, { text: string; bg: string }> = {
-  favorite: { text: "text-favorite", bg: "bg-favorite" },
-  like: { text: "text-like", bg: "bg-like" },
-  indifferent: { text: "text-indifferent", bg: "bg-indifferent" },
-  maybe: { text: "text-maybe", bg: "bg-maybe" },
+  limit: { text: "text-limit", bg: "bg-limit" },
   dislike: { text: "text-dislike", bg: "bg-dislike" },
+  maybe: { text: "text-maybe", bg: "bg-maybe" },
+  indifferent: { text: "text-indifferent", bg: "bg-indifferent" },
+  like: { text: "text-like", bg: "bg-like" },
+  favorite: { text: "text-favorite", bg: "bg-favorite" },
 };
 
 export function LevelChip({ level, className }: { level: Level; className?: string }) {
+  const t = useT();
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold text-on-level",
+        "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold text-on-level",
         LEVEL_STYLES[level].bg,
         className,
       )}
     >
       <LevelGlyph level={level} size={12} filled />
-      {LEVEL_LABELS[level]}
+      {t(`levels.${level}`)}
     </span>
   );
 }
 
 export function LevelLegend({ className }: { className?: string }) {
+  const t = useT();
   return (
     <ul className={cn("flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted", className)}>
-      {LEVELS.map((level) => {
-        const Icon = LEVEL_ICONS[level];
-        return (
-          <li key={level} className="inline-flex items-center gap-1.5">
-            <span className={cn("grid size-5 place-items-center rounded-md text-on-level", LEVEL_STYLES[level].bg)}>
-              <Icon size={12} weight="fill" aria-hidden />
-            </span>
-            {LEVEL_LABELS[level]}
-          </li>
-        );
-      })}
+      {LEVELS.map((level) => (
+        <li key={level} className="inline-flex items-center gap-1.5">
+          <span className={cn("grid size-5 place-items-center rounded-md text-on-level", LEVEL_STYLES[level].bg)}>
+            <LevelGlyph level={level} size={12} filled />
+          </span>
+          {t(`levels.${level}`)}
+        </li>
+      ))}
     </ul>
   );
 }

@@ -2,37 +2,35 @@
 
 import { FileHtmlIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState, type DragEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Field, Select, Textarea } from "@/components/ui/field";
+import { Field, Input, Select } from "@/components/ui/field";
+import { useHref, useT } from "@/i18n/client";
 import { cn } from "@/lib/cn";
-import { answersStore, useAnswers } from "@/lib/kinks/answers-store";
-import { matchImport, parseHtmlExport, parseLegacyJson, type ImportSource } from "@/lib/kinks/import";
+import { matchImport, parseHtmlExport, parseV1Handoff, type ImportSource } from "@/lib/kinks/import";
+import { isEmptyListData } from "@/lib/kinks/list-data";
 import { decodeShareInput } from "@/lib/kinks/share";
+import { listStore, useListData } from "@/lib/kinks/store";
 import type { KinkList } from "@/lib/kinks/types";
-
-const KIND_LABELS: Record<ImportSource["kind"], string> = {
-  "v2-html": "OmniKinkList export",
-  "v1-html": "Export from the old site",
-  "v1-json": "Saved data from the old site",
-};
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
 export function ImportView({ lists }: { lists: KinkList[] }) {
+  const t = useT();
+  const href = useHref();
   const router = useRouter();
   const fileInput = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
-  const [text, setText] = useState("");
+  const [link, setLink] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<ImportSource | null>(null);
   const [slug, setSlug] = useState(lists[0]?.slug ?? "");
 
   const list = lists.find((l) => l.slug === slug);
   const result = useMemo(() => (source && list ? matchImport(list, source) : null), [source, list]);
-  const { answers: current } = useAnswers(slug);
-  const existing = Object.keys(current).length;
+  const { data: current } = useListData(slug);
+  const hasCurrent = !isEmptyListData(current);
 
   const accept = (parsed: ImportSource | null, failure: string) => {
     if (!parsed) {
@@ -45,26 +43,29 @@ export function ImportView({ lists }: { lists: KinkList[] }) {
     if (parsed.listSlug && lists.some((l) => l.slug === parsed.listSlug)) setSlug(parsed.listSlug);
   };
 
+  // Answers handed over by the redirect on the old site: /import#v1=...
+  useEffect(() => {
+    const handoff = parseV1Handoff(window.location.hash);
+    if (!handoff) return;
+    history.replaceState(null, "", window.location.pathname);
+    // Reading the URL hash is only possible after mount, so this state update is intentional.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSource(handoff);
+    if (handoff.listSlug && lists.some((l) => l.slug === handoff.listSlug)) setSlug(handoff.listSlug);
+  }, [lists]);
+
   const readFile = async (file: File | undefined) => {
     if (!file) return;
-    if (file.size > MAX_FILE_BYTES) return accept(null, "That file is too large to be an OmniKinkList export.");
-    const content = await file.text();
-    const parsed = file.name.toLowerCase().endsWith(".json") ? parseLegacyJson(content) : parseHtmlExport(content);
-    accept(parsed, "We could not find any answers in that file. Is it an OmniKinkList export?");
+    if (file.size > MAX_FILE_BYTES) return accept(null, t("import.errorTooLarge"));
+    accept(parseHtmlExport(await file.text()), t("import.errorNotFound"));
   };
 
-  const readText = () => {
-    const value = text.trim();
-    if (!value) return;
-    const shared = decodeShareInput(value);
-    if (shared) {
-      accept(
-        { kind: "v2-html", listSlug: shared.slug, exportedAt: null, answers: shared.answers, entries: [] },
-        "",
-      );
-      return;
-    }
-    accept(parseLegacyJson(value), "That is not a share link or saved answers we recognize.");
+  const readLink = () => {
+    const shared = decodeShareInput(link);
+    accept(
+      shared ? { kind: "share", listSlug: shared.slug, exportedAt: null, data: shared.data, entries: [], noteNames: {} } : null,
+      t("import.errorBadLink"),
+    );
   };
 
   const onDrop = (event: DragEvent) => {
@@ -75,19 +76,25 @@ export function ImportView({ lists }: { lists: KinkList[] }) {
 
   const apply = (mode: "replace" | "merge") => {
     if (!list || !result) return;
-    const next = mode === "merge" ? { ...current, ...result.answers } : result.answers;
-    answersStore.replace(list.slug, next);
-    toast.success(`Imported ${result.matched} answers into the ${list.name} list`);
-    router.push(`/list/${list.slug}`);
+    const next =
+      mode === "merge"
+        ? {
+            ...current,
+            answers: { ...current.answers, ...result.data.answers },
+            experience: { ...current.experience, ...result.data.experience },
+            notes: { ...current.notes, ...result.data.notes },
+            custom: [...current.custom, ...result.data.custom.filter((c) => !current.custom.some((own) => own.id === c.id))],
+          }
+        : result.data;
+    listStore.replace(list.slug, next);
+    toast.success(t("import.done", { count: result.matched, name: list.name }));
+    router.push(href(`/list/${list.slug}`));
   };
 
   return (
     <div className="mx-auto max-w-3xl px-4 pt-10 lg:px-8">
-      <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Import answers</h1>
-      <p className="mt-2 max-w-xl text-muted">
-        Continue from an exported HTML file, a share link, or saved data from the old OmniKinkList site. Everything is
-        read in your browser.
-      </p>
+      <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{t("import.title")}</h1>
+      <p className="mt-2 max-w-xl text-muted">{t("import.subtitle")}</p>
 
       <div className="mt-8 grid gap-4">
         <div
@@ -107,28 +114,18 @@ export function ImportView({ lists }: { lists: KinkList[] }) {
           )}
         >
           <UploadSimpleIcon size={28} className="text-accent" aria-hidden />
-          <p className="mt-3 font-medium">Drop your export here, or click to choose a file</p>
-          <p className="mt-1 text-sm text-muted">HTML exports from the new or old site, or a saved .json file</p>
-          <input
-            ref={fileInput}
-            type="file"
-            accept=".html,.htm,.json,text/html,application/json"
-            className="hidden"
-            onChange={(event) => readFile(event.target.files?.[0])}
-          />
+          <p className="mt-3 font-medium">{t("import.drop")}</p>
+          <p className="mt-1 text-sm text-muted">{t("import.dropHint")}</p>
+          <input ref={fileInput} type="file" accept=".html,.htm,text/html" className="hidden" onChange={(event) => readFile(event.target.files?.[0])} />
         </div>
 
         <div className="rounded-xl border border-border bg-surface p-5">
-          <Field
-            label="Or paste a share link or saved data"
-            htmlFor="import-text"
-            hint='A link like https://…/s#… or JSON such as {"Kissing_Giving": {"level": "like"}}'
-          >
-            <Textarea id="import-text" value={text} onChange={(event) => setText(event.target.value)} rows={3} className="font-mono text-xs" />
+          <Field label={t("import.linkLabel")} htmlFor="import-link" hint={t("import.linkHint")}>
+            <Input id="import-link" value={link} onChange={(event) => setLink(event.target.value)} className="font-mono text-xs" placeholder="https://…/s#…" />
           </Field>
           <div className="mt-3 flex justify-end">
-            <Button onClick={readText} disabled={!text.trim()}>
-              Read
+            <Button onClick={readLink} disabled={!link.trim()}>
+              {t("import.read")}
             </Button>
           </div>
         </div>
@@ -145,15 +142,13 @@ export function ImportView({ lists }: { lists: KinkList[] }) {
           <div className="flex items-start gap-3">
             <FileHtmlIcon size={24} className="mt-0.5 shrink-0 text-accent" aria-hidden />
             <div>
-              <h2 className="font-semibold">{KIND_LABELS[source.kind]}</h2>
-              {source.exportedAt && (
-                <p className="text-sm text-muted">Exported {new Date(source.exportedAt).toLocaleDateString()}</p>
-              )}
+              <h2 className="font-semibold">{t(`import.kinds.${source.kind}`)}</h2>
+              {source.exportedAt && <p className="text-sm text-muted">{t("import.exportedOn", { date: new Date(source.exportedAt).toLocaleDateString() })}</p>}
             </div>
           </div>
 
           <div className="mt-5 grid gap-5 sm:grid-cols-[1fr_auto] sm:items-end">
-            <Field label="Import into" htmlFor="import-list" hint={source.listSlug ? undefined : "The file does not say which list it is from."}>
+            <Field label={t("import.into")} htmlFor="import-list" hint={source.listSlug ? undefined : t("import.noListInfo")}>
               <Select id="import-list" value={slug} onChange={(event) => setSlug(event.target.value)}>
                 {lists.map((l) => (
                   <option key={l.slug} value={l.slug}>
@@ -164,11 +159,11 @@ export function ImportView({ lists }: { lists: KinkList[] }) {
             </Field>
             <dl className="flex gap-6 text-sm sm:pb-1">
               <div>
-                <dt className="text-subtle">Matched</dt>
+                <dt className="text-subtle">{t("import.matched")}</dt>
                 <dd className="font-mono text-lg tabular-nums">{result.matched}</dd>
               </div>
               <div>
-                <dt className="text-subtle">Not found</dt>
+                <dt className="text-subtle">{t("import.notFound")}</dt>
                 <dd className="font-mono text-lg tabular-nums">{result.unmatched.length}</dd>
               </div>
             </dl>
@@ -176,9 +171,7 @@ export function ImportView({ lists }: { lists: KinkList[] }) {
 
           {result.unmatched.length > 0 && (
             <details className="mt-4 rounded-lg bg-surface-2 p-3 text-sm">
-              <summary className="cursor-pointer text-muted">
-                {result.unmatched.length} answers could not be matched to the {list.name} list
-              </summary>
+              <summary className="cursor-pointer text-muted">{t("import.unmatched", { count: result.unmatched.length, name: list.name })}</summary>
               <ul className="mt-2 grid gap-1 text-muted sm:grid-cols-2">
                 {result.unmatched.map((entry, index) => (
                   <li key={index}>
@@ -191,13 +184,13 @@ export function ImportView({ lists }: { lists: KinkList[] }) {
           )}
 
           <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            {existing > 0 && (
+            {hasCurrent && (
               <Button onClick={() => apply("merge")} disabled={result.matched === 0}>
-                Merge with my {existing} answers
+                {t("import.merge")}
               </Button>
             )}
-            <Button variant="primary" onClick={() => apply("replace")} disabled={result.matched === 0}>
-              {existing > 0 ? "Replace my answers" : "Import answers"}
+            <Button variant="primary" onClick={() => apply("replace")} disabled={result.matched === 0 && result.data.custom.length === 0}>
+              {hasCurrent ? t("import.replace") : t("import.importButton")}
             </Button>
           </div>
         </section>

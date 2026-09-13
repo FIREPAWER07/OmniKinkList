@@ -1,53 +1,64 @@
 "use client";
 
-import { ArrowLeftIcon, DownloadSimpleIcon, ShareNetworkIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, ArrowsLeftRightIcon, DownloadSimpleIcon, ImageIcon, ShareNetworkIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { answersStore, useAnswers } from "@/lib/kinks/answers-store";
-import { computeStats, listChoices, pruneAnswers } from "@/lib/kinks/choices";
-import { downloadExport } from "@/lib/kinks/export-html";
-import type { KinkList } from "@/lib/kinks/types";
+import { useHref, useT } from "@/i18n/client";
+import { allChoices, computeStats, pruneKeys, withCustom } from "@/lib/kinks/choices";
+import { downloadFile, exportFileName, generateExportHtml } from "@/lib/kinks/export-html";
+import { listStore, useListData } from "@/lib/kinks/store";
+import type { KinkList, ListData } from "@/lib/kinks/types";
 import { AnswerSummary } from "./answer-summary";
+import { ImageDialog } from "./image-dialog";
 import { ShareDialog } from "./share-dialog";
+import { useExportLabels } from "./use-export-labels";
 
 export function ResultsView({ list }: { list: KinkList }) {
-  const { answers: stored } = useAnswers(list.slug);
-  const answers = useMemo(() => pruneAnswers(list, stored), [list, stored]);
-  const stats = useMemo(() => computeStats(listChoices(list), answers), [list, answers]);
-  const [sharing, setSharing] = useState(false);
-  const [confirmClear, setConfirmClear] = useState(false);
+  const t = useT();
+  const href = useHref();
+  const { data: stored } = useListData(list.slug);
+  const exportLabels = useExportLabels(list.name);
+  const data = useMemo<ListData>(() => {
+    const categories = withCustom(list, stored.custom, "");
+    return { ...stored, answers: pruneKeys(categories, stored.answers), experience: pruneKeys(categories, stored.experience) };
+  }, [list, stored]);
+  const stats = useMemo(() => computeStats(allChoices(withCustom(list, data.custom, "")), data.answers), [list, data]);
+  const [dialog, setDialog] = useState<"share" | "image" | "clear" | null>(null);
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-10 lg:px-8">
-      <Link href={`/list/${list.slug}`} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
-        <ArrowLeftIcon size={14} /> Back to answering
+      <Link href={href(`/list/${list.slug}`)} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
+        <ArrowLeftIcon size={14} /> {t("results.back")}
       </Link>
       <div className="mt-3 flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Your {list.name} results</h1>
-          <p className="mt-2 text-muted">
-            {stats.answered} of {stats.total} answered ({stats.percent}%)
-          </p>
+          <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{t("results.title", { name: list.name })}</h1>
+          <p className="mt-2 text-muted">{t("results.summary", { answered: stats.answered, total: stats.total, percent: stats.percent })}</p>
         </div>
         {stats.answered > 0 && (
           <div className="flex flex-wrap gap-2">
-            <Button variant="ghost" onClick={() => setConfirmClear(true)}>
-              Start over
+            <Button variant="ghost" onClick={() => setDialog("clear")}>
+              {t("results.startOver")}
             </Button>
+            <Link href={href(`/compare?list=${list.slug}`)} className={buttonClass("secondary")}>
+              <ArrowsLeftRightIcon size={16} /> {t("results.compare")}
+            </Link>
             <Button
-              variant="secondary"
               onClick={() => {
-                downloadExport(list, answers, window.location.origin);
-                toast.success("Export downloaded");
+                downloadFile(generateExportHtml(list, data, window.location.origin, exportLabels), exportFileName(list, "html"), "text/html");
+                toast.success(t("results.exported"));
               }}
             >
-              <DownloadSimpleIcon size={16} /> Export HTML
+              <DownloadSimpleIcon size={16} /> {t("results.exportHtml")}
             </Button>
-            <Button variant="primary" onClick={() => setSharing(true)}>
-              <ShareNetworkIcon size={16} /> Share link
+            <Button onClick={() => setDialog("image")}>
+              <ImageIcon size={16} /> {t("results.exportImage")}
+            </Button>
+            <Button variant="primary" onClick={() => setDialog("share")}>
+              <ShareNetworkIcon size={16} /> {t("results.share")}
             </Button>
           </div>
         )}
@@ -56,36 +67,32 @@ export function ResultsView({ list }: { list: KinkList }) {
       <div className="mt-8">
         {stats.answered === 0 ? (
           <div className="rounded-xl border border-dashed border-border px-6 py-16 text-center">
-            <p className="text-lg font-medium">No answers yet</p>
-            <p className="mt-2 text-muted">Answer a few items and your overview will show up here.</p>
-            <Link href={`/list/${list.slug}`} className={buttonClass("primary", "md", "mt-6")}>
-              Start answering
+            <p className="text-lg font-medium">{t("results.emptyTitle")}</p>
+            <p className="mt-2 text-muted">{t("results.emptyBody")}</p>
+            <Link href={href(`/list/${list.slug}`)} className={buttonClass("primary", "md", "mt-6")}>
+              {t("results.startAnswering")}
             </Link>
           </div>
         ) : (
-          <AnswerSummary list={list} answers={answers} />
+          <AnswerSummary list={list} data={data} />
         )}
       </div>
 
-      <ShareDialog open={sharing} onClose={() => setSharing(false)} list={list} answers={answers} />
-      <Dialog
-        open={confirmClear}
-        onClose={() => setConfirmClear(false)}
-        title="Start over?"
-        description="This deletes every answer for this list from your browser. Export first if you want to keep a copy."
-      >
+      <ShareDialog open={dialog === "share"} onClose={() => setDialog(null)} list={list} data={data} />
+      <ImageDialog open={dialog === "image"} onClose={() => setDialog(null)} list={list} data={data} />
+      <Dialog open={dialog === "clear"} onClose={() => setDialog(null)} title={t("results.startOverTitle")} description={t("results.startOverBody")}>
         <div className="flex justify-end gap-2">
-          <Button variant="ghost" onClick={() => setConfirmClear(false)}>
-            Cancel
+          <Button variant="ghost" onClick={() => setDialog(null)}>
+            {t("common.cancel")}
           </Button>
           <Button
             variant="danger"
             onClick={() => {
-              answersStore.clear(list.slug);
-              setConfirmClear(false);
+              listStore.clear(list.slug);
+              setDialog(null);
             }}
           >
-            Delete answers
+            {t("results.deleteAnswers")}
           </Button>
         </div>
       </Dialog>

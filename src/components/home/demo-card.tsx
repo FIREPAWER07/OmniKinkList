@@ -1,35 +1,36 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { ItemCard, itemAnswerSignature } from "@/components/kinks/item-card";
-import type { Answers, KinkItem, Level } from "@/lib/kinks/types";
+import { ItemCard } from "@/components/kinks/item-card";
+import { useT } from "@/i18n/client";
+import { emptyListData, setKey } from "@/lib/kinks/list-data";
+import type { Experience, KinkItem, Level } from "@/lib/kinks/types";
 
 /** A real, interactive item card. Answers here are not saved. */
 export function DemoCard({ item }: { item: KinkItem }) {
-  const shown: KinkItem = { ...item, options: item.options.slice(0, 4) };
-  const [answers, setAnswers] = useState<Answers>(() => {
-    const initial: Answers = {};
+  const t = useT();
+  const [shown] = useState<KinkItem>(() => ({ ...item, options: item.options.slice(0, 4), addedAt: undefined }));
+  const [data, setData] = useState(() => {
+    const initial = emptyListData();
     const preset: Level[] = ["favorite", "like", "maybe"];
-    shown.options.slice(0, 3).forEach((o, i) => (initial[`o${o.id}`] = preset[i]));
+    shown.options.slice(0, 3).forEach((o, i) => (initial.answers[`o${o.id}`] = preset[i]));
+    if (shown.options[1]) initial.experience[`o${shown.options[1].id}`] = "want";
     return initial;
   });
 
-  const onRate = useCallback((key: string, level: Level | null) => {
-    setAnswers((prev) => {
-      const next = { ...prev };
-      if (level) next[key] = level;
-      else delete next[key];
-      return next;
-    });
-  }, []);
+  const onRate = useCallback((key: string, level: Level | null) => setData((d) => ({ ...d, answers: setKey(d.answers, key, level) })), []);
+  const onExperience = useCallback(
+    (key: string, value: Experience | null) => setData((d) => ({ ...d, experience: setKey(d.experience, key, value) })),
+    [],
+  );
 
   return (
     <div className="relative">
       <div aria-hidden className="absolute -inset-x-6 -inset-y-8 -z-10 rounded-[2rem] bg-accent-soft/60 blur-2xl" />
       <div className="rotate-[-1.5deg] rounded-xl border border-border bg-surface-2 p-2 shadow-2xl shadow-black/20 transition-transform duration-300 hover:rotate-0">
-        <ItemCard item={shown} signature={itemAnswerSignature(shown, answers)} onRate={onRate} className="border-transparent" />
+        <ItemCard item={shown} data={data} onRate={onRate} onExperience={onExperience} className="border-transparent" />
       </div>
-      <p className="mt-4 text-center text-xs text-subtle">Try it. This preview is not saved.</p>
+      <p className="mt-4 text-center text-xs text-subtle">{t("home.demoHint")}</p>
     </div>
   );
 }

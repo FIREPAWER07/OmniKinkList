@@ -23,6 +23,7 @@
   --accent-soft: #fbe4ec;
   --danger: #c62f2f;
 
+  --lv-limit: #1c1519;
   --lv-favorite: #d42a66;
   --lv-like: #0f8a5a;
   --lv-indifferent: #5f6881;
@@ -48,6 +49,7 @@
   --accent-soft: #2a1520;
   --danger: #f26060;
 
+  --lv-limit: #f4eff2;
   --lv-favorite: #ff4f8b;
   --lv-like: #3ecf8e;
   --lv-indifferent: #8f98ad;
@@ -57,6 +59,16 @@
 
   color-scheme: dark;
 }
+
+/* Accent color choices. Level colors never change. */
+[data-accent="violet"] { --accent: #7c4dde; --accent-hover: #6b3ccc; --accent-soft: #eee6fb; }
+[data-accent="blue"] { --accent: #2563d9; --accent-hover: #1d52b8; --accent-soft: #e3ecfb; }
+[data-accent="teal"] { --accent: #0d8a7d; --accent-hover: #0a7368; --accent-soft: #daf2ee; }
+[data-accent="orange"] { --accent: #c75a12; --accent-hover: #ab4c0c; --accent-soft: #fbe9dc; }
+.dark[data-accent="violet"] { --accent: #a78bfa; --accent-hover: #b9a1fb; --accent-soft: #221a33; --accent-fg: #120b1f; }
+.dark[data-accent="blue"] { --accent: #6ea4ff; --accent-hover: #8cb7ff; --accent-soft: #162033; --accent-fg: #07101f; }
+.dark[data-accent="teal"] { --accent: #3ed3bf; --accent-hover: #62dccc; --accent-soft: #11292a; --accent-fg: #04130f; }
+.dark[data-accent="orange"] { --accent: #ff9a52; --accent-hover: #ffae73; --accent-soft: #2e1c10; --accent-fg: #1a0c02; }
 
 @theme inline {
   --color-bg: var(--bg);
@@ -72,6 +84,7 @@
   --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);
+  --color-limit: var(--lv-limit);
   --color-favorite: var(--lv-favorite);
   --color-like: var(--lv-like);
   --color-indifferent: var(--lv-indifferent);
@@ -126,10 +139,13 @@
       color 100ms,
       transform 100ms;
   }
-  .rater-btn[data-size="sm"] {
-    width: 1.75rem;
-    height: 1.75rem;
+  @media (max-width: 480px) {
+    .rater-btn {
+      width: 1.75rem;
+      height: 1.75rem;
+    }
   }
+  .rater-btn[data-level="limit"] { --lv: var(--lv-limit); }
   .rater-btn[data-level="favorite"] { --lv: var(--lv-favorite); }
   .rater-btn[data-level="like"] { --lv: var(--lv-like); }
   .rater-btn[data-level="indifferent"] { --lv: var(--lv-indifferent); }
@@ -150,6 +166,21 @@
     border-color: var(--lv);
     color: var(--on-lv);
   }
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti-fall 1800ms cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+}
+
+@keyframes confetti-fall {
+  0% { opacity: 1; translate: 0 0; }
+  100% { opacity: 0; translate: 0 105vh; rotate: 540deg; }
 }
 
 @media (prefers-reduced-motion: no-preference) {

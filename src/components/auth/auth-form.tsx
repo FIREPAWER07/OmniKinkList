@@ -1,30 +1,35 @@
 "use client";
 
-import { DiscordLogoIcon, GithubLogoIcon, SpinnerGapIcon } from "@phosphor-icons/react";
+import { EnvelopeSimpleIcon, GoogleLogoIcon, ShieldCheckIcon, SpinnerGapIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { Turnstile } from "@/components/turnstile";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
+import { useHref, useLocale, useT } from "@/i18n/client";
 import { signIn, signUp } from "@/lib/auth-client";
 
-type Provider = "discord" | "github";
-
-const PROVIDERS: Record<Provider, { label: string; Icon: typeof DiscordLogoIcon }> = {
-  discord: { label: "Discord", Icon: DiscordLogoIcon },
-  github: { label: "GitHub", Icon: GithubLogoIcon },
-};
+type Provider = "google" | "simplelogin";
 
 /** Only same-origin relative paths are allowed as a post-login destination. */
-function safeNext(value: string | null) {
-  return value && value.startsWith("/") && !value.startsWith("//") ? value : "/admin";
+export function safeNext(value: string | null, fallback: string) {
+  return value && value.startsWith("/") && !value.startsWith("//") ? value : fallback;
 }
 
 export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; socialProviders: Provider[] }) {
+  const t = useT();
+  const href = useHref();
+  const locale = useLocale();
   const router = useRouter();
-  const next = safeNext(useSearchParams().get("next"));
+  const next = safeNext(useSearchParams().get("next"), href("/account"));
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaReset, setCaptchaReset] = useState(0);
+
+  const fetchOptions = captchaToken ? { headers: { "x-captcha-response": captchaToken } } : undefined;
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -33,69 +38,92 @@ export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; 
     const password = String(form.get("password") ?? "");
     setPending(true);
     setError(null);
+    const callbackURL = next;
     const { error: failure } =
       mode === "login"
-        ? await signIn.email({ email, password })
-        : await signUp.email({ email, password, name: String(form.get("name") ?? "").trim() || email.split("@")[0] });
+        ? await signIn.email({ email, password, callbackURL, fetchOptions })
+        : await signUp.email({
+            email,
+            password,
+            name: String(form.get("name") ?? "").trim() || email.split("@")[0],
+            locale,
+            callbackURL,
+            fetchOptions,
+          });
     setPending(false);
+    setCaptchaReset((k) => k + 1);
     if (failure) {
-      setError(failure.message ?? "Something went wrong. Try again.");
+      if (failure.status === 403 && mode === "login") setError(t("auth.errorUnverified"));
+      else if (failure.status === 429) setError(t("auth.errorRateLimited"));
+      else setError(failure.message ?? t("auth.errorGeneric"));
+      return;
+    }
+    if (mode === "signup") {
+      setSentTo(email);
       return;
     }
     router.push(next);
     router.refresh();
   };
 
+  const social = (provider: Provider) => signIn.social({ provider, callbackURL: next });
+
+  if (sentTo) {
+    return (
+      <div className="mx-auto max-w-sm px-4 pt-24 text-center">
+        <EnvelopeSimpleIcon size={44} weight="duotone" className="mx-auto text-accent" aria-hidden />
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight">{t("auth.checkInboxTitle")}</h1>
+        <p className="mt-3 text-muted">{t("auth.checkInboxBody", { email: sentTo })}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-sm px-4 pt-16 md:pt-24">
-      <h1 className="text-2xl font-semibold tracking-tight">{mode === "login" ? "Editor sign in" : "Create an account"}</h1>
-      <p className="mt-2 text-sm leading-relaxed text-muted">
-        You do not need an account to use OmniKinkList. Accounts are for people who help edit the lists. An admin has
-        to trust your account before you can make changes.
-      </p>
+      <h1 className="text-2xl font-semibold tracking-tight">{mode === "login" ? t("auth.signInTitle") : t("auth.signUpTitle")}</h1>
+      <p className="mt-2 text-sm leading-relaxed text-muted">{t("auth.intro")}</p>
 
       {socialProviders.length > 0 && (
         <>
           <div className="mt-8 grid gap-2">
-            {socialProviders.map((provider) => {
-              const { label, Icon } = PROVIDERS[provider];
-              return (
-                <Button
-                  key={provider}
-                  size="lg"
-                  onClick={() => signIn.social({ provider, callbackURL: next })}
-                  className="w-full"
-                >
-                  <Icon size={18} /> Continue with {label}
-                </Button>
-              );
-            })}
+            {socialProviders.map((provider) => (
+              <Button key={provider} size="lg" onClick={() => social(provider)} className="w-full">
+                {provider === "google" ? <GoogleLogoIcon size={18} /> : <ShieldCheckIcon size={18} />}
+                {provider === "google" ? t("auth.withGoogle") : t("auth.withProton")}
+              </Button>
+            ))}
           </div>
           <div className="my-6 flex items-center gap-3 text-xs text-subtle">
-            <span className="h-px flex-1 bg-border" /> or with email <span className="h-px flex-1 bg-border" />
+            <span className="h-px flex-1 bg-border" /> {t("auth.orEmail")} <span className="h-px flex-1 bg-border" />
           </div>
         </>
       )}
 
       <form onSubmit={onSubmit} className={socialProviders.length ? "grid gap-4" : "mt-8 grid gap-4"}>
         {mode === "signup" && (
-          <Field label="Display name" htmlFor="name" hint="Shown in the edit history.">
+          <Field label={t("auth.name")} htmlFor="name" hint={t("auth.nameHint")}>
             <Input id="name" name="name" autoComplete="nickname" maxLength={40} />
           </Field>
         )}
-        <Field label="Email" htmlFor="email">
+        <Field label={t("auth.email")} htmlFor="email">
           <Input id="email" name="email" type="email" autoComplete="email" required />
         </Field>
-        <Field label="Password" htmlFor="password" hint={mode === "signup" ? "At least 8 characters." : undefined}>
+        <Field label={t("auth.password")} htmlFor="password" hint={mode === "signup" ? t("auth.passwordHint") : undefined}>
           <Input
             id="password"
             name="password"
             type="password"
             autoComplete={mode === "login" ? "current-password" : "new-password"}
-            minLength={8}
+            minLength={10}
             required
           />
         </Field>
+        {mode === "login" && (
+          <Link href={href("/forgot-password")} className="-mt-2 justify-self-end text-sm text-accent hover:underline">
+            {t("auth.forgot")}
+          </Link>
+        )}
+        <Turnstile onToken={setCaptchaToken} resetKey={captchaReset} />
         {error && (
           <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
             {error}
@@ -103,17 +131,14 @@ export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; 
         )}
         <Button type="submit" variant="primary" size="lg" disabled={pending} className="mt-2 w-full">
           {pending && <SpinnerGapIcon size={18} className="animate-spin" />}
-          {mode === "login" ? "Sign in" : "Create account"}
+          {mode === "login" ? t("auth.signInButton") : t("auth.signUpButton")}
         </Button>
       </form>
 
       <p className="mt-6 text-center text-sm text-muted">
-        {mode === "login" ? "No account yet? " : "Already have an account? "}
-        <Link
-          href={`${mode === "login" ? "/signup" : "/login"}?next=${encodeURIComponent(next)}`}
-          className="font-medium text-accent hover:underline"
-        >
-          {mode === "login" ? "Create one" : "Sign in"}
+        {mode === "login" ? t("auth.noAccount") : t("auth.haveAccount")}{" "}
+        <Link href={`${href(mode === "login" ? "/signup" : "/login")}?next=${encodeURIComponent(next)}`} className="font-medium text-accent hover:underline">
+          {mode === "login" ? t("auth.createOne") : t("auth.signInLink")}
         </Link>
       </p>
     </div>

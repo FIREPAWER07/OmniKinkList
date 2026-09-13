@@ -1,37 +1,92 @@
 "use client";
 
-import { ArrowLeftIcon, ArrowRightIcon, CheckIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, MagnifyingGlassIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { answersStore, useAnswers } from "@/lib/kinks/answers-store";
-import { categoryChoices, computeStats, itemChoices, listChoices } from "@/lib/kinks/choices";
-import type { KinkList } from "@/lib/kinks/types";
+import { useHref, useT } from "@/i18n/client";
 import { cn } from "@/lib/cn";
-import { ItemCard, itemAnswerSignature } from "./item-card";
+import { allChoices, categoryChoices, computeStats, itemChoices, withCustom } from "@/lib/kinks/choices";
+import { listStore, useListData, useProfiles } from "@/lib/kinks/store";
+import type { KinkItem, KinkList } from "@/lib/kinks/types";
+import { CategoryIcon } from "./category-icon";
+import { Celebration } from "./celebration";
+import { CustomItemDialog } from "./custom-item-dialog";
+import { ItemCard } from "./item-card";
 import { LevelLegend } from "./level";
+import { useProfileName } from "./profile-switcher";
 
 export function RatingView({ list }: { list: KinkList }) {
-  const { answers, setAnswer } = useAnswers(list.slug);
+  const t = useT();
+  const href = useHref();
+  const { data, setAnswer, setExperience } = useListData(list.slug);
+  const profiles = useProfiles();
+  const profileName = useProfileName(profiles.profiles.find((p) => p.id === profiles.active));
   const [confirmReset, setConfirmReset] = useState(false);
-  const [activeCategory, setActiveCategory] = useState(list.categories[0]?.id);
+  const [customDialog, setCustomDialog] = useState<{ item?: KinkItem } | null>(null);
+  const [query, setQuery] = useState("");
+  const [onlyUnanswered, setOnlyUnanswered] = useState<Set<number> | null>(null);
+  const [newSince, setNewSince] = useState<number | undefined>();
   const chipBar = useRef<HTMLDivElement>(null);
 
-  const choices = useMemo(() => listChoices(list), [list]);
-  const stats = computeStats(choices, answers);
-  const categoryProgress = useMemo(
+  const categories = useMemo(() => withCustom(list, data.custom, t("custom.category")), [list, data.custom, t]);
+  const [activeCategory, setActiveCategory] = useState(categories[0]?.id);
+  const stats = computeStats(allChoices(categories), data.answers);
+
+  // Remember when this profile last opened the list, to highlight what was published since.
+  const visited = useRef<string | null>(null);
+  useEffect(() => {
+    const visitKey = `${profiles.active}:${list.slug}`;
+    if (visited.current === visitKey) return;
+    visited.current = visitKey;
+    setNewSince(listStore.markVisited(list.slug));
+  }, [list.slug, profiles.active]);
+
+  const onNote = useCallback((key: string, note: string) => listStore.setNote(list.slug, key, note), [list.slug]);
+  const onEditCustom = useCallback((item: KinkItem) => setCustomDialog({ item }), []);
+
+  const progress = useMemo(
     () =>
       new Map(
-        list.categories.map((category) => {
+        categories.map((category) => {
           const keys = categoryChoices(category).map((c) => c.key);
-          return [category.id, { total: keys.length, answered: keys.filter((k) => answers[k]).length }];
+          return [category.id, { total: keys.length, answered: keys.filter((k) => data.answers[k]).length }];
         }),
       ),
-    [list, answers],
+    [categories, data.answers],
   );
 
-  // Track which category is on screen for the navigation highlight.
+  const q = query.trim().toLowerCase();
+  const visibleCategories = useMemo(
+    () =>
+      categories
+        .map((category) => ({
+          ...category,
+          items: category.items.filter((item) => {
+            if (onlyUnanswered && !onlyUnanswered.has(item.id * (item.custom ? -1 : 1))) return false;
+            if (!q) return true;
+            return (
+              item.name.toLowerCase().includes(q) ||
+              item.description.toLowerCase().includes(q) ||
+              item.options.some((o) => o.label.toLowerCase().includes(q))
+            );
+          }),
+        }))
+        .filter((category) => category.items.length > 0),
+    [categories, onlyUnanswered, q],
+  );
+
+  const toggleUnanswered = () => {
+    if (onlyUnanswered) return setOnlyUnanswered(null);
+    // Take a snapshot, so items don't vanish the moment they get answered.
+    const ids = new Set<number>();
+    for (const item of categories.flatMap((c) => c.items)) {
+      if (itemChoices(item).some((c) => !data.answers[c.key])) ids.add(item.id * (item.custom ? -1 : 1));
+    }
+    setOnlyUnanswered(ids);
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -42,9 +97,8 @@ export function RatingView({ list }: { list: KinkList }) {
     );
     document.querySelectorAll("[data-category]").forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [list]);
+  }, [visibleCategories]);
 
-  // Keep the active chip visible in the horizontal mobile bar.
   useEffect(() => {
     const bar = chipBar.current;
     const chip = bar?.querySelector<HTMLElement>(`[data-chip="${activeCategory}"]`);
@@ -52,10 +106,10 @@ export function RatingView({ list }: { list: KinkList }) {
   }, [activeCategory]);
 
   const jumpToNextUnanswered = () => {
-    for (const category of list.categories) {
+    for (const category of visibleCategories) {
       for (const item of category.items) {
-        if (itemChoices(item).some((c) => !answers[c.key])) {
-          const el = document.getElementById(`item-${item.id}`);
+        if (itemChoices(item).some((c) => !data.answers[c.key])) {
+          const el = document.getElementById(`item-${item.custom ? "c" : "i"}${item.id}`);
           el?.scrollIntoView({ block: "center" });
           el?.querySelector<HTMLElement>('[role="radio"][tabindex="0"]')?.focus({ preventScroll: true });
           return;
@@ -70,52 +124,54 @@ export function RatingView({ list }: { list: KinkList }) {
         ref={chipBar}
         className="sticky top-14 z-30 flex gap-2 overflow-x-auto border-b border-border bg-bg/90 px-4 py-2 backdrop-blur-md [scrollbar-width:none] lg:hidden"
       >
-        {list.categories.map((category) => {
-          const progress = categoryProgress.get(category.id)!;
+        {visibleCategories.map((category) => {
+          const p = progress.get(category.id)!;
           return (
             <a
               key={category.id}
               href={`#category-${category.id}`}
               data-chip={category.id}
               className={cn(
-                "shrink-0 rounded-full border px-3 py-1 text-sm transition-colors",
-                activeCategory === category.id
-                  ? "border-accent bg-accent-soft text-accent"
-                  : "border-border text-muted hover:text-fg",
+                "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors",
+                activeCategory === category.id ? "border-accent bg-accent-soft text-accent" : "border-border text-muted hover:text-fg",
               )}
             >
+              <CategoryIcon name={category.icon} size={14} />
               {category.name}
-              <span className="ml-1.5 font-mono text-xs opacity-70">
-                {progress.answered}/{progress.total}
+              <span className="font-mono text-xs opacity-70">
+                {p.answered}/{p.total}
               </span>
             </a>
           );
         })}
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 pt-8 lg:grid-cols-[220px_1fr] lg:px-8 lg:pt-10">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 pt-8 lg:grid-cols-[230px_1fr] lg:px-8 lg:pt-10">
         <aside className="hidden lg:block">
-          <nav className="sticky top-24 grid gap-0.5" aria-label="Categories">
-            <p className="mb-2 px-3 text-xs font-medium text-subtle">Categories</p>
-            {list.categories.map((category) => {
-              const progress = categoryProgress.get(category.id)!;
-              const done = progress.total > 0 && progress.answered === progress.total;
+          <nav className="sticky top-24 grid gap-0.5" aria-label={t("rating.categories")}>
+            <p className="mb-2 px-3 text-xs font-medium text-subtle">{t("rating.categories")}</p>
+            {categories.map((category) => {
+              const p = progress.get(category.id)!;
+              const done = p.total > 0 && p.answered === p.total;
+              const hidden = !visibleCategories.some((c) => c.id === category.id);
               return (
                 <a
                   key={category.id}
                   href={`#category-${category.id}`}
                   aria-current={activeCategory === category.id ? "true" : undefined}
                   className={cn(
-                    "flex items-center justify-between gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                    "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
                     activeCategory === category.id ? "bg-surface-2 text-fg" : "text-muted hover:text-fg",
+                    hidden && "pointer-events-none opacity-40",
                   )}
                 >
-                  <span className="truncate">{category.name}</span>
+                  <CategoryIcon name={category.icon} size={16} className="shrink-0" />
+                  <span className="min-w-0 flex-1 truncate">{category.name}</span>
                   {done ? (
-                    <CheckIcon size={14} weight="bold" className="text-accent" aria-label="Complete" />
+                    <CheckIcon size={14} weight="bold" className="text-accent" aria-label={t("rating.complete")} />
                   ) : (
                     <span className="font-mono text-xs text-subtle tabular-nums">
-                      {progress.answered}/{progress.total}
+                      {p.answered}/{p.total}
                     </span>
                   )}
                 </a>
@@ -125,39 +181,86 @@ export function RatingView({ list }: { list: KinkList }) {
         </aside>
 
         <div className="min-w-0">
-          <Link href="/#lists" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
-            <ArrowLeftIcon size={14} /> All lists
+          <Link href={href("/#lists")} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
+            <ArrowLeftIcon size={14} /> {t("rating.allLists")}
           </Link>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">{list.name} list</h1>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">{t("rating.title", { name: list.name })}</h1>
           <p className="mt-2 max-w-2xl leading-relaxed text-muted">{list.description}</p>
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3">
+          <p className="mt-2 text-sm text-subtle">{t("rating.answeringAs", { name: profileName })}</p>
+
+          <div className="mt-6 grid gap-3 rounded-xl border border-border bg-surface px-4 py-3">
             <LevelLegend />
-            <p className="text-xs text-subtle">Click an answer again to clear it.</p>
+            <p className="text-xs text-subtle">{t("rating.legendHint")}</p>
           </div>
 
-          <div className="mt-12 grid gap-14">
-            {list.categories.map((category) => {
-              const progress = categoryProgress.get(category.id)!;
-              return (
-                <section
-                  key={category.id}
-                  id={`category-${category.id}`}
-                  data-category={category.id}
-                  className="scroll-mt-32 lg:scroll-mt-20"
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <div className="relative min-w-0 flex-1 basis-56">
+              <MagnifyingGlassIcon size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle" aria-hidden />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={t("rating.search")}
+                aria-label={t("rating.search")}
+                className="h-10 w-full rounded-lg border border-border bg-surface pl-9 pr-9 text-sm placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="absolute right-2 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded text-subtle hover:text-fg"
+                  aria-label={t("common.clear")}
                 >
+                  <XIcon size={14} />
+                </button>
+              )}
+            </div>
+            <Button variant={onlyUnanswered ? "primary" : "secondary"} onClick={toggleUnanswered} aria-pressed={!!onlyUnanswered}>
+              {t("rating.onlyUnanswered")}
+            </Button>
+            <Button onClick={() => setCustomDialog({})}>
+              <PlusIcon size={14} weight="bold" /> {t("custom.add")}
+            </Button>
+          </div>
+
+          <div className="mt-10 grid gap-14">
+            {visibleCategories.length === 0 && (
+              <p className="rounded-xl border border-dashed border-border p-10 text-center text-muted">
+                {onlyUnanswered && !q ? t("rating.allAnswered") : t("rating.noMatches")}
+              </p>
+            )}
+            {visibleCategories.map((category) => {
+              const p = progress.get(category.id)!;
+              return (
+                <section key={category.id} id={`category-${category.id}`} data-category={category.id} className="scroll-mt-32 lg:scroll-mt-20">
                   <div className="mb-5 flex items-end justify-between gap-4">
-                    <div>
-                      <h2 className="text-xl font-semibold tracking-tight">{category.name}</h2>
-                      {category.description && <p className="mt-1 text-sm text-muted">{category.description}</p>}
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+                        <CategoryIcon name={category.icon} size={18} />
+                      </span>
+                      <div>
+                        <h2 className="text-xl font-semibold tracking-tight">{category.name}</h2>
+                        {(category.description || category.items[0]?.custom) && (
+                          <p className="mt-0.5 text-sm text-muted">{category.description || t("custom.privacy")}</p>
+                        )}
+                      </div>
                     </div>
                     <span className="shrink-0 font-mono text-xs text-subtle tabular-nums">
-                      {progress.answered}/{progress.total}
+                      {p.answered}/{p.total}
                     </span>
                   </div>
                   <div className="gap-3 md:columns-2">
                     {category.items.map((item) => (
-                      <div key={item.id} id={`item-${item.id}`} className="mb-3 break-inside-avoid scroll-mt-40">
-                        <ItemCard item={item} signature={itemAnswerSignature(item, answers)} onRate={setAnswer} />
+                      <div key={item.id} id={`item-${item.custom ? "c" : "i"}${item.id}`} className="mb-3 break-inside-avoid scroll-mt-40">
+                        <ItemCard
+                          item={item}
+                          data={data}
+                          newSince={item.custom ? undefined : newSince}
+                          onRate={setAnswer}
+                          onExperience={setExperience}
+                          onNote={onNote}
+                          onEditCustom={item.custom ? onEditCustom : undefined}
+                        />
                       </div>
                     ))}
                   </div>
@@ -169,48 +272,48 @@ export function RatingView({ list }: { list: KinkList }) {
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 lg:px-8">
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline gap-2 text-sm">
               <span className="font-mono font-medium tabular-nums">{stats.percent}%</span>
-              <span className="truncate text-muted">
-                {stats.answered} of {stats.total} answered
-              </span>
+              <span className="truncate text-muted">{t("rating.progress", { answered: stats.answered, total: stats.total })}</span>
             </div>
             <div className="mt-1.5 h-1 max-w-md overflow-hidden rounded-full bg-surface-2">
               <div className="h-full rounded-full bg-accent transition-[width] duration-300" style={{ width: `${stats.percent}%` }} />
             </div>
           </div>
           <Button variant="ghost" size="sm" className="hidden sm:inline-flex" onClick={() => setConfirmReset(true)} disabled={stats.answered === 0}>
-            Reset
+            {t("rating.reset")}
           </Button>
-          <Button variant="secondary" size="sm" className="hidden md:inline-flex" onClick={jumpToNextUnanswered} disabled={stats.answered === stats.total}>
-            Next unanswered
+          <Button size="sm" className="hidden md:inline-flex" onClick={jumpToNextUnanswered} disabled={stats.answered === stats.total}>
+            {t("rating.nextUnanswered")}
           </Button>
-          <Link href={`/list/${list.slug}/results`} className={buttonClass("primary", "md")}>
-            Results <ArrowRightIcon size={16} />
+          <Link href={href(`/list/${list.slug}/results`)} className={buttonClass("primary", "md")}>
+            {t("rating.results")} <ArrowRightIcon size={16} />
           </Link>
         </div>
       </div>
 
+      <Celebration slug={list.slug} complete={stats.total > 0 && stats.answered === stats.total} />
+      <CustomItemDialog open={!!customDialog} onClose={() => setCustomDialog(null)} slug={list.slug} item={customDialog?.item} />
       <Dialog
         open={confirmReset}
         onClose={() => setConfirmReset(false)}
-        title="Reset all answers?"
-        description={`This clears all ${stats.answered} answers for the ${list.name} list in this browser. It cannot be undone.`}
+        title={t("rating.resetTitle")}
+        description={t("rating.resetBody", { count: stats.answered, name: list.name })}
       >
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setConfirmReset(false)}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             variant="danger"
             onClick={() => {
-              answersStore.clear(list.slug);
+              listStore.clear(list.slug);
               setConfirmReset(false);
             }}
           >
-            Reset answers
+            {t("rating.resetConfirm")}
           </Button>
         </div>
       </Dialog>

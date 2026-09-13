@@ -1,17 +1,37 @@
-import { categoryChoices, computeStats, listChoices, type ChoiceKey } from "./choices";
-import { LEVEL_LABELS, LEVELS, type Answers, type KinkList } from "./types";
+import { allChoices, computeStats, itemKey, optionKey, withCustom } from "./choices";
+import { emptyListData } from "./list-data";
+import { LEVELS, type Experience, type KinkList, type Level, type ListData } from "./types";
 
 export const EXPORT_FORMAT = "omnikinklist-export";
-export const EXPORT_VERSION = 2;
+export const EXPORT_VERSION = 3;
 
 export interface ExportPayload {
   format: typeof EXPORT_FORMAT;
   version: number;
   list: { slug: string; name: string };
   exportedAt: string;
-  answers: Answers;
-  /** `[item name, option label | null]` per key, so imports survive id changes. */
+  data: ListData;
+  /** `[item name, option label | null]` per choice key, so imports survive id changes. */
   labels: Record<string, [string, string | null]>;
+  /** Item name per item key, for notes. */
+  itemNames: Record<string, string>;
+}
+
+/** Translated strings used inside the exported file. */
+export interface ExportLabels {
+  lang: string;
+  title: string;
+  heading: string;
+  /** Contains `{answered}` and `{total}`. */
+  summary: string;
+  /** Contains `{date}`. */
+  exported: string;
+  toggleTheme: string;
+  footer: string;
+  yourItems: string;
+  note: string;
+  levels: Record<Level, string>;
+  experience: Record<Experience, string>;
 }
 
 const escapeHtml = (value: string) =>
@@ -24,79 +44,87 @@ const inlineJson = (value: unknown) =>
     .replace(new RegExp(String.fromCharCode(0x2028), "g"), "\\u2028")
     .replace(new RegExp(String.fromCharCode(0x2029), "g"), "\\u2029");
 
-export function buildExportPayload(list: KinkList, answers: Answers, now = new Date()): ExportPayload {
+export function buildExportPayload(list: KinkList, data: ListData, now = new Date()): ExportPayload {
+  const categories = withCustom(list, data.custom, "");
   const labels: ExportPayload["labels"] = {};
-  const kept: Answers = {};
-  for (const choice of listChoices(list)) {
-    const level = answers[choice.key];
-    if (!level) continue;
-    kept[choice.key] = level;
+  const itemNames: ExportPayload["itemNames"] = {};
+  const kept = emptyListData();
+  kept.custom = data.custom;
+  kept.updatedAt = data.updatedAt;
+  for (const choice of allChoices(categories)) {
+    const level = data.answers[choice.key];
+    const experience = data.experience[choice.key];
+    if (!level && !experience) continue;
+    if (level) kept.answers[choice.key] = level;
+    if (experience) kept.experience[choice.key] = experience;
     labels[choice.key] = [choice.item.name, choice.optionLabel];
+  }
+  for (const item of categories.flatMap((c) => c.items)) {
+    const note = data.notes[itemKey(item)];
+    if (note) {
+      kept.notes[itemKey(item)] = note;
+      itemNames[itemKey(item)] = item.name;
+    }
   }
   return {
     format: EXPORT_FORMAT,
     version: EXPORT_VERSION,
     list: { slug: list.slug, name: list.name },
     exportedAt: now.toISOString(),
-    answers: kept,
+    data: kept,
     labels,
+    itemNames,
   };
 }
 
-export function exportFileName(list: KinkList, now = new Date()) {
-  return `omnikinklist-${list.slug}-${now.toISOString().slice(0, 10)}.html`;
+export function exportFileName(list: KinkList, extension: string, now = new Date()) {
+  return `omnikinklist-${list.slug}-${now.toISOString().slice(0, 10)}.${extension}`;
 }
 
-export function generateExportHtml(list: KinkList, answers: Answers, siteUrl: string, now = new Date()) {
-  const payload = buildExportPayload(list, answers, now);
-  const stats = computeStats(listChoices(list), payload.answers);
-  const date = now.toLocaleDateString("en", { year: "numeric", month: "long", day: "numeric" });
+export function generateExportHtml(list: KinkList, data: ListData, siteUrl: string, labels: ExportLabels, now = new Date()) {
+  const payload = buildExportPayload(list, data, now);
+  const categories = withCustom(list, data.custom, labels.yourItems);
+  const stats = computeStats(allChoices(categories), payload.data.answers);
+  const date = now.toLocaleDateString(labels.lang, { year: "numeric", month: "long", day: "numeric" });
+  const { answers, experience, notes } = payload.data;
 
   const bar = LEVELS.filter((l) => stats.byLevel[l] > 0)
-    .map((l) => `<span class="lv-${l}" style="flex:${stats.byLevel[l]}" title="${LEVEL_LABELS[l]}: ${stats.byLevel[l]}"></span>`)
+    .map((l) => `<span class="lv-${l}" style="flex:${stats.byLevel[l]}" title="${escapeHtml(labels.levels[l])}: ${stats.byLevel[l]}"></span>`)
     .join("");
 
   const statCells = LEVELS.map(
-    (l) =>
-      `<div class="stat"><span class="dot lv-${l}"></span><b>${stats.byLevel[l]}</b><small>${LEVEL_LABELS[l]}</small></div>`,
+    (l) => `<div class="stat"><span class="dot lv-${l}"></span><b>${stats.byLevel[l]}</b><small>${escapeHtml(labels.levels[l])}</small></div>`,
   ).join("");
 
-  const sections = list.categories
+  const sections = categories
     .map((category) => {
-      const answeredKeys = new Set<ChoiceKey>(
-        categoryChoices(category)
-          .filter((c) => payload.answers[c.key])
-          .map((c) => c.key),
-      );
-      if (answeredKeys.size === 0) return "";
       const cards = category.items
         .map((item) => {
-          const rows =
+          const rows = (
             item.options.length === 0
-              ? answeredKeys.has(`i${item.id}`)
-                ? [{ label: null, level: payload.answers[`i${item.id}`] }]
-                : []
-              : item.options
-                  .filter((o) => answeredKeys.has(`o${o.id}`))
-                  .map((o) => ({ label: o.label, level: payload.answers[`o${o.id}`] }));
-          if (rows.length === 0) return "";
-          const chips = rows
-            .map(
-              (r) =>
-                `<li><span>${r.label ? escapeHtml(r.label) : "&nbsp;"}</span><em class="chip lv-${r.level}">${LEVEL_LABELS[r.level]}</em></li>`,
-            )
+              ? [{ key: itemKey(item), label: null as string | null }]
+              : item.options.map((o) => ({ key: optionKey(item, o.id), label: o.label as string | null }))
+          ).filter((row) => answers[row.key] || experience[row.key]);
+          const note = notes[itemKey(item)];
+          if (rows.length === 0 && !note) return "";
+          const lines = rows
+            .map((row) => {
+              const level = answers[row.key];
+              const exp = experience[row.key];
+              return `<li><span>${row.label ? escapeHtml(row.label) : "&nbsp;"}${exp ? ` <i class="exp">${escapeHtml(labels.experience[exp])}</i>` : ""}</span>${level ? `<em class="chip lv-${level}">${escapeHtml(labels.levels[level])}</em>` : ""}</li>`;
+            })
             .join("");
-          return `<article><h3>${escapeHtml(item.name)}</h3>${
-            item.description ? `<p>${escapeHtml(item.description)}</p>` : ""
-          }<ul>${chips}</ul></article>`;
+          return `<article><h3>${escapeHtml(item.name)}</h3>${item.description ? `<p>${escapeHtml(item.description)}</p>` : ""}${lines ? `<ul>${lines}</ul>` : ""}${note ? `<blockquote><b>${escapeHtml(labels.note)}:</b> ${escapeHtml(note)}</blockquote>` : ""}</article>`;
         })
         .join("");
-      return `<section><h2>${escapeHtml(category.name)}</h2><div class="grid">${cards}</div></section>`;
+      return cards ? `<section><h2>${escapeHtml(category.name)}</h2><div class="grid">${cards}</div></section>` : "";
     })
     .join("");
 
+  const summary = labels.summary.replace("{answered}", String(stats.answered)).replace("{total}", String(stats.total));
+
   return `<!doctype html>
-<html lang="en">
+<html lang="${escapeHtml(labels.lang)}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -105,26 +133,26 @@ export function generateExportHtml(list: KinkList, answers: Answers, siteUrl: st
 <meta name="kinklist-type" content="${escapeHtml(list.slug)}">
 <meta name="kinklist-export-date" content="${payload.exportedAt}">
 <meta name="robots" content="noindex">
-<title>My OmniKinkList · ${escapeHtml(list.name)}</title>
+<title>${escapeHtml(labels.title)}</title>
 <script type="application/json" id="okl-export">${inlineJson(payload)}</script>
 <style>
-:root{--bg:#faf7f5;--surface:#fff;--border:#e8e0dc;--fg:#1a1417;--muted:#6b6166;--accent:#d42a66;
---favorite:#e0306f;--like:#12a36a;--indifferent:#6b7489;--maybe:#d98511;--dislike:#d93636;color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0c0a0d;--surface:#161217;--border:#2a232c;--fg:#f5f0f3;--muted:#a39aa3;--accent:#ff4f8b;
---favorite:#ff4f8b;--like:#3ecf8e;--indifferent:#8d95aa;--maybe:#f5a524;--dislike:#f25555;color-scheme:dark}}
-:root[data-theme=dark]{--bg:#0c0a0d;--surface:#161217;--border:#2a232c;--fg:#f5f0f3;--muted:#a39aa3;--accent:#ff4f8b;
---favorite:#ff4f8b;--like:#3ecf8e;--indifferent:#8d95aa;--maybe:#f5a524;--dislike:#f25555;color-scheme:dark}
+:root{--bg:#faf7f6;--surface:#fff;--border:#e7dfdc;--fg:#1c1519;--muted:#5f555a;--accent:#d42a66;
+--limit:#1c1519;--dislike:#c62f2f;--maybe:#b86a06;--indifferent:#5f6881;--like:#0f8a5a;--favorite:#d42a66;--on:#fff;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0c0a0d;--surface:#151116;--border:#29222b;--fg:#f4eff2;--muted:#b1a7ae;--accent:#ff4f8b;
+--limit:#f4eff2;--dislike:#f26060;--maybe:#f5a524;--indifferent:#8f98ad;--like:#3ecf8e;--favorite:#ff4f8b;--on:#140c10;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#0c0a0d;--surface:#151116;--border:#29222b;--fg:#f4eff2;--muted:#b1a7ae;--accent:#ff4f8b;
+--limit:#f4eff2;--dislike:#f26060;--maybe:#f5a524;--indifferent:#8f98ad;--like:#3ecf8e;--favorite:#ff4f8b;--on:#140c10;color-scheme:dark}
 *{box-sizing:border-box;margin:0}
 body{background:var(--bg);color:var(--fg);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;padding:32px 20px 64px}
 main{max-width:1080px;margin:0 auto}
 header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;padding-bottom:24px;border-bottom:1px solid var(--border)}
-.eyebrow{color:var(--accent);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.eyebrow{color:var(--accent);font-size:13px;font-weight:600}
 h1{font-size:clamp(28px,5vw,40px);letter-spacing:-.02em;line-height:1.1;margin-top:6px}
 header p{color:var(--muted);margin-top:6px}
-button{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;cursor:pointer}
+button{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer}
 .summary{margin:28px 0 8px}
-.bar{display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--border);gap:2px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:16px}
+.bar{display:flex;height:10px;border-radius:99px;overflow:hidden;gap:2px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:16px}
 .stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center}
 .stat b{font-size:22px;font-variant-numeric:tabular-nums}.stat small{grid-column:1/-1;color:var(--muted)}
 .dot{width:10px;height:10px;border-radius:99px}
@@ -135,8 +163,11 @@ article{background:var(--surface);border:1px solid var(--border);border-radius:1
 h3{font-size:15px}article p{color:var(--muted);font-size:13px;margin-top:4px}
 ul{list-style:none;padding:0;margin-top:12px;display:grid;gap:6px}
 li{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:13px}
-.chip{font-style:normal;font-size:12px;font-weight:600;padding:2px 10px;border-radius:99px;color:#fff}
-.lv-favorite{background:var(--favorite)}.lv-like{background:var(--like)}.lv-indifferent{background:var(--indifferent)}.lv-maybe{background:var(--maybe)}.lv-dislike{background:var(--dislike)}
+.exp{font-style:normal;font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:99px;padding:0 6px;margin-left:4px}
+blockquote{margin-top:12px;font-size:13px;color:var(--muted);border-left:2px solid var(--accent);padding-left:10px}
+.chip{font-style:normal;font-size:12px;font-weight:600;padding:2px 10px;border-radius:99px;color:var(--on);white-space:nowrap}
+.lv-limit{background:var(--limit)}.lv-dislike{background:var(--dislike)}.lv-maybe{background:var(--maybe)}.lv-indifferent{background:var(--indifferent)}.lv-like{background:var(--like)}.lv-favorite{background:var(--favorite)}
+.chip.lv-limit{color:var(--bg)}
 footer{margin-top:56px;color:var(--muted);font-size:13px;text-align:center}
 a{color:var(--accent)}
 </style>
@@ -144,25 +175,24 @@ a{color:var(--accent)}
 <body>
 <main>
 <header>
-<div><div class="eyebrow">OmniKinkList · ${escapeHtml(list.name)}</div><h1>My kink list</h1><p>${stats.answered} of ${stats.total} answered · exported ${escapeHtml(date)}</p></div>
-<button type="button" onclick="var r=document.documentElement,d=r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');r.dataset.theme=d==='dark'?'light':'dark'">Toggle theme</button>
+<div><div class="eyebrow">OmniKinkList: ${escapeHtml(list.name)}</div><h1>${escapeHtml(labels.heading)}</h1><p>${escapeHtml(summary)} ${escapeHtml(labels.exported.replace("{date}", date))}</p></div>
+<button type="button" onclick="var r=document.documentElement,d=r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');r.dataset.theme=d==='dark'?'light':'dark'">${escapeHtml(labels.toggleTheme)}</button>
 </header>
 <div class="summary"><div class="bar">${bar}</div><div class="stats">${statCells}</div></div>
 ${sections}
-<footer>Made with <a href="${escapeHtml(siteUrl)}">OmniKinkList</a>. Import this file on the site to keep editing.</footer>
+<footer><a href="${escapeHtml(siteUrl)}">OmniKinkList</a>. ${escapeHtml(labels.footer)}</footer>
 </main>
 </body>
 </html>`;
 }
 
-export function downloadExport(list: KinkList, answers: Answers, siteUrl: string) {
-  const html = generateExportHtml(list, answers, siteUrl);
-  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+export function downloadFile(content: BlobPart, fileName: string, type: string) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
   const a = document.createElement("a");
   a.href = url;
-  a.download = exportFileName(list);
+  a.download = fileName;
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

@@ -1,9 +1,10 @@
 "use client";
 
+import { ShieldCheckIcon } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { setUserRole } from "@/app/admin/actions";
 import { Input, Select } from "@/components/ui/field";
+import { setUserRole } from "@/lib/admin/actions";
 import { ROLE_LABELS, ROLES, type Role } from "@/lib/roles";
 
 const joinedFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeZone: "UTC" });
@@ -13,6 +14,7 @@ interface Row {
   name: string;
   email: string;
   role: Role;
+  twoFactorEnabled: boolean;
   createdAt: string;
 }
 
@@ -35,20 +37,14 @@ export function UserTable({ users, currentUserId }: { users: Row[]; currentUserI
 
   return (
     <div className="mt-6">
-      <Input
-        type="search"
-        placeholder="Search by name or email"
-        aria-label="Search users"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        className="max-w-xs"
-      />
+      <Input type="search" placeholder="Search by name or email" aria-label="Search users" value={query} onChange={(e) => setQuery(e.target.value)} className="max-w-xs" />
       <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="w-full min-w-[560px] text-left text-sm">
+        <table className="w-full min-w-[620px] text-left text-sm">
           <thead className="border-b border-border text-xs text-subtle">
             <tr>
               <th className="px-5 py-3 font-medium">User</th>
               <th className="px-5 py-3 font-medium">Joined</th>
+              <th className="px-5 py-3 font-medium">2FA</th>
               <th className="px-5 py-3 font-medium">Role</th>
             </tr>
           </thead>
@@ -63,6 +59,9 @@ export function UserTable({ users, currentUserId }: { users: Row[]; currentUserI
                   <p className="text-muted">{row.email}</p>
                 </td>
                 <td className="px-5 py-3 font-mono text-xs text-muted">{joinedFormat.format(new Date(row.createdAt))}</td>
+                <td className="px-5 py-3">
+                  {row.twoFactorEnabled ? <ShieldCheckIcon size={18} weight="fill" className="text-like" aria-label="On" /> : <span className="text-subtle">Off</span>}
+                </td>
                 <td className="px-5 py-3">
                   <Select
                     aria-label={`Role for ${row.name}`}
@@ -82,7 +81,7 @@ export function UserTable({ users, currentUserId }: { users: Row[]; currentUserI
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-5 py-10 text-center text-muted">
+                <td colSpan={4} className="px-5 py-10 text-center text-muted">
                   No users match that search.
                 </td>
               </tr>

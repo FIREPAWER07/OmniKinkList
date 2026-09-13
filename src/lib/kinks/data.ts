@@ -1,75 +1,91 @@
 import "server-only";
-import { asc } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/db";
-import { categories, items, lists, options } from "@/db/schema";
+import { lists, listVersions } from "@/db/schema";
+import type { Locale } from "@/i18n/config";
+import { localizeList, type ListChanges, type PublishedData } from "./published";
 import type { KinkList, KinkListSummary } from "./types";
 
+/** Invalidated when a list is published or deleted. */
 export const LISTS_TAG = "lists";
 
-/** Loads every list with its full tree in four queries. */
-async function loadAllLists(): Promise<KinkList[]> {
-  const [listRows, categoryRows, itemRows, optionRows] = await Promise.all([
-    db.select().from(lists).orderBy(asc(lists.sortOrder), asc(lists.name)),
-    db.select().from(categories).orderBy(asc(categories.sortOrder), asc(categories.id)),
-    db.select().from(items).orderBy(asc(items.sortOrder), asc(items.id)),
-    db.select().from(options).orderBy(asc(options.sortOrder), asc(options.id)),
-  ]);
-
-  const optionsByItem = new Map<number, { id: number; label: string }[]>();
-  for (const o of optionRows) {
-    const bucket = optionsByItem.get(o.itemId) ?? [];
-    bucket.push({ id: o.id, label: o.label });
-    optionsByItem.set(o.itemId, bucket);
-  }
-
-  const itemsByCategory = new Map<number, KinkList["categories"][number]["items"]>();
-  for (const i of itemRows) {
-    const bucket = itemsByCategory.get(i.categoryId) ?? [];
-    bucket.push({ id: i.id, name: i.name, description: i.description, options: optionsByItem.get(i.id) ?? [] });
-    itemsByCategory.set(i.categoryId, bucket);
-  }
-
-  const categoriesByList = new Map<string, KinkList["categories"]>();
-  for (const c of categoryRows) {
-    const bucket = categoriesByList.get(c.listSlug) ?? [];
-    bucket.push({ id: c.id, name: c.name, description: c.description, items: itemsByCategory.get(c.id) ?? [] });
-    categoriesByList.set(c.listSlug, bucket);
-  }
-
-  return listRows.map((l) => ({
-    slug: l.slug,
-    name: l.name,
-    tagline: l.tagline,
-    description: l.description,
-    categories: categoriesByList.get(l.slug) ?? [],
-  }));
-}
-
-export async function getAllLists(): Promise<KinkList[]> {
+/** The latest published version of every list, translated. Drafts never show up here. */
+export async function getPublishedLists(locale: Locale): Promise<KinkList[]> {
   "use cache";
   cacheLife("max");
   cacheTag(LISTS_TAG);
-  return loadAllLists();
+  const rows = await db
+    .select({ data: listVersions.data })
+    .from(listVersions)
+    .innerJoin(lists, eq(lists.slug, listVersions.listSlug))
+    .where(
+      sql`${listVersions.version} = (select max(v2.version) from list_versions v2 where v2.list_slug = ${listVersions.listSlug})`,
+    )
+    .orderBy(asc(lists.sortOrder), asc(lists.name));
+  return rows.map((row) => localizeList(JSON.parse(row.data) as PublishedData, locale));
 }
 
-export async function getList(slug: string): Promise<KinkList | null> {
-  const all = await getAllLists();
+export async function getList(slug: string, locale: Locale): Promise<KinkList | null> {
+  const all = await getPublishedLists(locale);
   return all.find((l) => l.slug === slug) ?? null;
 }
 
-export async function getListSummaries(): Promise<KinkListSummary[]> {
-  const all = await getAllLists();
-  return all.map((l) => ({
-    slug: l.slug,
-    name: l.name,
-    tagline: l.tagline,
-    description: l.description,
-    categoryCount: l.categories.length,
-    itemCount: l.categories.reduce((n, c) => n + c.items.length, 0),
-    choiceCount: l.categories.reduce(
-      (n, c) => n + c.items.reduce((m, i) => m + Math.max(1, i.options.length), 0),
-      0,
-    ),
-  }));
+export function summarize(list: KinkList): KinkListSummary {
+  const itemsFlat = list.categories.flatMap((c) => c.items);
+  return {
+    slug: list.slug,
+    name: list.name,
+    tagline: list.tagline,
+    description: list.description,
+    categoryCount: list.categories.length,
+    itemCount: itemsFlat.length,
+    choiceCount: itemsFlat.reduce((n, i) => n + Math.max(1, i.options.length), 0),
+    addedDates: itemsFlat.flatMap((i) => [i.addedAt, ...i.options.map((o) => o.addedAt)]).filter((d): d is string => !!d),
+  };
+}
+
+export async function getListSummaries(locale: Locale): Promise<KinkListSummary[]> {
+  return (await getPublishedLists(locale)).map(summarize);
+}
+
+export interface ChangelogEntry {
+  listSlug: string;
+  listName: string;
+  version: number;
+  note: string;
+  publishedAt: string;
+  changes: ListChanges;
+}
+
+/** Public history of published versions, newest first. */
+export async function getChangelog(locale: Locale, limit = 60): Promise<ChangelogEntry[]> {
+  "use cache";
+  cacheLife("max");
+  cacheTag(LISTS_TAG);
+  const [rows, published] = await Promise.all([
+    db
+      .select({
+        listSlug: listVersions.listSlug,
+        version: listVersions.version,
+        note: listVersions.note,
+        publishedAt: listVersions.publishedAt,
+        changes: listVersions.changes,
+      })
+      .from(listVersions)
+      .orderBy(desc(listVersions.publishedAt), desc(listVersions.id))
+      .limit(limit),
+    getPublishedLists(locale),
+  ]);
+  const names = new Map(published.map((l) => [l.slug, l.name]));
+  return rows
+    .filter((row) => names.has(row.listSlug))
+    .map((row) => ({
+      listSlug: row.listSlug,
+      listName: names.get(row.listSlug)!,
+      version: row.version,
+      note: row.note,
+      publishedAt: row.publishedAt.toISOString(),
+      changes: JSON.parse(row.changes) as ListChanges,
+    }));
 }

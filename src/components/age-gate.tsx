@@ -1,8 +1,9 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { Dialog } from "./ui/dialog";
+import { useT } from "@/i18n/client";
 import { Button, buttonClass } from "./ui/button";
+import { Dialog } from "./ui/dialog";
 
 const KEY = "okl:age-confirmed";
 const listeners = new Set<() => void>();
@@ -16,6 +17,7 @@ function confirmed() {
 }
 
 export function AgeGate() {
+  const t = useT();
   const ok = useSyncExternalStore(
     (notify) => {
       listeners.add(notify);
@@ -29,25 +31,19 @@ export function AgeGate() {
     try {
       window.localStorage.setItem(KEY, "1");
     } catch {
-      // Ignore: the gate will show again next visit.
+      // The gate shows again next visit.
     }
     listeners.forEach((notify) => notify());
   };
 
   return (
-    <Dialog
-      open={!ok}
-      onClose={accept}
-      dismissible={false}
-      title="This site is for adults"
-      description="OmniKinkList describes sexual activities and fetishes. You must be 18 or older to continue."
-    >
+    <Dialog open={!ok} onClose={accept} dismissible={false} title={t("ageGate.title")} description={t("ageGate.body")}>
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <a href="https://www.google.com" className={buttonClass("ghost")}>
-          Leave
+          {t("ageGate.leave")}
         </a>
         <Button variant="primary" onClick={accept}>
-          I am 18 or older
+          {t("ageGate.confirm")}
         </Button>
       </div>
     </Dialog>
