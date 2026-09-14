@@ -4,9 +4,10 @@ import { and, eq, inArray, max, sql } from "drizzle-orm";
 import { revalidatePath, updateTag } from "next/cache";
 import { db } from "@/db";
 import { loadLatestVersion, publishList as publishDraft } from "@/db/content";
-import { auditLog, categories, contentTranslations, items, lists, listVersions, options, suggestions, user } from "@/db/schema";
+import { auditLog, categories, contentTranslations, items, lists, listVersions, options, session, suggestions, user } from "@/db/schema";
 import { LISTS_TAG } from "@/lib/kinks/data";
 import type { PublishedData } from "@/lib/kinks/published";
+import { BAN_DURATION_LABELS, banExpiry, isBanActive } from "@/lib/moderation";
 import { consumeRateLimit, RateLimitError } from "@/lib/rate-limit";
 import type { Role } from "@/lib/roles";
 import { AuthorizationError, requireActionRole, type CurrentUser } from "@/lib/session";
@@ -30,6 +31,7 @@ import {
   type EntityType,
 } from "./snapshots";
 import {
+  banInput,
   categoryInput,
   firstIssue,
   itemInput,
@@ -38,6 +40,7 @@ import {
   roleInput,
   slugSchema,
   translationInput,
+  type BanInput,
   type CategoryInput,
   type ItemInput,
   type ListInput,
@@ -45,6 +48,8 @@ import {
 } from "./validation";
 
 export type ActionResult<T = undefined> = { ok: true; data?: T } | { ok: false; error: string };
+
+class ModerationError extends Error {}
 
 /** Role check, editor rate limit, and turning known failures into results instead of thrown errors. */
 async function run<T>(minimum: Role, mutate: (actor: CurrentUser) => Promise<ActionResult<T> | void>): Promise<ActionResult<T>> {
@@ -55,7 +60,7 @@ async function run<T>(minimum: Role, mutate: (actor: CurrentUser) => Promise<Act
     revalidatePath("/[locale]/admin", "layout");
     return result;
   } catch (error) {
-    if (error instanceof AuthorizationError || error instanceof RestoreError) return { ok: false, error: error.message };
+    if (error instanceof AuthorizationError || error instanceof RestoreError || error instanceof ModerationError) return { ok: false, error: error.message };
     if (error instanceof RateLimitError) return { ok: false, error: "You are making changes very fast. Wait a minute and try again." };
     console.error(error);
     return { ok: false, error: "Something went wrong while saving. Try again." };
@@ -458,5 +463,105 @@ export async function setUserRole(userId: string, role: Role) {
       before: { userId: parsed.data.userId, role: target.role },
       after: parsed.data,
     });
+  });
+}
+
+/* ---------------------------- Moderation --------------------------- */
+
+/** Moderation entries point at the user they concern. They have no `before`, so they cannot be undone from the activity log. */
+async function logModeration(actor: CurrentUser, action: string, summary: string, userId: string, details?: unknown) {
+  await db.insert(auditLog).values({
+    userId: actor.id,
+    userName: actor.name,
+    action,
+    summary,
+    listSlug: null,
+    entityType: "user",
+    entityId: userId,
+    after: details === undefined ? null : JSON.stringify(details),
+  });
+}
+
+/** Loads the user a moderation action targets. Your own account is managed from the account page, and admins must be demoted first. */
+async function moderationTarget(actor: CurrentUser, userId: unknown, { allowAdmins = false } = {}) {
+  if (typeof userId !== "string" || !userId) throw new ModerationError("Unknown user.");
+  if (userId === actor.id) throw new ModerationError("You cannot do that to your own account.");
+  const [target] = await db
+    .select({ id: user.id, name: user.name, email: user.email, role: user.role, banned: user.banned, banExpires: user.banExpires })
+    .from(user)
+    .where(eq(user.id, userId));
+  if (!target) throw new ModerationError("That user no longer exists.");
+  if (!allowAdmins && target.role === "admin") throw new ModerationError(`${target.name} is an admin. Remove their admin role first.`);
+  return target;
+}
+
+async function rejectPendingSuggestions(actor: CurrentUser, userId: string) {
+  const rejected = await db
+    .update(suggestions)
+    .set({ status: "rejected", reviewedByName: actor.name, reviewedAt: new Date() })
+    .where(and(eq(suggestions.submitterId, userId), eq(suggestions.status, "pending")))
+    .returning({ id: suggestions.id });
+  return rejected.length;
+}
+
+/** Bans (or changes the ban of) an account and signs it out everywhere. Signing in is blocked in `auth.ts`. */
+export async function banUser(input: BanInput) {
+  return run("admin", async (actor) => {
+    const parsed = banInput.safeParse(input);
+    if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+    const { userId, reason, duration, rejectSuggestions } = parsed.data;
+    const target = await moderationTarget(actor, userId);
+    const banExpires = banExpiry(duration);
+    // Ban first: a sign-in racing with this is refused by `getCurrentUser` even if its session survives the delete.
+    await db.update(user).set({ banned: true, banReason: reason, banExpires }).where(eq(user.id, userId));
+    await db.delete(session).where(eq(session.userId, userId));
+    const rejected = rejectSuggestions ? await rejectPendingSuggestions(actor, userId) : 0;
+    const length = duration === "permanent" ? "until unbanned" : `for ${BAN_DURATION_LABELS[duration]}`;
+    const extra = rejected ? ` and rejected ${rejected} pending suggestion${rejected === 1 ? "" : "s"}` : "";
+    await logModeration(actor, "ban", `Banned ${target.name} ${length}${extra}`, userId, { reason, expires: banExpires?.toISOString() ?? null });
+  });
+}
+
+export async function unbanUser(userId: string) {
+  return run("admin", async (actor) => {
+    const target = await moderationTarget(actor, userId, { allowAdmins: true });
+    if (!isBanActive(target)) return { ok: false, error: `${target.name} is not banned.` };
+    await db.update(user).set({ banned: false, banReason: null, banExpires: null }).where(eq(user.id, target.id));
+    await logModeration(actor, "unban", `Lifted the ban on ${target.name}`, target.id);
+  });
+}
+
+/** Ends one session of a user, or all of them when `sessionId` is left out. */
+export async function revokeUserSessions(userId: string, sessionId?: string) {
+  return run("admin", async (actor) => {
+    const target = await moderationTarget(actor, userId, { allowAdmins: true });
+    if (sessionId !== undefined && typeof sessionId !== "string") return { ok: false, error: "Unknown session." };
+    const ended = await db
+      .delete(session)
+      .where(sessionId ? and(eq(session.userId, target.id), eq(session.id, sessionId)) : eq(session.userId, target.id))
+      .returning({ id: session.id });
+    if (ended.length === 0) return { ok: false, error: "That session already ended." };
+    await logModeration(actor, "sign-out", sessionId ? `Ended a session of ${target.name}` : `Signed ${target.name} out on all devices`, target.id);
+  });
+}
+
+export async function rejectSuggestionsFrom(userId: string) {
+  return run("admin", async (actor) => {
+    const target = await moderationTarget(actor, userId, { allowAdmins: true });
+    const rejected = await rejectPendingSuggestions(actor, target.id);
+    if (rejected === 0) return { ok: false, error: `${target.name} has no pending suggestions.` };
+    await logModeration(actor, "reject", `Rejected ${rejected} pending suggestion${rejected === 1 ? "" : "s"} from ${target.name}`, target.id);
+  });
+}
+
+/** Permanently deletes an account with its sessions, sign-in methods, and synced answers. Their suggestions and editing history stay. */
+export async function deleteUserAccount(userId: string, confirmEmail: string) {
+  return run("admin", async (actor) => {
+    const target = await moderationTarget(actor, userId);
+    if (typeof confirmEmail !== "string" || confirmEmail.trim().toLowerCase() !== target.email.toLowerCase()) {
+      return { ok: false, error: "Type the account's email address to confirm." };
+    }
+    await db.delete(user).where(eq(user.id, target.id));
+    await logModeration(actor, "delete-user", `Deleted the account of ${target.name}`, target.id);
   });
 }

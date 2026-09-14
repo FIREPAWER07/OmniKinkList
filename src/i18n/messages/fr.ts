@@ -366,6 +366,7 @@ export const fr: Messages = {
     errorGeneric: "Une erreur est survenue. Réessaie.",
     errorUnverified: "Confirme d'abord ton e-mail. Nous t'avons envoyé un nouveau lien.",
     errorRateLimited: "Trop de tentatives. Attends une minute et réessaie.",
+    errorBanned: "Ce compte est suspendu, tu ne peux donc pas te connecter.",
     checkInboxTitle: "Consulte ta boîte mail",
     checkInboxBody: "Nous avons envoyé un lien de confirmation à {email}. Ouvre-le pour terminer la création de ton compte.",
     forgotTitle: "Réinitialiser le mot de passe",

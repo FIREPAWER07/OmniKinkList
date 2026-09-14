@@ -24,6 +24,10 @@ export const user = pgTable("user", {
   role: text("role", { enum: ROLES }).default("user").notNull(),
   twoFactorEnabled: boolean("two_factor_enabled").default(false),
   locale: text("locale").default("en").notNull(),
+  /** Set by an admin. A ban with `banExpires` in the past no longer counts. */
+  banned: boolean("banned").default(false).notNull(),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -202,7 +206,7 @@ export const auditLog = pgTable(
       .notNull()
       .$defaultFn(() => new Date()),
   },
-  (table) => [index("audit_log_created_idx").on(table.createdAt)],
+  (table) => [index("audit_log_created_idx").on(table.createdAt), index("audit_log_entity_idx").on(table.entityType, table.entityId)],
 ).enableRLS();
 
 /** Translations of list content. `entityKey` is `l:slug`, `c:id`, `i:id`, or `o:id`. */
@@ -264,7 +268,7 @@ export const suggestions = pgTable(
       .notNull()
       .$defaultFn(() => new Date()),
   },
-  (table) => [index("suggestions_status_idx").on(table.status, table.createdAt)],
+  (table) => [index("suggestions_status_idx").on(table.status, table.createdAt), index("suggestions_submitter_idx").on(table.submitterId)],
 ).enableRLS();
 
 /** Fixed-window counters for app-level rate limits (editor actions, suggestions, sync). */

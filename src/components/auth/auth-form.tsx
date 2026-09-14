@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { useHref, useLocale, useT } from "@/i18n/client";
 import { signIn, signUp } from "@/lib/auth-client";
+import { BANNED_ERROR_CODE } from "@/lib/moderation";
 
 type Provider = "google" | "simplelogin";
 
@@ -22,9 +23,12 @@ export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; 
   const href = useHref();
   const locale = useLocale();
   const router = useRouter();
-  const next = safeNext(useSearchParams().get("next"), href("/account"));
+  const params = useSearchParams();
+  const next = safeNext(params.get("next"), href("/account"));
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Google and Proton sign-ins come back here with `?error=` when they fail.
+  const callbackError = params.get("error");
+  const [error, setError] = useState<string | null>(callbackError && (callbackError === BANNED_ERROR_CODE ? t("auth.errorBanned") : t("auth.errorGeneric")));
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaReset, setCaptchaReset] = useState(0);
@@ -53,7 +57,8 @@ export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; 
     setPending(false);
     setCaptchaReset((k) => k + 1);
     if (failure) {
-      if (failure.status === 403 && mode === "login") setError(t("auth.errorUnverified"));
+      if (failure.code === BANNED_ERROR_CODE) setError(t("auth.errorBanned"));
+      else if (failure.status === 403 && mode === "login") setError(t("auth.errorUnverified"));
       else if (failure.status === 429) setError(t("auth.errorRateLimited"));
       else setError(failure.message ?? t("auth.errorGeneric"));
       return;
@@ -71,7 +76,8 @@ export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; 
     setPending(true);
     setError(null);
     // On success the client navigates to the provider, so only failures need handling here.
-    const { error: failure } = await signIn.social({ provider, callbackURL: next }).catch((cause: unknown) => ({
+    const errorCallbackURL = `${href(mode === "login" ? "/login" : "/signup")}?next=${encodeURIComponent(next)}`;
+    const { error: failure } = await signIn.social({ provider, callbackURL: next, errorCallbackURL }).catch((cause: unknown) => ({
       error: { status: 0, message: cause instanceof Error ? cause.message : undefined },
     }));
     if (!failure) return;

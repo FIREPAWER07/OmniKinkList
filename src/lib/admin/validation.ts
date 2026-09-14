@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CATEGORY_ICON_KEYS } from "@/lib/category-icon-keys";
 import { TRANSLATION_LOCALES } from "@/i18n/config";
 import { OPTION_KINDS } from "@/lib/kinks/types";
+import { BAN_DURATIONS } from "@/lib/moderation";
 import { ROLES } from "@/lib/roles";
 
 const text = (max: number) => z.string().trim().max(max, `Keep it under ${max} characters.`);
@@ -52,12 +53,20 @@ export const translationInput = z.object({
 
 export const roleInput = z.object({ userId: z.string().min(1), role: z.enum(ROLES) });
 
+export const banInput = z.object({
+  userId: z.string().min(1),
+  reason: required(300),
+  duration: z.enum(BAN_DURATIONS),
+  rejectSuggestions: z.boolean(),
+});
+
 export const reorderInput = z.array(z.number().int().positive()).max(500);
 
 export type ListInput = z.infer<typeof listInput>;
 export type CategoryInput = z.infer<typeof categoryInput>;
 export type ItemInput = z.infer<typeof itemInput>;
 export type TranslationInput = z.infer<typeof translationInput>;
+export type BanInput = z.infer<typeof banInput>;
 
 export function firstIssue(error: z.ZodError) {
   return error.issues[0]?.message ?? "Invalid input.";

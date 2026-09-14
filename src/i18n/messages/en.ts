@@ -364,6 +364,7 @@ export const en = {
     errorGeneric: "Something went wrong. Try again.",
     errorUnverified: "Confirm your email first. We sent you a new link.",
     errorRateLimited: "Too many attempts. Wait a minute and try again.",
+    errorBanned: "This account is suspended, so you cannot sign in.",
     checkInboxTitle: "Check your inbox",
     checkInboxBody: "We sent a confirmation link to {email}. Open it to finish creating your account.",
     forgotTitle: "Reset your password",

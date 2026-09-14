@@ -366,6 +366,7 @@ export const it: Messages = {
     errorGeneric: "Qualcosa è andato storto. Riprova.",
     errorUnverified: "Conferma prima la tua email. Ti abbiamo inviato un nuovo link.",
     errorRateLimited: "Troppi tentativi. Aspetta un minuto e riprova.",
+    errorBanned: "Questo account è sospeso, quindi non puoi accedere.",
     checkInboxTitle: "Controlla la posta",
     checkInboxBody: "Abbiamo inviato un link di conferma a {email}. Aprilo per completare la creazione dell'account.",
     forgotTitle: "Reimposta la password",

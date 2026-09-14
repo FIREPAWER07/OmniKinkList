@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { useHref, useT } from "@/i18n/client";
 import { authClient } from "@/lib/auth-client";
+import { BANNED_ERROR_CODE } from "@/lib/moderation";
 import { safeNext } from "./auth-form";
 
 /** Second step of signing in, for accounts with two-factor authentication. */
@@ -30,7 +31,7 @@ export function TwoFactorForm() {
       : await authClient.twoFactor.verifyTotp({ code, trustDevice });
     setPending(false);
     if (failure) {
-      setError(failure.status === 429 ? t("auth.errorRateLimited") : t("auth.twoFactorInvalid"));
+      setError(failure.code === BANNED_ERROR_CODE ? t("auth.errorBanned") : failure.status === 429 ? t("auth.errorRateLimited") : t("auth.twoFactorInvalid"));
       return;
     }
     router.push(next);

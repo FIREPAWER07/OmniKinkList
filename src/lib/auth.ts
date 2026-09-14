@@ -1,10 +1,13 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { captcha, genericOAuth, twoFactor } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { authEmail, sendEmail } from "./email";
+import { BANNED_ERROR_CODE, isBanActive } from "./moderation";
 
 /**
  * The production URL comes from BETTER_AUTH_URL, or from Netlify's `URL` captured at build time.
@@ -62,8 +65,25 @@ export const auth = betterAuth({
     additionalFields: {
       role: { type: "string", required: false, defaultValue: "user", input: false },
       locale: { type: "string", required: false, defaultValue: "en", input: true },
+      banned: { type: "boolean", required: false, defaultValue: false, input: false },
+      banReason: { type: "string", required: false, input: false },
+      banExpires: { type: "date", required: false, input: false },
     },
     deleteUser: { enabled: true },
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        // Every way of signing in creates a session here (password, Google, Proton, 2FA, email links), so bans are enforced in one place.
+        before: async (newSession) => {
+          const [row] = await db
+            .select({ banned: schema.user.banned, banExpires: schema.user.banExpires })
+            .from(schema.user)
+            .where(eq(schema.user.id, newSession.userId));
+          if (row && isBanActive(row)) throw new APIError("FORBIDDEN", { message: "This account is suspended.", code: BANNED_ERROR_CODE });
+        },
+      },
+    },
   },
   rateLimit: {
     enabled: true,

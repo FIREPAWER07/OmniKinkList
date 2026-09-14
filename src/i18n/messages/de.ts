@@ -366,6 +366,7 @@ export const de: Messages = {
     errorGeneric: "Etwas ist schiefgelaufen. Versuche es erneut.",
     errorUnverified: "Bestätige zuerst deine E-Mail-Adresse. Wir haben dir einen neuen Link geschickt.",
     errorRateLimited: "Zu viele Versuche. Warte eine Minute und versuche es erneut.",
+    errorBanned: "Dieses Konto ist gesperrt, du kannst dich nicht anmelden.",
     checkInboxTitle: "Sieh in dein Postfach",
     checkInboxBody: "Wir haben einen Bestätigungslink an {email} geschickt. Öffne ihn, um dein Konto fertig zu erstellen.",
     forgotTitle: "Passwort zurücksetzen",

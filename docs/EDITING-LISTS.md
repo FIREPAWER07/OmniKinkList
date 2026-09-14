@@ -54,6 +54,20 @@ Visitors can suggest new items from `/suggest`. Pending suggestions show up unde
 
 Every change is recorded under **Activity** with who made it and when. Most entries have an **Undo** button that puts things back exactly as they were before that change, including deleted items and categories. Undo is itself recorded, and the result still has to be published.
 
+### Users and moderation (admins)
+
+**Users** shows how many accounts there are, how many joined this week, how many are editors or admins, banned, or have not confirmed their email. Click a number to filter the table, and search by name, email, or user id. Click a name to open that account.
+
+The account page shows the sign-in methods, two-factor status, active sessions (device, IP address, last activity), suggestions sent while signed in, and the moderation history. Synced answers are private: the page only says whether sync is on, whether it is encrypted, and how large it is.
+
+- **Role** changes the role right away. You cannot change your own.
+- **Ban** needs a reason (only admins see it) and a length: 1, 7, or 30 days, or until someone lifts it. The account is signed out everywhere and cannot sign in with any method until the ban ends; it can also reject their pending suggestions. **Lift ban** ends it early.
+- **Sign out everywhere** and **End session** end sessions without banning.
+- **Delete account** removes the account, its sessions, and synced answers for good. Type the email address to confirm. Suggestions and editing history stay.
+- Admins cannot be banned or deleted; change their role first. Nobody can moderate their own account.
+
+Every moderation action is recorded under **Activity** and on the account page. Unlike list changes, it has no **Undo**.
+
 ## 2. The seed files
 
 The starting content is typed TypeScript in [`src/db/seed-data`](../src/db/seed-data), one file per list. These files only fill an **empty** database, so editing them does not change a site that is already running. Use the web editor for that.

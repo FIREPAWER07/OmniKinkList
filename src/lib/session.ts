@@ -2,6 +2,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { forbidden, redirect } from "next/navigation";
 import { auth } from "./auth";
+import { isBanActive } from "./moderation";
 import { asRole, hasRole, type Role } from "./roles";
 
 export interface CurrentUser {
@@ -17,7 +18,8 @@ export const EDITOR_2FA_REQUIRED = process.env.REQUIRE_EDITOR_2FA !== "false";
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return null;
+  // Banning deletes the account's sessions; this also covers one created while the ban was being saved.
+  if (!session || isBanActive(session.user)) return null;
   const { id, name, email, role, twoFactorEnabled } = session.user;
   return { id, name, email, role: asRole(role), twoFactorEnabled: !!twoFactorEnabled };
 }
