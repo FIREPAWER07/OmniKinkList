@@ -29,7 +29,8 @@ export async function sendEmail(email: Email) {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM ?? "OmniKinkList <no-reply@omnikinklist.app>",
+      // Resend's shared test sender, for sites without a verified domain. It only delivers to the Resend account's own email.
+      from: process.env.EMAIL_FROM || "OmniKinkList <onboarding@resend.dev>",
       to: email.to,
       subject: email.subject,
       text: email.text,
