@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { confirmAge, PASSWORD, setRole, signUp, uniqueEmail } from "./helpers";
+import { confirmAge, PASSWORD, resetAuthRateLimits, setRole, signUp, uniqueEmail } from "./helpers";
+
+test.beforeEach(() => resetAuthRateLimits());
 
 test("an admin can ban a user, which signs them out and blocks signing in until the ban is lifted", async ({ browser }) => {
   const admin = await (await browser.newContext()).newPage();

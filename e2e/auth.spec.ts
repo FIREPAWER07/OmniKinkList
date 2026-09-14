@@ -1,7 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { confirmAge, PASSWORD, setRole, signUp, uniqueEmail } from "./helpers";
+import { confirmAge, PASSWORD, resetAuthRateLimits, setRole, signUp, uniqueEmail } from "./helpers";
 
-test.beforeEach(async ({ page }) => confirmAge(page));
+test.beforeEach(async ({ page }) => {
+  await resetAuthRateLimits();
+  await confirmAge(page);
+});
 
 test("a new account can sign out and back in, but cannot open the editor", async ({ page }) => {
   const email = uniqueEmail("user");

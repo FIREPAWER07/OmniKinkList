@@ -1,12 +1,15 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { confirmAge, PASSWORD, signUp, uniqueEmail } from "./helpers";
+import { confirmAge, PASSWORD, resetAuthRateLimits, signUp, uniqueEmail } from "./helpers";
 
 const PASSPHRASE = "purple otter bakes bread";
 const AES_GCM_TAG = 16;
 
 const favorite = (page: Page) => page.getByRole("radiogroup", { name: "Masturbation", exact: true }).getByRole("radio", { name: "Favorite" });
 
-test.beforeEach(async ({ page }) => confirmAge(page));
+test.beforeEach(async ({ page }) => {
+  await resetAuthRateLimits();
+  await confirmAge(page);
+});
 
 async function signInOnNewDevice(browser: Browser, email: string) {
   const context = await browser.newContext();
