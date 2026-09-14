@@ -1,7 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { expect, type Page } from "@playwright/test";
-import postgres from "postgres";
 import type { Role } from "../src/lib/roles";
 import { E2E_DATABASE_URL, E2E_EMAIL_OUTBOX } from "./env";
 
@@ -22,20 +21,6 @@ export function setRole(email: string, role: Role) {
     env: { ...process.env, DATABASE_URL: E2E_DATABASE_URL },
     stdio: "pipe",
   });
-}
-
-/**
- * Clears Better Auth's rate limit counters in the e2e database. Every test signs in from the same IP,
- * and a counter only resets after a full window without requests, so specs would otherwise use up
- * each other's sign-in and sign-up allowance. Call it before each test that signs in or up.
- */
-export async function resetAuthRateLimits() {
-  const sql = postgres(E2E_DATABASE_URL, { max: 1, prepare: false, onnotice: () => {} });
-  try {
-    await sql`delete from rate_limit`;
-  } finally {
-    await sql.end();
-  }
 }
 
 export async function signUp(page: Page, email: string) {

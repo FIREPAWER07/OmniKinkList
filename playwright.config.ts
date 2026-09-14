@@ -32,6 +32,8 @@ export default defineConfig({
       REQUIRE_EMAIL_VERIFICATION: "false",
       REQUIRE_EDITOR_2FA: "false",
       EMAIL_OUTBOX: E2E_EMAIL_OUTBOX,
+      // Every test signs in from the same IP, so specs would use up each other's sign-in allowance.
+      E2E_DISABLE_EMAIL_AUTH_RATE_LIMITS: "true",
     },
   },
 });

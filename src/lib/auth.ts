@@ -51,6 +51,12 @@ export async function usesAuthenticatorApp(userId: string) {
   return !!row;
 }
 
+/**
+ * The end-to-end tests sign in and up many times from one IP, and Better Auth only resets a counter after a
+ * full window without requests, so playwright.config.ts turns these two limits off. Never set it anywhere else.
+ */
+const emailAuthRateLimitsOff = process.env.E2E_DISABLE_EMAIL_AUTH_RATE_LIMITS === "true";
+
 export const auth = betterAuth({
   appName: "OmniKinkList",
   baseURL: { allowedHosts, fallback: SITE_URL },
@@ -106,8 +112,8 @@ export const auth = betterAuth({
     enabled: true,
     storage: "database",
     customRules: {
-      "/sign-in/email": { window: 60, max: 5 },
-      "/sign-up/email": { window: 3600, max: 10 },
+      "/sign-in/email": emailAuthRateLimitsOff ? false : { window: 60, max: 5 },
+      "/sign-up/email": emailAuthRateLimitsOff ? false : { window: 3600, max: 10 },
       "/request-password-reset": { window: 3600, max: 5 },
       "/two-factor/verify-totp": { window: 60, max: 5 },
       "/two-factor/verify-backup-code": { window: 60, max: 5 },
