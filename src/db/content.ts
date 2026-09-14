@@ -2,11 +2,21 @@
  * Reading the editable (draft) content and publishing it. Shared by the app and the seed script,
  * so no Next.js-only imports here.
  */
-import { asc, desc, eq, inArray, max } from "drizzle-orm";
+import { asc, desc, eq, inArray, max, sql } from "drizzle-orm";
 import { diffLists, isEmptyChange, sameContent, stampAddedDates, type ListChanges, type PublishedData, type TranslationMap } from "../lib/kinks/published";
 import type { OptionKind } from "../lib/kinks/types";
 import { db } from "./index";
 import { categories, contentTranslations, items, lists, listVersions, options } from "./schema";
+
+/**
+ * Moves the id sequences past the highest existing id. Needed after inserting rows with explicit
+ * ids (the seed), otherwise the next generated id would collide with one of them.
+ */
+export async function syncIdSequences() {
+  for (const table of ["categories", "items", "options"]) {
+    await db.execute(sql.raw(`select setval(pg_get_serial_sequence('${table}', 'id'), coalesce((select max(id) from ${table}), 0) + 1, false)`));
+  }
+}
 
 /** Builds the full draft tree of a list from the working tables. */
 export async function loadDraft(slug: string): Promise<PublishedData | null> {

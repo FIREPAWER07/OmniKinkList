@@ -7,7 +7,7 @@ import { it } from "@/i18n/messages/it";
 import { createTranslator } from "@/i18n/translator";
 import { localePath, stripLocale } from "@/i18n/config";
 import { seedLists } from "@/db/seed-data";
-import { buildSeedRows } from "@/db/seed";
+import { buildSeedRows } from "@/db/seed-rows";
 import { CATEGORY_ICON_KEYS } from "@/lib/category-icon-keys";
 import { allChoices, computeStats, listChoices, pruneAnswers, withCustom } from "./choices";
 import { compareAnswers } from "./compare";

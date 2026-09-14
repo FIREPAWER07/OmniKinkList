@@ -8,7 +8,7 @@
   BUN_VERSION = "1.3.9"
   NODE_VERSION = "22"
 
-# Only production deploys touch the production database schema.
+# Only production deploys touch the production (Supabase) database schema.
 # Deploy previews and branch deploys just build; give them their own DATABASE_URL
 # in the Netlify UI if you want them to run migrations too.
 [context.production]

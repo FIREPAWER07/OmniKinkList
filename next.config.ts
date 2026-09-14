@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
     authInterrupts: true,
     globalNotFound: true,
   },
-  serverExternalPackages: ["@libsql/client"],
   async headers() {
     return [
       {

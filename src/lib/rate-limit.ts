@@ -16,14 +16,13 @@ export class RateLimitError extends Error {
 export async function consumeRateLimit(key: string, limit: number, windowSeconds: number) {
   const now = Date.now();
   const resetAt = now + windowSeconds * 1000;
-  const result = await db.run(sql`
+  const [row] = await db.execute<{ count: number; reset_at: string }>(sql`
     insert into app_rate_limits (key, count, reset_at) values (${key}, 1, ${resetAt})
     on conflict(key) do update set
       count = case when app_rate_limits.reset_at <= ${now} then 1 else app_rate_limits.count + 1 end,
       reset_at = case when app_rate_limits.reset_at <= ${now} then ${resetAt} else app_rate_limits.reset_at end
     returning count, reset_at
   `);
-  const row = result.rows[0] as unknown as { count: number; reset_at: number } | undefined;
   if (row && Number(row.count) > limit) {
     throw new RateLimitError(Math.max(1, Math.ceil((Number(row.reset_at) - now) / 1000)));
   }

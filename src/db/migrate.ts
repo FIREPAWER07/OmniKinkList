@@ -1,9 +1,10 @@
-import { migrate } from "drizzle-orm/libsql/migrator";
-import { db } from "./index";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { closeDb, db } from "./index";
 
 migrate(db, { migrationsFolder: "./drizzle" })
   .then(() => console.log("Migrations applied."))
   .catch((error) => {
     console.error(error);
-    process.exit(1);
-  });
+    process.exitCode = 1;
+  })
+  .finally(closeDb);

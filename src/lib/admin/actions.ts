@@ -344,8 +344,8 @@ async function entityBelongsToList(entityKey: string, listSlug: string) {
       : type === "i"
         ? sql`select 1 from items i join categories c on c.id = i.category_id where i.id = ${id} and c.list_slug = ${listSlug}`
         : sql`select 1 from options o join items i on i.id = o.item_id join categories c on c.id = i.category_id where o.id = ${id} and c.list_slug = ${listSlug}`;
-  const result = await db.run(query);
-  return result.rows.length > 0;
+  const rows = await db.execute(query);
+  return rows.length > 0;
 }
 
 export async function saveTranslation(input: TranslationInput) {

@@ -1,27 +1,23 @@
-import { createClient as createWebClient, type Client, type Config } from "@libsql/client/web";
-import { drizzle } from "drizzle-orm/libsql/web";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres, { type Sql } from "postgres";
 import * as schema from "./schema";
 
-const globalForDb = globalThis as unknown as { libsqlClient?: Client };
+const globalForDb = globalThis as unknown as { pgClient?: Sql };
 
-function createLibsqlClient(): Client {
-  const config: Config = {
-    url: process.env.DATABASE_URL ?? "file:local.db",
-    authToken: process.env.DATABASE_AUTH_TOKEN,
-  };
-  if (config.url.startsWith("file:")) {
-    // A local SQLite file needs the native client. It is only loaded here, so serverless
-    // deploys talking to Turso over HTTP never need the native binary.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { createClient } = require("@libsql/client") as typeof import("@libsql/client");
-    return createClient(config);
+function createClient(): Sql {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error("DATABASE_URL is not set. Use your Supabase connection string, or run `bun run db:local` for a local database.");
   }
-  return createWebClient(config);
+  // Supabase's transaction pooler (port 6543) does not support prepared statements.
+  return postgres(url, { prepare: false });
 }
 
-// Reuse one client across hot reloads in development.
-const client = globalForDb.libsqlClient ?? createLibsqlClient();
-if (process.env.NODE_ENV !== "production") globalForDb.libsqlClient = client;
+// One client per process: Next.js can load this module more than once (separate bundles, hot reloads).
+const client = (globalForDb.pgClient ??= createClient());
 
 export const db = drizzle(client, { schema });
 export type Database = typeof db;
+
+/** Closes the connection so command line scripts can exit. */
+export const closeDb = () => client.end();

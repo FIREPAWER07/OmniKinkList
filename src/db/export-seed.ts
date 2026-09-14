@@ -12,7 +12,7 @@ import path from "node:path";
 import { asc } from "drizzle-orm";
 import type { PublishedData } from "../lib/kinks/published";
 import { loadDraft, loadLatestVersion } from "./content";
-import { db } from "./index";
+import { closeDb, db } from "./index";
 import { lists } from "./schema";
 
 const OUT_DIR = path.join(import.meta.dir, "seed-data");
@@ -85,7 +85,9 @@ async function main() {
   console.log(`Exported ${exported.length} lists and ${translations.length} translations from the ${draft ? "drafts" : "published versions"}.`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(closeDb);

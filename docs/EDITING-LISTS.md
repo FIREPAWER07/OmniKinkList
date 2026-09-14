@@ -79,7 +79,7 @@ The starting content is typed TypeScript in [`src/db/seed-data`](../src/db/seed-
 
 ### Keeping the seed files in sync with the site
 
-Run `bun run db:export-seed` against a database (for example with the production `DATABASE_URL` and `DATABASE_AUTH_TOKEN` set) to write its published lists and translations back into `src/db/seed-data`. Use `--draft` to export the drafts instead.
+Run `bun run db:export-seed` against a database (for example with the production `DATABASE_URL` set) to write its published lists and translations back into `src/db/seed-data`. Use `--draft` to export the drafts instead.
 
 Exported files include `id` and `optionIds`, so a database seeded from them keeps the same choice keys, and every existing share link and export stays valid. Hand-written files without ids get ids assigned in order.
 

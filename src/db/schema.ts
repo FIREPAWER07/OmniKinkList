@@ -1,7 +1,13 @@
-import { relations, sql } from "drizzle-orm";
-import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { relations } from "drizzle-orm";
+import { bigint, boolean, index, integer, pgTable, primaryKey, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { OPTION_KINDS } from "../lib/kinks/types";
 import { ROLES } from "../lib/roles";
+
+/*
+ * Every table enables row level security without adding policies. The app connects as the table
+ * owner, which is not affected, while Supabase's public Data API (anon and authenticated roles)
+ * cannot read or write anything.
+ */
 
 /* ------------------------------------------------------------------ */
 /* Auth (Better Auth core tables + `role`)                             */
@@ -9,34 +15,34 @@ import { ROLES } from "../lib/roles";
 
 export { ROLES, type Role } from "../lib/roles";
 
-export const user = sqliteTable("user", {
+export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
   role: text("role", { enum: ROLES }).default("user").notNull(),
-  twoFactorEnabled: integer("two_factor_enabled", { mode: "boolean" }).default(false),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
   locale: text("locale").default("en").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp_ms" })
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
     .notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-});
+}).enableRLS();
 
-export const session = sqliteTable(
+export const session = pgTable(
   "session",
   {
     id: text("id").primaryKey(),
-    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     token: text("token").notNull().unique(),
-    createdAt: integer("created_at", { mode: "timestamp_ms" })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
       .notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    updatedAt: timestamp("updated_at", { withTimezone: true })
       .$onUpdate(() => new Date())
       .notNull(),
     ipAddress: text("ip_address"),
@@ -46,9 +52,9 @@ export const session = sqliteTable(
       .references(() => user.id, { onDelete: "cascade" }),
   },
   (table) => [index("session_user_id_idx").on(table.userId)],
-);
+).enableRLS();
 
-export const account = sqliteTable(
+export const account = pgTable(
   "account",
   {
     id: text("id").primaryKey(),
@@ -60,39 +66,39 @@ export const account = sqliteTable(
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     idToken: text("id_token"),
-    accessTokenExpiresAt: integer("access_token_expires_at", { mode: "timestamp_ms" }),
-    refreshTokenExpiresAt: integer("refresh_token_expires_at", { mode: "timestamp_ms" }),
+    accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { withTimezone: true }),
     scope: text("scope"),
     password: text("password"),
-    createdAt: integer("created_at", { mode: "timestamp_ms" })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
       .notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    updatedAt: timestamp("updated_at", { withTimezone: true })
       .$onUpdate(() => new Date())
       .notNull(),
   },
   (table) => [index("account_user_id_idx").on(table.userId)],
-);
+).enableRLS();
 
-export const verification = sqliteTable(
+export const verification = pgTable(
   "verification",
   {
     id: text("id").primaryKey(),
     identifier: text("identifier").notNull(),
     value: text("value").notNull(),
-    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
-    createdAt: integer("created_at", { mode: "timestamp_ms" })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
       .notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
   },
   (table) => [index("verification_identifier_idx").on(table.identifier)],
-);
+).enableRLS();
 
-export const twoFactor = sqliteTable(
+export const twoFactor = pgTable(
   "two_factor",
   {
     id: text("id").primaryKey(),
@@ -101,41 +107,41 @@ export const twoFactor = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    verified: integer("verified", { mode: "boolean" }).default(true),
+    verified: boolean("verified").default(true),
     failedVerificationCount: integer("failed_verification_count").default(0),
-    lockedUntil: integer("locked_until", { mode: "timestamp_ms" }),
+    lockedUntil: timestamp("locked_until", { withTimezone: true }),
   },
   (table) => [index("two_factor_secret_idx").on(table.secret), index("two_factor_user_id_idx").on(table.userId)],
-);
+).enableRLS();
 
 /** Better Auth rate limit counters (auth endpoints). */
-export const rateLimit = sqliteTable("rate_limit", {
+export const rateLimit = pgTable("rate_limit", {
   id: text("id").primaryKey(),
   key: text("key").notNull().unique(),
   count: integer("count").notNull(),
-  lastRequest: integer("last_request").notNull(),
-});
+  lastRequest: bigint("last_request", { mode: "number" }).notNull(),
+}).enableRLS();
 
 /* ------------------------------------------------------------------ */
 /* Kink list content                                                   */
 /* ------------------------------------------------------------------ */
 
-export const lists = sqliteTable("lists", {
+export const lists = pgTable("lists", {
   slug: text("slug").primaryKey(),
   name: text("name").notNull(),
   tagline: text("tagline").notNull().default(""),
   description: text("description").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
-  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .$defaultFn(() => new Date())
     .$onUpdate(() => new Date()),
-});
+}).enableRLS();
 
-export const categories = sqliteTable(
+export const categories = pgTable(
   "categories",
   {
-    id: integer("id").primaryKey({ autoIncrement: true }),
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
     listSlug: text("list_slug")
       .notNull()
       .references(() => lists.slug, { onDelete: "cascade", onUpdate: "cascade" }),
@@ -145,12 +151,12 @@ export const categories = sqliteTable(
     sortOrder: integer("sort_order").notNull().default(0),
   },
   (table) => [index("categories_list_idx").on(table.listSlug, table.sortOrder)],
-);
+).enableRLS();
 
-export const items = sqliteTable(
+export const items = pgTable(
   "items",
   {
-    id: integer("id").primaryKey({ autoIncrement: true }),
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
     categoryId: integer("category_id")
       .notNull()
       .references(() => categories.id, { onDelete: "cascade" }),
@@ -159,12 +165,12 @@ export const items = sqliteTable(
     sortOrder: integer("sort_order").notNull().default(0),
   },
   (table) => [index("items_category_idx").on(table.categoryId, table.sortOrder)],
-);
+).enableRLS();
 
-export const options = sqliteTable(
+export const options = pgTable(
   "options",
   {
-    id: integer("id").primaryKey({ autoIncrement: true }),
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
     itemId: integer("item_id")
       .notNull()
       .references(() => items.id, { onDelete: "cascade" }),
@@ -173,13 +179,13 @@ export const options = sqliteTable(
     sortOrder: integer("sort_order").notNull().default(0),
   },
   (table) => [index("options_item_idx").on(table.itemId, table.sortOrder)],
-);
+).enableRLS();
 
 /** Who changed what. Kept even if the user is deleted. */
-export const auditLog = sqliteTable(
+export const auditLog = pgTable(
   "audit_log",
   {
-    id: integer("id").primaryKey({ autoIncrement: true }),
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
     userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
     userName: text("user_name").notNull(),
     action: text("action").notNull(),
@@ -190,17 +196,17 @@ export const auditLog = sqliteTable(
     entityId: text("entity_id"),
     before: text("before"),
     after: text("after"),
-    revertedAt: integer("reverted_at", { mode: "timestamp_ms" }),
+    revertedAt: timestamp("reverted_at", { withTimezone: true }),
     revertedByName: text("reverted_by_name"),
-    createdAt: integer("created_at", { mode: "timestamp_ms" })
+    createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .$defaultFn(() => new Date()),
   },
   (table) => [index("audit_log_created_idx").on(table.createdAt)],
-);
+).enableRLS();
 
 /** Translations of list content. `entityKey` is `l:slug`, `c:id`, `i:id`, or `o:id`. */
-export const contentTranslations = sqliteTable(
+export const contentTranslations = pgTable(
   "content_translations",
   {
     locale: text("locale").notNull(),
@@ -209,16 +215,16 @@ export const contentTranslations = sqliteTable(
     value: text("value").notNull(),
   },
   (table) => [primaryKey({ columns: [table.locale, table.entityKey, table.field] }), index("content_translations_entity_idx").on(table.entityKey)],
-);
+).enableRLS();
 
 /**
  * Published snapshots. The public site only reads these; editors work on the tables above
  * (the draft) and publish a new version when ready.
  */
-export const listVersions = sqliteTable(
+export const listVersions = pgTable(
   "list_versions",
   {
-    id: integer("id").primaryKey({ autoIncrement: true }),
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
     listSlug: text("list_slug")
       .notNull()
       .references(() => lists.slug, { onDelete: "cascade", onUpdate: "cascade" }),
@@ -228,20 +234,20 @@ export const listVersions = sqliteTable(
     note: text("note").notNull().default(""),
     publishedById: text("published_by_id").references(() => user.id, { onDelete: "set null" }),
     publishedByName: text("published_by_name").notNull(),
-    publishedAt: integer("published_at", { mode: "timestamp_ms" })
+    publishedAt: timestamp("published_at", { withTimezone: true })
       .notNull()
       .$defaultFn(() => new Date()),
   },
   (table) => [uniqueIndex("list_versions_slug_version_idx").on(table.listSlug, table.version)],
-);
+).enableRLS();
 
 export const SUGGESTION_STATUSES = ["pending", "accepted", "rejected"] as const;
 
 /** Items suggested by visitors, waiting for an editor. */
-export const suggestions = sqliteTable(
+export const suggestions = pgTable(
   "suggestions",
   {
-    id: integer("id").primaryKey({ autoIncrement: true }),
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
     listSlug: text("list_slug").notNull(),
     categoryId: integer("category_id"),
     name: text("name").notNull(),
@@ -253,26 +259,26 @@ export const suggestions = sqliteTable(
     status: text("status", { enum: SUGGESTION_STATUSES }).notNull().default("pending"),
     submitterId: text("submitter_id").references(() => user.id, { onDelete: "set null" }),
     reviewedByName: text("reviewed_by_name"),
-    reviewedAt: integer("reviewed_at", { mode: "timestamp_ms" }),
-    createdAt: integer("created_at", { mode: "timestamp_ms" })
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .$defaultFn(() => new Date()),
   },
   (table) => [index("suggestions_status_idx").on(table.status, table.createdAt)],
-);
+).enableRLS();
 
 /** Fixed-window counters for app-level rate limits (editor actions, suggestions, sync). */
-export const appRateLimits = sqliteTable("app_rate_limits", {
+export const appRateLimits = pgTable("app_rate_limits", {
   key: text("key").primaryKey(),
   count: integer("count").notNull(),
-  resetAt: integer("reset_at").notNull(),
-});
+  resetAt: bigint("reset_at", { mode: "number" }).notNull(),
+}).enableRLS();
 
 /**
  * End-to-end encrypted answers backup. The server only ever sees ciphertext; the key is
  * derived in the browser from a passphrase the server never receives.
  */
-export const userVaults = sqliteTable("user_vaults", {
+export const userVaults = pgTable("user_vaults", {
   userId: text("user_id")
     .primaryKey()
     .references(() => user.id, { onDelete: "cascade" }),
@@ -281,10 +287,10 @@ export const userVaults = sqliteTable("user_vaults", {
   salt: text("salt").notNull(),
   iterations: integer("iterations").notNull(),
   version: integer("version").notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .$defaultFn(() => new Date()),
-});
+}).enableRLS();
 
 export const listsRelations = relations(lists, ({ many }) => ({ categories: many(categories) }));
 

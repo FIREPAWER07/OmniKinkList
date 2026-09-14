@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { expect, type Page } from "@playwright/test";
 import type { Role } from "../src/lib/roles";
+import { E2E_DATABASE_URL } from "./env";
 
 export const PASSWORD = "correct-horse-battery";
 
@@ -13,10 +14,10 @@ export function uniqueEmail(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@e2e.test`;
 }
 
-/** Changes a role the same way an operator would, with `bun run user:role` against e2e.db. */
+/** Changes a role the same way an operator would, with `bun run user:role` against the e2e database. */
 export function setRole(email: string, role: Role) {
   execFileSync("bun", ["run", "user:role", email, role], {
-    env: { ...process.env, DATABASE_URL: "file:e2e.db" },
+    env: { ...process.env, DATABASE_URL: E2E_DATABASE_URL },
     stdio: "pipe",
   });
 }

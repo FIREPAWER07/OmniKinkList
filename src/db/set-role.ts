@@ -4,7 +4,7 @@
  *   bun run user:role someone@example.com admin
  */
 import { eq } from "drizzle-orm";
-import { db } from "./index";
+import { closeDb, db } from "./index";
 import { ROLES, user, type Role } from "./schema";
 
 async function main() {
@@ -20,9 +20,15 @@ async function main() {
     .returning({ id: user.id });
   if (updated.length === 0) {
     console.error(`No user with email ${email}. Sign up on the site first.`);
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
   console.log(`${email} is now ${role}.`);
 }
 
-main();
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(closeDb);

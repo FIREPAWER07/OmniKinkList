@@ -4,8 +4,8 @@ const PORT = 3100;
 const baseURL = `http://localhost:${PORT}`;
 
 /**
- * End-to-end tests run against a production build with its own database (e2e.db),
- * so they never touch local.db. Locally, `PW_CHANNEL=msedge` or `PW_CHANNEL=chrome`
+ * End-to-end tests run against a production build with its own in-memory database
+ * (see e2e/server.ts), so they never touch your local or production data. Locally, `PW_CHANNEL=msedge` or `PW_CHANNEL=chrome`
  * uses an installed browser instead of downloading one.
  */
 export default defineConfig({
@@ -21,14 +21,11 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], channel: process.env.PW_CHANNEL } }],
   webServer: {
-    command: process.env.E2E_SKIP_BUILD
-      ? `bun run start --port ${PORT}`
-      : `bun e2e/prepare-db.ts && bun run build && bun run start --port ${PORT}`,
+    command: `bun e2e/server.ts ${PORT}`,
     url: baseURL,
     timeout: 600_000,
     reuseExistingServer: !process.env.CI,
     env: {
-      DATABASE_URL: "file:e2e.db",
       BETTER_AUTH_SECRET: "e2e-only-secret-not-used-anywhere-else-0123456789",
       BETTER_AUTH_URL: baseURL,
       REQUIRE_EMAIL_VERIFICATION: "false",

@@ -38,7 +38,7 @@ export const emailVerificationRequired = process.env.REQUIRE_EMAIL_VERIFICATION 
 export const auth = betterAuth({
   appName: "OmniKinkList",
   baseURL: { allowedHosts, fallback: siteUrl },
-  database: drizzleAdapter(db, { provider: "sqlite", schema }),
+  database: drizzleAdapter(db, { provider: "pg", schema }),
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 10,

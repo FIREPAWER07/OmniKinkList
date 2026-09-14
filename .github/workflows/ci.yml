@@ -37,7 +37,7 @@ jobs:
           node-version: 22
       - run: bun install --frozen-lockfile
       - run: bunx playwright install --with-deps chromium
-      # The web server in playwright.config.ts seeds e2e.db, builds, and starts the app.
+      # The web server in playwright.config.ts starts an in-memory database, seeds it, builds, and starts the app.
       - run: bun run test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
