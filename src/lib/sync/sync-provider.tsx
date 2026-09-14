@@ -4,26 +4,45 @@ import { createContext, use, useCallback, useEffect, useMemo, useRef, useState, 
 import { useSession } from "@/lib/auth-client";
 import { mergeSnapshot, onLocalChange, snapshotStore, type StoreSnapshot } from "@/lib/kinks/store";
 import { deleteVault, getVault, putVault, type VaultRecord } from "./actions";
-import { decryptJson, deriveKey, encryptJson, forgetKey, loadKey, PBKDF2_ITERATIONS, randomSalt, rememberKey } from "./crypto";
+import {
+  decryptJson,
+  deriveKey,
+  encryptJson,
+  forgetKey,
+  loadKey,
+  PBKDF2_ITERATIONS,
+  randomSalt,
+  rememberKey,
+  WrongPassphraseError,
+} from "./crypto";
 
 /**
- * Keeps local answers in sync with the encrypted vault of the signed-in account.
+ * Keeps local answers in sync with the vault of the signed-in account. The vault is readable by
+ * the server unless the person adds a passphrase, which encrypts it end to end.
  *
  * - "signed-out": no account, nothing to do
  * - "checking":   looking for a vault and a remembered key
  * - "off":        signed in, sync never turned on
- * - "locked":     a vault exists but this device doesn't know the passphrase yet
- * - "on":         unlocked; local changes are pushed a few seconds after they happen
+ * - "locked":     an encrypted vault exists but this device doesn't know the passphrase yet
+ * - "paused":     this device used encryption, but the vault is now readable; waits for confirmation
+ *                 before uploading readable answers
+ * - "on":         syncing; local changes are pushed a few seconds after they happen
  */
-export type SyncStatus = "signed-out" | "checking" | "off" | "locked" | "on" | "error";
+export type SyncStatus = "signed-out" | "checking" | "off" | "locked" | "paused" | "on" | "error";
 
 interface SyncApi {
   status: SyncStatus;
+  /** Whether the vault is end-to-end encrypted, while sync is on. */
+  encrypted: boolean;
   lastSyncedAt: string | null;
   busy: boolean;
-  enable: (passphrase: string) => Promise<void>;
+  /** Turns sync on, encrypted when a passphrase is given. */
+  enable: (passphrase: string | null) => Promise<void>;
   unlock: (passphrase: string) => Promise<void>;
-  changePassphrase: (passphrase: string) => Promise<void>;
+  /** Encrypts the vault with a new passphrase, or stores it readable when `null`. */
+  setPassphrase: (passphrase: string | null) => Promise<void>;
+  /** Resumes a paused sync without encryption. */
+  continueUnencrypted: () => Promise<void>;
   syncNow: () => Promise<void>;
   disable: () => Promise<void>;
   forgetDevice: () => Promise<void>;
@@ -33,11 +52,33 @@ const SyncContext = createContext<SyncApi | null>(null);
 const PUSH_DELAY_MS = 2500;
 const MAX_CONFLICT_RETRIES = 3;
 
-interface Unlocked {
+interface Encryption {
   key: CryptoKey;
   salt: string;
   iterations: number;
+}
+
+interface Active {
   version: number;
+  /** Null when the vault is stored readable. */
+  encryption: Encryption | null;
+}
+
+/** A vault this device knew as encrypted came back readable. */
+class EncryptionRemovedError extends Error {}
+
+/** Failures that mean another device changed the vault's encryption, rather than a network or server error. */
+const isEncryptionChange = (error: unknown) => error instanceof WrongPassphraseError || error instanceof EncryptionRemovedError;
+
+async function newEncryption(passphrase: string): Promise<Encryption> {
+  const salt = randomSalt();
+  return { key: await deriveKey(passphrase, salt, PBKDF2_ITERATIONS), salt, iterations: PBKDF2_ITERATIONS };
+}
+
+async function payload(encryption: Encryption | null) {
+  if (!encryption) return { encrypted: false as const, snapshot: snapshotStore() };
+  const { ciphertext, iv } = await encryptJson(encryption.key, snapshotStore());
+  return { encrypted: true as const, ciphertext, iv, salt: encryption.salt, iterations: encryption.iterations };
 }
 
 export function SyncProvider({ children }: { children: ReactNode }) {
@@ -45,70 +86,111 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const userId = session?.user.id ?? null;
   // Status is tracked per user, so switching accounts falls back to "checking" without an extra render.
   const [tracked, setTracked] = useState<{ userId: string | null; status: SyncStatus }>({ userId: null, status: "checking" });
+  const [encrypted, setEncrypted] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const unlocked = useRef<Unlocked | null>(null);
+  const active = useRef<Active | null>(null);
   const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const status: SyncStatus = isPending ? "checking" : !userId ? "signed-out" : tracked.userId === userId ? tracked.status : "checking";
   const setStatus = useCallback((next: SyncStatus) => setTracked({ userId, status: next }), [userId]);
 
-  const pull = useCallback(async (vault: VaultRecord, key: CryptoKey) => {
-    const remote = await decryptJson<StoreSnapshot>(key, vault.ciphertext, vault.iv);
-    mergeSnapshot(remote);
-    unlocked.current = { key, salt: vault.salt, iterations: vault.iterations, version: vault.version };
-    setLastSyncedAt(vault.updatedAt);
+  const activate = useCallback((next: Active | null) => {
+    active.current = next;
+    setEncrypted(!!next?.encryption);
   }, []);
 
-  const push = useCallback(
-    async (force = false) => {
-      for (let attempt = 0; attempt < MAX_CONFLICT_RETRIES; attempt++) {
-        const state = unlocked.current;
-        if (!state) return;
-        const { ciphertext, iv } = await encryptJson(state.key, snapshotStore());
-        const result = await putVault({ ciphertext, iv, salt: state.salt, iterations: state.iterations, baseVersion: state.version, force });
-        if (result.ok) {
-          state.version = result.version;
-          setLastSyncedAt(result.updatedAt);
-          return;
-        }
-        if (result.reason !== "conflict") {
-          if (result.reason !== "rate-limited") setStatus("error");
-          return;
-        }
-        // Another device synced first: merge its data, then try again on top of the newer version.
-        await pull(result.current, state.key);
+  /**
+   * Merges a vault into local answers. `key` is the one this device holds for the account, if any:
+   * without the right key an encrypted vault throws `WrongPassphraseError`, and a readable vault
+   * throws `EncryptionRemovedError` when a key is held.
+   */
+  const pull = useCallback(
+    async (vault: VaultRecord, key: CryptoKey | null) => {
+      if (vault.encrypted) {
+        if (!key) throw new WrongPassphraseError("This device has no key for the vault");
+        mergeSnapshot(await decryptJson<StoreSnapshot>(key, vault.ciphertext, vault.iv));
+        activate({ version: vault.version, encryption: { key, salt: vault.salt, iterations: vault.iterations } });
+      } else {
+        if (key) throw new EncryptionRemovedError("The vault is no longer encrypted");
+        mergeSnapshot(vault.snapshot);
+        activate({ version: vault.version, encryption: null });
+      }
+      setLastSyncedAt(vault.updatedAt);
+    },
+    [activate],
+  );
+
+  /** Uploads local answers, merging and retrying when another device synced first. */
+  const push = useCallback(async () => {
+    for (let attempt = 0; attempt < MAX_CONFLICT_RETRIES; attempt++) {
+      const state = active.current;
+      if (!state) return;
+      const result = await putVault({ ...(await payload(state.encryption)), baseVersion: state.version });
+      if (result.ok) {
+        state.version = result.version;
+        setLastSyncedAt(result.updatedAt);
+        return;
+      }
+      if (result.reason === "rate-limited") return;
+      if (result.reason !== "conflict") throw new Error(`Sync failed: ${result.reason}`);
+      // Another device synced first: merge its data, then try again on top of the newer version.
+      await pull(result.current, state.encryption?.key ?? null);
+    }
+  }, [pull]);
+
+  /** Overwrites the vault with local answers under new encryption settings. */
+  const replace = useCallback(
+    async (encryption: Encryption | null) => {
+      const result = await putVault({ ...(await payload(encryption)), baseVersion: active.current?.version ?? 0, force: true });
+      if (!result.ok) throw new Error(`Sync failed: ${result.reason}`);
+      activate({ version: result.version, encryption });
+      setLastSyncedAt(result.updatedAt);
+    },
+    [activate],
+  );
+
+  /** Stops syncing after a failure, or asks again when another device changed the encryption. */
+  const fail = useCallback(
+    async (error: unknown) => {
+      if (error instanceof WrongPassphraseError) {
+        activate(null);
+        if (userId) await forgetKey(userId);
+        setStatus("locked");
+      } else if (error instanceof EncryptionRemovedError) {
+        activate(null);
+        setStatus("paused");
+      } else {
+        setStatus("error");
       }
     },
-    [pull, setStatus],
+    [activate, userId, setStatus],
   );
 
   // Figure out the state whenever the signed-in user changes.
   useEffect(() => {
     if (isPending || !userId) return;
     let cancelled = false;
-    unlocked.current = null;
+    active.current = null;
     const done = (next: SyncStatus) => !cancelled && setTracked({ userId, status: next });
     (async () => {
       const [vault, key] = await Promise.all([getVault(), loadKey(userId)]);
+      if (cancelled) return;
       if (!vault) {
         if (key) await forgetKey(userId);
         return done("off");
       }
-      if (!key) return done("locked");
-      try {
-        await pull(vault, key);
-        done("on");
-        if (!cancelled) await push();
-      } catch {
-        await forgetKey(userId);
-        done("locked");
-      }
-    })().catch(() => done("error"));
+      if (vault.encrypted && !key) return done("locked");
+      await pull(vault, key);
+      done("on");
+      if (!cancelled) await push();
+    })().catch(async (error) => {
+      if (!cancelled) await fail(error);
+    });
     return () => {
       cancelled = true;
     };
-  }, [userId, isPending, pull, push]);
+  }, [userId, isPending, pull, push, fail]);
 
   // Push local changes a moment after they happen, and pull when coming back to the tab.
   useEffect(() => {
@@ -117,20 +199,25 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       if (pushTimer.current) clearTimeout(pushTimer.current);
       pushTimer.current = setTimeout(() => {
         pushTimer.current = null;
-        push().catch(() => setStatus("error"));
+        push().catch(fail);
       }, PUSH_DELAY_MS);
     });
-    const onVisible = async () => {
-      if (document.visibilityState !== "visible" || !unlocked.current) return;
-      const vault = await getVault();
-      if (vault && vault.version !== unlocked.current.version) await pull(vault, unlocked.current.key);
+    const onVisible = () => {
+      const state = active.current;
+      if (document.visibilityState !== "visible" || !state) return;
+      getVault()
+        .then((vault) => (vault && vault.version !== state.version ? pull(vault, state.encryption?.key ?? null) : undefined))
+        .catch(async (error) => {
+          // Network hiccups are ignored here; the next push reports real failures.
+          if (isEncryptionChange(error)) await fail(error);
+        });
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       stop();
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [status, push, pull, setStatus]);
+  }, [status, push, pull, fail]);
 
   const withBusy = useCallback(async (run: () => Promise<void>) => {
     setBusy(true);
@@ -144,17 +231,15 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const api = useMemo<SyncApi>(
     () => ({
       status,
+      encrypted,
       lastSyncedAt,
       busy,
       enable: (passphrase) =>
         withBusy(async () => {
           if (!userId) return;
-          const salt = randomSalt();
-          const key = await deriveKey(passphrase, salt, PBKDF2_ITERATIONS);
-          const existing = await getVault();
-          unlocked.current = { key, salt, iterations: PBKDF2_ITERATIONS, version: existing?.version ?? 0 };
-          await push(true);
-          await rememberKey(userId, key);
+          const encryption = passphrase ? await newEncryption(passphrase) : null;
+          await replace(encryption);
+          if (encryption) await rememberKey(userId, encryption.key);
           setStatus("on");
         }),
       unlock: (passphrase) =>
@@ -162,42 +247,65 @@ export function SyncProvider({ children }: { children: ReactNode }) {
           if (!userId) return;
           const vault = await getVault();
           if (!vault) return setStatus("off");
-          const key = await deriveKey(passphrase, vault.salt, vault.iterations);
+          const key = vault.encrypted ? await deriveKey(passphrase, vault.salt, vault.iterations) : null;
           await pull(vault, key);
-          await rememberKey(userId, key);
+          if (key) await rememberKey(userId, key);
           setStatus("on");
-          await push();
+          await push().catch(fail);
         }),
-      changePassphrase: (passphrase) =>
+      setPassphrase: (passphrase) =>
         withBusy(async () => {
-          if (!userId || !unlocked.current) return;
-          const salt = randomSalt();
-          const key = await deriveKey(passphrase, salt, PBKDF2_ITERATIONS);
-          unlocked.current = { ...unlocked.current, key, salt, iterations: PBKDF2_ITERATIONS };
-          await push(true);
-          await rememberKey(userId, key);
+          const state = active.current;
+          if (!userId || !state) return;
+          // Merge what other devices synced first, since the vault is about to be overwritten.
+          const vault = await getVault();
+          if (vault && vault.version !== state.version) await pull(vault, state.encryption?.key ?? null);
+          const encryption = passphrase ? await newEncryption(passphrase) : null;
+          await replace(encryption);
+          if (encryption) await rememberKey(userId, encryption.key);
+          else await forgetKey(userId);
+        }),
+      continueUnencrypted: () =>
+        withBusy(async () => {
+          if (!userId) return;
+          await forgetKey(userId);
+          const vault = await getVault();
+          if (!vault) return setStatus("off");
+          try {
+            await pull(vault, null);
+          } catch (error) {
+            return fail(error);
+          }
+          setStatus("on");
+          await push().catch(fail);
         }),
       syncNow: () =>
         withBusy(async () => {
-          if (!unlocked.current) return;
-          const vault = await getVault();
-          if (vault) await pull(vault, unlocked.current.key);
-          await push();
+          const state = active.current;
+          if (!state) return;
+          try {
+            const vault = await getVault();
+            if (vault) await pull(vault, state.encryption?.key ?? null);
+            await push();
+          } catch (error) {
+            await fail(error);
+            throw error;
+          }
         }),
       disable: () =>
         withBusy(async () => {
           await deleteVault();
           await forgetKey(userId ?? undefined);
-          unlocked.current = null;
+          activate(null);
           setLastSyncedAt(null);
           setStatus("off");
         }),
       forgetDevice: async () => {
         await forgetKey(userId ?? undefined);
-        unlocked.current = null;
+        activate(null);
       },
     }),
-    [status, lastSyncedAt, busy, withBusy, userId, push, pull, setStatus],
+    [status, encrypted, lastSyncedAt, busy, withBusy, userId, push, pull, replace, fail, activate, setStatus],
   );
 
   return <SyncContext value={api}>{children}</SyncContext>;

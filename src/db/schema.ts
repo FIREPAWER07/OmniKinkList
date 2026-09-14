@@ -1,5 +1,5 @@
-import { relations } from "drizzle-orm";
-import { bigint, boolean, index, integer, pgTable, primaryKey, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+import { bigint, boolean, check, index, integer, pgTable, primaryKey, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { OPTION_KINDS } from "../lib/kinks/types";
 import { ROLES } from "../lib/roles";
 
@@ -275,22 +275,34 @@ export const appRateLimits = pgTable("app_rate_limits", {
 }).enableRLS();
 
 /**
- * End-to-end encrypted answers backup. The server only ever sees ciphertext; the key is
- * derived in the browser from a passphrase the server never receives.
+ * Synced answers backup, one per account, stored in one of two ways:
+ * - readable: `data` holds the answers as JSON
+ * - end-to-end encrypted: `ciphertext`, `iv`, `salt`, and `iterations`, with the key derived in the
+ *   browser from a passphrase the server never receives
  */
-export const userVaults = pgTable("user_vaults", {
-  userId: text("user_id")
-    .primaryKey()
-    .references(() => user.id, { onDelete: "cascade" }),
-  ciphertext: text("ciphertext").notNull(),
-  iv: text("iv").notNull(),
-  salt: text("salt").notNull(),
-  iterations: integer("iterations").notNull(),
-  version: integer("version").notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .$defaultFn(() => new Date()),
-}).enableRLS();
+export const userVaults = pgTable(
+  "user_vaults",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+    data: text("data"),
+    ciphertext: text("ciphertext"),
+    iv: text("iv"),
+    salt: text("salt"),
+    iterations: integer("iterations"),
+    version: integer("version").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    check(
+      "user_vaults_one_payload",
+      sql`(${table.data} is not null and ${table.ciphertext} is null) or (${table.data} is null and ${table.ciphertext} is not null and ${table.iv} is not null and ${table.salt} is not null and ${table.iterations} is not null)`,
+    ),
+  ],
+).enableRLS();
 
 export const listsRelations = relations(lists, ({ many }) => ({ categories: many(categories) }));
 
