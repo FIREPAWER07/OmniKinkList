@@ -8,6 +8,7 @@ import { createTranslator } from "@/i18n/translator";
 import { localePath, stripLocale } from "@/i18n/config";
 import { seedLists } from "@/db/seed-data";
 import { buildSeedRows } from "@/db/seed";
+import { CATEGORY_ICON_KEYS } from "@/lib/category-icon-keys";
 import { allChoices, computeStats, listChoices, pruneAnswers, withCustom } from "./choices";
 import { compareAnswers } from "./compare";
 import { generateExportHtml, type ExportLabels } from "./export-html";
@@ -219,6 +220,10 @@ describe("seed data", () => {
     for (const seed of seedLists) {
       const names = seed.categories.map((c) => c.name);
       expect(new Set(names).size).toBe(names.length);
+      // Import matches answers by item name, so an item name may appear only once in a list.
+      const itemNames = seed.categories.flatMap((c) => c.items.map((i) => i.name.toLowerCase()));
+      expect(itemNames.filter((name, index) => itemNames.indexOf(name) !== index)).toEqual([]);
+      for (const category of seed.categories) expect(CATEGORY_ICON_KEYS).toContain(category.icon ?? "sparkle");
       for (const item of seed.categories.flatMap((c) => c.items)) {
         const labelsInItem = [...(item.roles ?? []), ...(item.variants ?? [])].map((l) => l.toLowerCase());
         expect(new Set(labelsInItem).size).toBe(labelsInItem.length);

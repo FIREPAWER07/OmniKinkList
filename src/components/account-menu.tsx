@@ -23,7 +23,7 @@ export function AccountMenu() {
         href={href("/login")}
         className="grid size-9 place-items-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-fg"
         aria-label={t("nav.signIn")}
-        title={t("nav.signIn")}
+        data-tooltip={t("nav.signIn")}
       >
         <SignInIcon size={18} aria-hidden />
       </Link>

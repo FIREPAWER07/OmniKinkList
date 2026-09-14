@@ -16,7 +16,7 @@ export function SiteFooter() {
   ];
   return (
     <footer className="mt-24 border-t border-border">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-sm md:grid-cols-[1fr_auto] lg:px-8">
+      <div className="mx-auto grid max-w-[120rem] gap-8 px-4 py-10 text-sm md:grid-cols-[1fr_auto] lg:px-8">
         <div className="grid content-start gap-3">
           <Logo />
           <p className="max-w-sm text-muted">{t("footer.about")}</p>

@@ -80,7 +80,7 @@ export function PreferencesMenu() {
     <Menu
       label={t("preferences.menu")}
       trigger={
-        <MenuButton className="size-9" aria-label={t("preferences.menu")} title={t("preferences.menu")}>
+        <MenuButton className="size-9" aria-label={t("preferences.menu")} data-tooltip={t("preferences.menu")}>
           <PaletteIcon size={18} aria-hidden />
         </MenuButton>
       }
@@ -122,7 +122,7 @@ export function PreferencesMenu() {
             onClick={() => setAccent(value)}
             aria-label={t(`preferences.accents.${value}`)}
             aria-pressed={accent === value}
-            title={t(`preferences.accents.${value}`)}
+            data-tooltip={t(`preferences.accents.${value}`)}
             className={cn(
               "size-7 rounded-full ring-offset-2 ring-offset-surface transition-shadow",
               accent === value ? "ring-2 ring-fg" : "hover:ring-2 hover:ring-border-strong",

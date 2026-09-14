@@ -139,6 +139,7 @@ Sync is optional and needs an account. It is end-to-end encrypted, which means t
 1. When you turn sync on, you choose a **sync passphrase**. It is separate from your account password and never leaves your browser.
 2. Your browser turns the passphrase into an encryption key (PBKDF2 with 600,000 rounds and a random salt).
 3. All profiles, answers, notes, and write-ins are compressed and encrypted with that key (AES-GCM) before upload. The server receives only unreadable bytes.
+   Before encryption the data is padded to a fixed size (32, 64, 128, 256, or 512 KiB, then steps of 64 KiB), so the size of the upload does not reveal how much you answered. Almost every vault fits in the smallest size.
 4. On another device you sign in and type the same passphrase. The browser downloads the encrypted data, decrypts it locally, and merges it with anything already there, keeping the most recent change per list.
 5. After that, changes sync automatically. The key stays stored in that browser (it cannot be exported) until you sign out or choose "forget this device".
 

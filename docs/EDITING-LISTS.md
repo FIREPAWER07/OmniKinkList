@@ -60,12 +60,12 @@ The starting content is typed TypeScript in [`src/db/seed-data`](../src/db/seed-
 
 ```ts
 {
-  name: "General",
-  icon: "sparkle",
-  description: "Core activities most people have an opinion on.",
+  name: "Sex",
+  icon: "fire",
+  description: "The core acts most people have an opinion on.",
   items: [
-    { name: "Kissing", description: "Mouth-to-mouth and mouth-to-body kissing.", variants: ["Soft", "Deep", "Neck"] },
     { name: "Oral sex", description: "Using the mouth on a partner's genitals.", roles: ["Giving", "Receiving"] },
+    { name: "Anal play", description: "Stimulation of the anus, from light touch to penetration.", roles: ["Giving", "Receiving"] },
     { name: "Masturbation", description: "Pleasuring yourself, alone or with a partner watching." },
   ],
 },

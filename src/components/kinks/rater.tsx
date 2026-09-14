@@ -47,7 +47,7 @@ export const Rater = memo(function Rater({
             role="radio"
             aria-checked={active}
             aria-label={name}
-            title={name}
+            data-tooltip={name}
             tabIndex={tabIndexFor(index)}
             onClick={() => onChange(active ? null : level)}
             onKeyDown={(event) => onKeyDown(event, index)}
@@ -82,7 +82,7 @@ export const ExperienceToggle = memo(function ExperienceToggle({
     <button
       type="button"
       onClick={() => onChange(NEXT_EXPERIENCE[state])}
-      title={`${stateLabel}. ${t("experience.cycleHint")}`}
+      data-tooltip={`${stateLabel}. ${t("experience.cycleHint")}`}
       aria-label={t("experience.label", { item: label, state: stateLabel })}
       className={cn(
         "grid size-8 shrink-0 place-items-center rounded-lg transition-colors hover:bg-surface-2",

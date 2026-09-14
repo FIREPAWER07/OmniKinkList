@@ -1,16 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-import { confirmAge, uniqueEmail } from "./helpers";
-
-const PASSWORD = "correct-horse-battery";
-
-async function signUp(page: Page, email: string) {
-  await page.goto("/signup");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(PASSWORD);
-  await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page).toHaveURL(/\/account/);
-  await expect(page.getByRole("heading", { name: "Account", exact: true })).toBeVisible();
-}
+import { expect, test } from "@playwright/test";
+import { confirmAge, PASSWORD, signUp, uniqueEmail } from "./helpers";
 
 test.beforeEach(async ({ page }) => confirmAge(page));
 

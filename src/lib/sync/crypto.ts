@@ -2,6 +2,13 @@
  * End-to-end encryption for synced answers, using only the Web Crypto API.
  * The passphrase never leaves the browser: PBKDF2 (SHA-256) derives an AES-GCM key,
  * and the server only stores the ciphertext, IV, salt, and iteration count.
+ *
+ * The compressed data is padded before encryption, so the ciphertext size only tells the
+ * server which size bucket a vault falls in, not how many answers or notes it holds:
+ *
+ *   [format = 1][compressed length, uint32 big-endian][gzip bytes][zero padding]
+ *
+ * Vaults written before padding existed are a bare gzip stream, which starts with 0x1f 0x8b.
  */
 
 export const PBKDF2_ITERATIONS = 600_000;
@@ -41,10 +48,42 @@ async function pipe(bytes: Uint8Array, stream: CompressionStream | Decompression
   return new Uint8Array(await response.arrayBuffer());
 }
 
+const PADDED_FORMAT = 1;
+const HEADER_BYTES = 5;
+const KIB = 1024;
+const MIN_BUCKET = 32 * KIB;
+const MAX_DOUBLING_BUCKET = 512 * KIB;
+/** Past the last doubling bucket, grow in fixed steps so large vaults stay under the upload limit. */
+const LARGE_STEP = 64 * KIB;
+
+/** Plaintext size for `length` bytes: 32, 64, 128, 256, or 512 KiB, then the next multiple of 64 KiB. */
+export function paddedSize(length: number) {
+  if (length > MAX_DOUBLING_BUCKET) return Math.ceil(length / LARGE_STEP) * LARGE_STEP;
+  let size = MIN_BUCKET;
+  while (size < length) size *= 2;
+  return size;
+}
+
+function pad(compressed: Uint8Array) {
+  const padded = new Uint8Array(paddedSize(HEADER_BYTES + compressed.length));
+  padded[0] = PADDED_FORMAT;
+  new DataView(padded.buffer).setUint32(1, compressed.length);
+  padded.set(compressed, HEADER_BYTES);
+  return padded;
+}
+
+function unpad(plain: Uint8Array) {
+  if (plain[0] === 0x1f && plain[1] === 0x8b) return plain;
+  if (plain[0] !== PADDED_FORMAT || plain.length < HEADER_BYTES) throw new Error("Unsupported vault format");
+  const length = new DataView(plain.buffer, plain.byteOffset).getUint32(1);
+  if (length > plain.length - HEADER_BYTES) throw new Error("Damaged vault data");
+  return plain.subarray(HEADER_BYTES, HEADER_BYTES + length);
+}
+
 export async function encryptJson(key: CryptoKey, value: unknown) {
   const compressed = await pipe(new TextEncoder().encode(JSON.stringify(value)), new CompressionStream("gzip"));
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, compressed as BlobPart as ArrayBuffer));
+  const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, pad(compressed)));
   return { ciphertext: toBase64(ciphertext), iv: toBase64(iv) };
 }
 
@@ -57,7 +96,7 @@ export async function decryptJson<T>(key: CryptoKey, ciphertext: string, iv: str
   } catch {
     throw new WrongPassphraseError("Could not decrypt: wrong passphrase or damaged data");
   }
-  const json = await pipe(new Uint8Array(plain), new DecompressionStream("gzip"));
+  const json = await pipe(unpad(new Uint8Array(plain)), new DecompressionStream("gzip"));
   return JSON.parse(new TextDecoder().decode(json)) as T;
 }
 

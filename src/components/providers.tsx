@@ -4,6 +4,7 @@ import { IconContext } from "@phosphor-icons/react";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
+import { TooltipLayer } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/i18n/client";
 import type { Locale } from "@/i18n/config";
 import { SyncProvider } from "@/lib/sync/sync-provider";
@@ -19,6 +20,7 @@ export function Providers({ locale, children }: { locale: Locale; children: Reac
               position="bottom-center"
               toastOptions={{ className: "!rounded-xl !border-border !bg-surface !text-fg !shadow-lg" }}
             />
+            <TooltipLayer />
           </SyncProvider>
         </IconContext.Provider>
       </ThemeProvider>

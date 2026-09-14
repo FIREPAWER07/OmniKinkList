@@ -34,7 +34,7 @@ export function ProfileSwitcher() {
       <Menu
         label={t("profiles.menu")}
         trigger={
-          <MenuButton className="max-w-40 gap-1.5 px-2.5" aria-label={t("profiles.current", { name: activeName })} title={t("profiles.menu")}>
+          <MenuButton className="max-w-40 gap-1.5 px-2.5" aria-label={t("profiles.current", { name: activeName })} data-tooltip={t("profiles.menu")}>
             <UserSwitchIcon size={18} aria-hidden />
             <span className={cn("truncate text-sm", !hydrated && "invisible")}>{activeName}</span>
           </MenuButton>

@@ -162,7 +162,7 @@ function CategoryForm({ listSlug, category, onClose }: { listSlug: string; categ
               role="radio"
               aria-checked={icon === key}
               aria-label={key}
-              title={key}
+              data-tooltip={key}
               onClick={() => setIcon(key)}
               className={cn(
                 "grid aspect-square place-items-center rounded-lg border",

@@ -168,6 +168,41 @@
   }
 }
 
+/* Themed replacement for native title popups, driven by components/ui/tooltip.tsx. Hidden unless open as a popover. */
+@layer components {
+  .tooltip {
+    display: none;
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    max-width: min(18rem, calc(100vw - 1rem));
+    padding: 0.3125rem 0.5rem;
+    overflow: visible;
+    border: 1px solid var(--border-strong);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--fg);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.35;
+    box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.35);
+    pointer-events: none;
+  }
+  .tooltip:popover-open {
+    display: block;
+    opacity: 1;
+    transition: opacity 120ms ease-out;
+  }
+  .tooltip[data-instant] {
+    transition: none;
+  }
+  @starting-style {
+    .tooltip:popover-open {
+      opacity: 0;
+    }
+  }
+}
+
 .confetti-piece {
   position: absolute;
   top: -12px;
