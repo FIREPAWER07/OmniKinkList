@@ -67,7 +67,19 @@ export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; 
     router.refresh();
   };
 
-  const social = (provider: Provider) => signIn.social({ provider, callbackURL: next });
+  const social = async (provider: Provider) => {
+    setPending(true);
+    setError(null);
+    // On success the client navigates to the provider, so only failures need handling here.
+    const { error: failure } = await signIn.social({ provider, callbackURL: next }).catch((cause: unknown) => ({
+      error: { status: 0, message: cause instanceof Error ? cause.message : undefined },
+    }));
+    if (!failure) return;
+    setPending(false);
+    console.error("Social sign-in failed", failure);
+    if (failure.status === 429) setError(t("auth.errorRateLimited"));
+    else setError(failure.message || t("auth.errorGeneric"));
+  };
 
   if (sentTo) {
     return (
@@ -88,7 +100,7 @@ export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; 
         <>
           <div className="mt-8 grid gap-2">
             {socialProviders.map((provider) => (
-              <Button key={provider} size="lg" onClick={() => social(provider)} className="w-full">
+              <Button key={provider} size="lg" onClick={() => social(provider)} disabled={pending} className="w-full">
                 {provider === "google" ? <GoogleLogoIcon size={18} /> : <ShieldCheckIcon size={18} />}
                 {provider === "google" ? t("auth.withGoogle") : t("auth.withProton")}
               </Button>
