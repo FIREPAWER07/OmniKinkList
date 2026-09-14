@@ -31,7 +31,6 @@ export default defineConfig({
       DATABASE_URL: "file:e2e.db",
       BETTER_AUTH_SECRET: "e2e-only-secret-not-used-anywhere-else-0123456789",
       BETTER_AUTH_URL: baseURL,
-      ADMIN_EMAILS: "admin@e2e.test",
       REQUIRE_EMAIL_VERIFICATION: "false",
       REQUIRE_EDITOR_2FA: "false",
     },

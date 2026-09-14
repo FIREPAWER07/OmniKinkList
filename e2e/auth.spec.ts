@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { confirmAge, PASSWORD, signUp, uniqueEmail } from "./helpers";
+import { confirmAge, PASSWORD, setRole, signUp, uniqueEmail } from "./helpers";
 
 test.beforeEach(async ({ page }) => confirmAge(page));
 
@@ -27,8 +27,9 @@ test("a new account can sign out and back in, but cannot open the editor", async
 });
 
 test("an editor can change an item and publish it to the public list", async ({ page }) => {
-  // ADMIN_EMAILS in playwright.config.ts makes this account an admin on signup.
-  await signUp(page, "admin@e2e.test");
+  const email = uniqueEmail("admin");
+  await signUp(page, email);
+  setRole(email, "admin");
 
   await page.goto("/admin/lists/common");
   await page.getByRole("button", { name: "Edit Masturbation" }).click();

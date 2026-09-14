@@ -6,15 +6,6 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { authEmail, sendEmail } from "./email";
 
-/** Emails in `ADMIN_EMAILS` (comma separated) become admins when they sign up. */
-function isBootstrapAdmin(email: string) {
-  return (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean)
-    .includes(email.toLowerCase());
-}
-
 /**
  * The production URL comes from BETTER_AUTH_URL, or from Netlify's `URL` captured at build time.
  * Netlify deploy previews and branch deploys (`<name>--<site>.netlify.app`) are allowed too.
@@ -87,15 +78,6 @@ export const auth = betterAuth({
   },
   advanced: {
     ipAddress: { ipAddressHeaders: ["x-nf-client-connection-ip", "x-forwarded-for"] },
-  },
-  databaseHooks: {
-    user: {
-      create: {
-        before: async (newUser) => ({
-          data: { ...newUser, role: isBootstrapAdmin(newUser.email) ? "admin" : "user" },
-        }),
-      },
-    },
   },
   plugins: [
     twoFactor({ issuer: "OmniKinkList", allowPasswordless: true }),
