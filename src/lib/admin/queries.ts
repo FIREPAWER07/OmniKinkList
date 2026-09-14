@@ -39,7 +39,7 @@ export async function getUserStats() {
 export async function searchUsers({ query, filter, page }: { query: string; filter: UserFilter; page: number }) {
   const q = query.trim();
   const pattern = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
-  const where = and(q ? or(ilike(user.name, pattern), ilike(user.email, pattern), eq(user.id, q)) : undefined, USER_FILTER_CONDITIONS[filter]);
+  const where = and(q ? or(ilike(user.name, pattern), ilike(user.email, pattern), ilike(user.username, pattern), eq(user.id, q)) : undefined, USER_FILTER_CONDITIONS[filter]);
   const [rows, [{ total }]] = await Promise.all([
     db
       .select({
@@ -79,6 +79,8 @@ export async function getUserDetail(id: string) {
       role: user.role,
       twoFactorEnabled: user.twoFactorEnabled,
       locale: user.locale,
+      username: user.username,
+      profilePublic: user.profilePublic,
       banned: user.banned,
       banReason: user.banReason,
       banExpires: user.banExpires,

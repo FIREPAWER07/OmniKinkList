@@ -1,13 +1,15 @@
 "use client";
 
-import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import { CheckCircleIcon, UserCircleIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/field";
+import { Button, buttonClass } from "@/components/ui/button";
+import { Field, Input, Textarea } from "@/components/ui/field";
 import { useHref, useLocale, useT } from "@/i18n/client";
-import { setInitialPassword, updateLocale } from "@/lib/account/actions";
+import { setInitialPassword, updateLocale, updateProfile } from "@/lib/account/actions";
+import { BIO_MAX, NAME_MAX, USERNAME_MAX, USERNAME_MIN } from "@/lib/account/profile";
 import { authClient } from "@/lib/auth-client";
 import { useSync } from "@/lib/sync/sync-provider";
 import { Section } from "./account-view";
@@ -17,34 +19,88 @@ interface SessionUser {
   email: string;
   emailVerified: boolean;
   locale?: string | null;
+  username?: string | null;
+  bio?: string | null;
+  profilePublic?: boolean | null;
 }
 
 export function ProfileSection({ user, onChange }: { user: SessionUser; onChange: () => Promise<void> }) {
   const t = useT();
   const href = useHref();
   const locale = useLocale();
+  const router = useRouter();
   const [name, setName] = useState(user.name);
+  const [username, setUsername] = useState(user.username ?? "");
+  const [bio, setBio] = useState(user.bio ?? "");
+  const [profilePublic, setProfilePublic] = useState(user.profilePublic ?? true);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const profilePath = href(`/u/${user.username ?? ""}`);
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
     setPending(true);
-    const { error } = await authClient.updateUser({ name: name.trim() });
-    if (!error && user.locale !== locale) await updateLocale(locale);
+    setUsernameError(null);
+    const result = await updateProfile({ name, username, bio, profilePublic });
+    if (result.ok && user.locale !== locale) await updateLocale(locale);
     setPending(false);
-    if (error) toast.error(error.message ?? t("auth.errorGeneric"));
-    else {
+    if (result.ok) {
+      setUsername(result.username);
       toast.success(t("common.saved"));
       await onChange();
-    }
+      // Profile pages visited earlier are kept by the router; drop them so they show the saved version.
+      router.refresh();
+    } else if (result.error === "username-taken") setUsernameError(t("account.usernameTaken"));
+    else if (result.error === "invalid" && result.field === "username") setUsernameError(t("account.usernameInvalid"));
+    else toast.error(result.error === "rate-limited" ? t("auth.errorRateLimited") : t("auth.errorGeneric"));
   };
 
   return (
-    <Section title={t("account.profile")} description={t("account.profileHint")}>
+    <Section id="profile" title={t("account.profile")} description={t("account.profileHint")}>
       <form onSubmit={save} className="grid gap-4">
         <Field label={t("auth.name")} htmlFor="account-name">
-          <Input id="account-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} required />
+          <Input id="account-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={NAME_MAX} required />
         </Field>
+        <Field
+          label={t("account.username")}
+          htmlFor="account-username"
+          hint={t("account.usernameHint", { url: `${window.location.origin}${profilePath}` })}
+          error={usernameError}
+        >
+          <div className="flex">
+            <span className="grid place-items-center rounded-l-lg border border-r-0 border-border bg-surface-2 px-3 font-mono text-sm text-muted">@</span>
+            <Input
+              id="account-username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase())}
+              minLength={USERNAME_MIN}
+              maxLength={USERNAME_MAX}
+              pattern="[a-z0-9_]+"
+              title={t("account.usernameInvalid")}
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              required
+              aria-invalid={!!usernameError}
+              className="rounded-l-none font-mono"
+            />
+          </div>
+        </Field>
+        <Field label={t("account.bio")} htmlFor="account-bio" hint={t("account.bioHint", { count: bio.length, max: BIO_MAX })}>
+          <Textarea id="account-bio" value={bio} onChange={(e) => setBio(e.target.value)} maxLength={BIO_MAX} rows={3} />
+        </Field>
+        <label className="flex gap-2 rounded-xl border border-border p-3 text-sm">
+          <input
+            type="checkbox"
+            checked={profilePublic}
+            onChange={(e) => setProfilePublic(e.target.checked)}
+            className="mt-0.5 size-4 shrink-0 accent-[var(--accent)]"
+          />
+          <span className="grid gap-1">
+            <span className="font-medium">{t("account.profilePublic")}</span>
+            <span className="text-muted">{t("account.profilePublicHint")}</span>
+          </span>
+        </label>
         <div className="grid gap-2">
           <p className="text-sm font-medium">{t("auth.email")}</p>
           <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
@@ -72,10 +128,13 @@ export function ProfileSection({ user, onChange }: { user: SessionUser; onChange
             )}
           </p>
         </div>
-        <div>
+        <div className="flex flex-wrap gap-2">
           <Button type="submit" variant="primary" disabled={pending || !name.trim()}>
             {t("common.save")}
           </Button>
+          <Link href={profilePath} className={buttonClass("ghost", "md")}>
+            <UserCircleIcon size={16} aria-hidden /> {t("account.viewProfile")}
+          </Link>
         </div>
       </form>
     </Section>

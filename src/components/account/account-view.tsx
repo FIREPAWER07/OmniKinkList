@@ -12,9 +12,9 @@ import { DangerZone, PasswordSection, ProfileSection } from "./profile-sections"
 import { SyncSection } from "./sync-section";
 import { TwoFactorSection } from "./two-factor-section";
 
-export function Section({ title, description, children }: { title: string; description?: ReactNode; children: ReactNode }) {
+export function Section({ id, title, description, children }: { id?: string; title: string; description?: ReactNode; children: ReactNode }) {
   return (
-    <section className="grid gap-6 border-t border-border py-8 md:grid-cols-[240px_1fr]">
+    <section id={id} className="grid scroll-mt-20 gap-6 border-t border-border py-8 md:grid-cols-[240px_1fr]">
       <div>
         <h2 className="font-semibold">{title}</h2>
         {description && <p className="mt-1 text-sm leading-relaxed text-muted">{description}</p>}
@@ -32,10 +32,17 @@ export function AccountView() {
   const { data: session, isPending, refetch } = useSession();
   const [info, setInfo] = useState<Awaited<ReturnType<typeof getAccountInfo>>>(null);
 
+  const userId = session?.user.id;
+
   useEffect(() => {
-    if (!isPending && !session) router.replace(`${href("/login")}?next=${encodeURIComponent(href("/account"))}`);
-    if (session) getAccountInfo().then(setInfo);
-  }, [session, isPending, router, href]);
+    if (!isPending && !userId) router.replace(`${href("/login")}?next=${encodeURIComponent(href("/account"))}`);
+  }, [userId, isPending, router, href]);
+
+  // Keyed on the user only: `href` changes every render, and a render during a link click (to the profile page, say)
+  // would otherwise call this action from a page that doesn't include it.
+  useEffect(() => {
+    if (userId) getAccountInfo().then(setInfo);
+  }, [userId]);
 
   if (!session || !info) return <div aria-busy className="mx-auto h-96 max-w-4xl animate-pulse px-4 pt-10" />;
 

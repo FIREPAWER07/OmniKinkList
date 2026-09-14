@@ -151,6 +151,16 @@ async function User({ params }: Pick<PageProps<"/[locale]/admin/users/[id]">, "p
               <Detail label="User id">
                 <span className="font-mono text-xs">{profile.id}</span>
               </Detail>
+              <Detail label="Profile">
+                {profile.profilePublic ? (
+                  <Link href={`/u/${profile.username}`} className="font-mono text-xs text-accent hover:underline">
+                    @{profile.username}
+                  </Link>
+                ) : (
+                  <span className="font-mono text-xs">@{profile.username}</span>
+                )}
+                <span className="text-muted"> · {profile.profilePublic ? "Public" : "Private, only they can open it"}</span>
+              </Detail>
               <Detail label="Joined">{dateTimeFormat.format(profile.createdAt)} UTC</Detail>
               <Detail label="Profile updated">{dateTimeFormat.format(profile.updatedAt)} UTC</Detail>
               <Detail label="Sign-in methods">{accounts.length ? accounts.map((a) => PROVIDER_LABELS[a.providerId] ?? a.providerId).join(", ") : "None"}</Detail>

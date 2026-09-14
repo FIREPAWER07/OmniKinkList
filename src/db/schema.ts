@@ -24,6 +24,14 @@ export const user = pgTable("user", {
   role: text("role", { enum: ROLES }).default("user").notNull(),
   twoFactorEnabled: boolean("two_factor_enabled").default(false),
   locale: text("locale").default("en").notNull(),
+  /** Public handle for `/u/<username>`, always lowercase. New accounts get a random one (see `generateUsername`). */
+  username: text("username")
+    .default(sql`('user_' || substr(md5(random()::text), 1, 10))`)
+    .notNull()
+    .unique(),
+  bio: text("bio").default("").notNull(),
+  /** Whether anyone with the link can see the profile page. When false only its owner can. */
+  profilePublic: boolean("profile_public").default(true).notNull(),
   /** Set by an admin. A ban with `banExpires` in the past no longer counts. */
   banned: boolean("banned").default(false).notNull(),
   banReason: text("ban_reason"),

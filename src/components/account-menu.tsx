@@ -1,6 +1,6 @@
 "use client";
 
-import { CloudCheckIcon, GearIcon, PencilSimpleIcon, SignInIcon, SignOutIcon } from "@phosphor-icons/react";
+import { CloudCheckIcon, GearIcon, PencilSimpleIcon, SignInIcon, SignOutIcon, UserCircleIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Menu, MenuButton, MenuItem, MenuSeparator } from "@/components/ui/menu";
@@ -52,6 +52,11 @@ export function AccountMenu() {
         )}
       </div>
       <MenuSeparator />
+      {session.user.username && (
+        <MenuItem onSelect={() => router.push(href(`/u/${session.user.username}`))}>
+          <UserCircleIcon size={16} aria-hidden /> {t("nav.profile")}
+        </MenuItem>
+      )}
       <MenuItem onSelect={() => router.push(href("/account"))}>
         <GearIcon size={16} aria-hidden /> {t("nav.account")}
       </MenuItem>

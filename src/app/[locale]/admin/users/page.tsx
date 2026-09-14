@@ -72,7 +72,7 @@ async function Users({ searchParams }: Pick<PageProps<"/[locale]/admin/users">, 
 
       <Form action="/admin/users" className="mt-6 flex flex-wrap items-center gap-2">
         {filter !== "all" && <input type="hidden" name="filter" value={filter} />}
-        <Input type="search" name="q" defaultValue={q} placeholder="Name, email, or user id" aria-label="Search users" className="max-w-xs" />
+        <Input type="search" name="q" defaultValue={q} placeholder="Name, email, username, or user id" aria-label="Search users" className="max-w-xs" />
         <Button type="submit" variant="secondary">
           Search
         </Button>

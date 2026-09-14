@@ -6,6 +6,7 @@ import { captcha, genericOAuth, twoFactor } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { generateUsername } from "./account/profile";
 import { authEmail, sendEmail } from "./email";
 import { BANNED_ERROR_CODE, isBanActive } from "./moderation";
 
@@ -65,6 +66,10 @@ export const auth = betterAuth({
     additionalFields: {
       role: { type: "string", required: false, defaultValue: "user", input: false },
       locale: { type: "string", required: false, defaultValue: "en", input: true },
+      // Profile fields change only through `updateProfile`, which validates them and checks the username is free.
+      username: { type: "string", required: false, defaultValue: generateUsername, input: false },
+      bio: { type: "string", required: false, defaultValue: "", input: false },
+      profilePublic: { type: "boolean", required: false, defaultValue: true, input: false },
       banned: { type: "boolean", required: false, defaultValue: false, input: false },
       banReason: { type: "string", required: false, input: false },
       banExpires: { type: "date", required: false, input: false },
