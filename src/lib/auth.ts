@@ -3,11 +3,11 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { captcha, genericOAuth, twoFactor } from "better-auth/plugins";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull, or } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { generateUsername } from "./account/profile";
-import { authEmail, sendEmail } from "./email";
+import { authEmail, sendEmail, signInCodeEmail } from "./email";
 import { BANNED_ERROR_CODE, isBanActive } from "./moderation";
 
 /**
@@ -38,6 +38,18 @@ export const enabledSocialProviders: SocialProvider[] = [
 
 export const emailVerificationRequired = process.env.REQUIRE_EMAIL_VERIFICATION !== "false";
 
+/** How long an emailed two-factor code stays valid. */
+const EMAIL_CODE_MINUTES = 5;
+
+/** Whether the account's second factor is an authenticator app. Accounts with 2FA on and no app get codes by email. */
+export async function usesAuthenticatorApp(userId: string) {
+  const [row] = await db
+    .select({ id: schema.twoFactor.id })
+    .from(schema.twoFactor)
+    // Better Auth treats a missing `verified` as verified; `false` is an app setup that was never confirmed.
+    .where(and(eq(schema.twoFactor.userId, userId), or(eq(schema.twoFactor.verified, true), isNull(schema.twoFactor.verified))));
+  return !!row;
+}
 
 export const auth = betterAuth({
   appName: "OmniKinkList",
@@ -99,13 +111,28 @@ export const auth = betterAuth({
       "/request-password-reset": { window: 3600, max: 5 },
       "/two-factor/verify-totp": { window: 60, max: 5 },
       "/two-factor/verify-backup-code": { window: 60, max: 5 },
+      "/two-factor/send-otp": { window: 60, max: 3 },
+      "/two-factor/verify-otp": { window: 60, max: 5 },
     },
   },
   advanced: {
     ipAddress: { ipAddressHeaders: ["x-nf-client-connection-ip", "x-forwarded-for"] },
   },
   plugins: [
-    twoFactor({ issuer: "OmniKinkList", allowPasswordless: true }),
+    twoFactor({
+      issuer: "OmniKinkList",
+      allowPasswordless: true,
+      otpOptions: {
+        period: EMAIL_CODE_MINUTES,
+        storeOTP: "hashed",
+        sendOTP: async ({ user, otp }) => {
+          // Better Auth offers emailed codes to every account with 2FA on. Accounts with an authenticator app never get
+          // one, so someone who gets into their email still can't pass the second step.
+          if (await usesAuthenticatorApp(user.id)) return;
+          await sendEmail(signInCodeEmail(user.email, otp, EMAIL_CODE_MINUTES, (user as { locale?: string }).locale));
+        },
+      },
+    }),
     genericOAuth({
       config: simpleLoginEnabled
         ? [

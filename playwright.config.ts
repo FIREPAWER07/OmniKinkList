@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_EMAIL_OUTBOX } from "./e2e/env";
 
 const PORT = 3100;
 const baseURL = `http://localhost:${PORT}`;
@@ -30,6 +31,7 @@ export default defineConfig({
       BETTER_AUTH_URL: baseURL,
       REQUIRE_EMAIL_VERIFICATION: "false",
       REQUIRE_EDITOR_2FA: "false",
+      EMAIL_OUTBOX: E2E_EMAIL_OUTBOX,
     },
   },
 });

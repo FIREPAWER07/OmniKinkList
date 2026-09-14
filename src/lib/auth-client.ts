@@ -8,11 +8,20 @@ export const authClient = createAuthClient({
   plugins: [
     inferAdditionalFields<typeof auth>(),
     twoFactorClient({
-      onTwoFactorRedirect() {
+      async onTwoFactorRedirect({ twoFactorMethods }): Promise<void> {
         const prefix = window.location.pathname.match(/^\/(it|es|de|fr)(?=\/|$)/)?.[0] ?? "";
         const next = new URLSearchParams(window.location.search).get("next");
+        const params = new URLSearchParams();
+        if (next) params.set("next", next);
+        // Emailed codes are offered to every account; only accounts without an authenticator app use them.
+        if (twoFactorMethods?.includes("otp") && !twoFactorMethods.includes("totp")) {
+          params.set("method", "email");
+          // Sent here rather than when the page loads, so reloading the page doesn't replace the code.
+          await authClient.twoFactor.sendOtp();
+        }
         // A full page load, so the new session cookies are picked up by the server.
-        window.location.assign(new URL(`${prefix}/two-factor${next ? `?next=${encodeURIComponent(next)}` : ""}`, window.location.origin));
+        const query = params.toString() ? `?${params}` : "";
+        window.location.assign(new URL(`${prefix}/two-factor${query}`, window.location.origin));
       },
     }),
   ],

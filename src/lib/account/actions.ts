@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { db } from "@/db";
 import { account, user } from "@/db/schema";
 import { isLocale } from "@/i18n/config";
-import { auth } from "@/lib/auth";
+import { auth, usesAuthenticatorApp } from "@/lib/auth";
 import { consumeRateLimit, RateLimitError } from "@/lib/rate-limit";
 import { getCurrentUser } from "@/lib/session";
 import { profileInput, type ProfileInput } from "./profile";
@@ -17,6 +17,7 @@ export async function getAccountInfo() {
   return {
     hasPassword: accounts.some((a) => a.providerId === "credential"),
     providers: accounts.map((a) => a.providerId).filter((p) => p !== "credential"),
+    twoFactorMethod: current.twoFactorEnabled ? ((await usesAuthenticatorApp(current.id)) ? ("app" as const) : ("email" as const)) : null,
   };
 }
 

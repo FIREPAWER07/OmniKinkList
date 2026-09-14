@@ -68,6 +68,8 @@ export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; 
       setSentTo(email);
       return;
     }
+    // The two-factor client plugin is already loading the second step.
+    if (data && "twoFactorRedirect" in data) return;
     router.push(next);
     router.refresh();
   };

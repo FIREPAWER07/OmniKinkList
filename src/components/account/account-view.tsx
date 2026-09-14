@@ -71,7 +71,7 @@ export function AccountView() {
       <div className="mt-8">
         <ProfileSection user={session.user} onChange={reload} />
         <SyncSection />
-        <TwoFactorSection enabled={!!session.user.twoFactorEnabled} hasPassword={info.hasPassword} onChange={reload} />
+        <TwoFactorSection method={info.twoFactorMethod} email={session.user.email} hasPassword={info.hasPassword} onChange={reload} />
         <PasswordSection hasPassword={info.hasPassword} providers={info.providers} onChange={reload} />
         <DangerZone hasPassword={info.hasPassword} email={session.user.email} />
       </div>

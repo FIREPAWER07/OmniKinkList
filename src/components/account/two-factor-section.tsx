@@ -4,18 +4,33 @@ import { CheckCircleIcon, CopyIcon } from "@phosphor-icons/react";
 import { useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { renderSVG } from "uqr";
+import { twoFactorErrorKey } from "@/components/auth/two-factor-form";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { useT } from "@/i18n/client";
 import { authClient } from "@/lib/auth-client";
 import { Section } from "./account-view";
 
+type Method = "app" | "email";
 type Setup = { totpURI: string; backupCodes: string[] } | null;
+type Failure = { message?: string; code?: string; status: number };
 
-export function TwoFactorSection({ enabled, hasPassword, onChange }: { enabled: boolean; hasPassword: boolean; onChange: () => Promise<void> }) {
+export function TwoFactorSection({
+  method,
+  email,
+  hasPassword,
+  onChange,
+}: {
+  method: Method | null;
+  email: string;
+  hasPassword: boolean;
+  onChange: () => Promise<void>;
+}) {
   const t = useT();
   const [password, setPassword] = useState("");
+  const [choice, setChoice] = useState<Method>("app");
   const [setup, setSetup] = useState<Setup>(null);
+  const [emailSent, setEmailSent] = useState(false);
   const [codes, setCodes] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -24,12 +39,12 @@ export function TwoFactorSection({ enabled, hasPassword, onChange }: { enabled: 
   const secret = setup ? new URL(setup.totpURI.replace("otpauth://", "https://")).searchParams.get("secret") : null;
   const passwordArg = hasPassword ? { password } : {};
 
-  const run = async (action: () => Promise<{ error: { message?: string } | null }>) => {
+  const run = async (action: () => Promise<{ error: Failure | null }>, codeRequest = false) => {
     setPending(true);
     setError(null);
     const { error: failure } = await action();
     setPending(false);
-    if (failure) setError(failure.message ?? t("auth.errorGeneric"));
+    if (failure) setError(codeRequest ? t(twoFactorErrorKey(failure, choice === "email")) : (failure.message ?? t("auth.errorGeneric")));
     return !failure;
   };
 
@@ -40,15 +55,31 @@ export function TwoFactorSection({ enabled, hasPassword, onChange }: { enabled: 
       return result;
     });
 
+  // Email is turned on by confirming a code sent to it, so nobody is locked out by an address that doesn't get mail.
+  const sendEmailCode = () => run(() => authClient.twoFactor.sendOtp(), true);
+
+  const confirmed = async () => {
+    toast.success(t("account.twoFactorOn"));
+    await onChange();
+  };
+
   const confirm = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const code = String(new FormData(event.currentTarget).get("code") ?? "").replace(/\s+/g, "");
-    const ok = await run(() => authClient.twoFactor.verifyTotp({ code }));
+    const ok = await run(() => authClient.twoFactor.verifyTotp({ code }), true);
     if (ok && setup) {
       setCodes(setup.backupCodes);
       setSetup(null);
-      toast.success(t("account.twoFactorOn"));
-      await onChange();
+      await confirmed();
+    }
+  };
+
+  const confirmEmail = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const code = String(new FormData(event.currentTarget).get("code") ?? "").replace(/\s+/g, "");
+    if (await run(() => authClient.twoFactor.verifyOtp({ code }), true)) {
+      setEmailSent(false);
+      await confirmed();
     }
   };
 
@@ -57,6 +88,8 @@ export function TwoFactorSection({ enabled, hasPassword, onChange }: { enabled: 
       <Input id="twofa-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
     </Field>
   );
+
+  const errorMessage = error && <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>;
 
   return (
     <Section title={t("account.twoFactor")} description={t("account.twoFactorHint")}>
@@ -79,26 +112,31 @@ export function TwoFactorSection({ enabled, hasPassword, onChange }: { enabled: 
           </div>
         )}
 
-        {enabled ? (
+        {method ? (
           <>
-            <p className="inline-flex items-center gap-2 text-sm text-like">
-              <CheckCircleIcon size={16} weight="fill" aria-hidden /> {t("account.twoFactorOn")}
-            </p>
+            <div className="grid gap-1">
+              <p className="inline-flex items-center gap-2 text-sm text-like">
+                <CheckCircleIcon size={16} weight="fill" aria-hidden /> {t("account.twoFactorOn")}
+              </p>
+              <p className="text-sm text-muted wrap-anywhere">{method === "app" ? t("account.usingApp") : t("account.usingEmail", { email })}</p>
+            </div>
             {passwordField}
-            {error && <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>}
+            {errorMessage}
             <div className="flex flex-wrap gap-2">
-              <Button
-                disabled={pending || (hasPassword && !password)}
-                onClick={() =>
-                  run(async () => {
-                    const result = await authClient.twoFactor.generateBackupCodes(passwordArg as { password: string });
-                    if (result.data) setCodes(result.data.backupCodes);
-                    return result;
-                  })
-                }
-              >
-                {t("account.newBackupCodes")}
-              </Button>
+              {method === "app" && (
+                <Button
+                  disabled={pending || (hasPassword && !password)}
+                  onClick={() =>
+                    run(async () => {
+                      const result = await authClient.twoFactor.generateBackupCodes(passwordArg as { password: string });
+                      if (result.data) setCodes(result.data.backupCodes);
+                      return result;
+                    })
+                  }
+                >
+                  {t("account.newBackupCodes")}
+                </Button>
+              )}
               <Button
                 variant="danger"
                 disabled={pending || (hasPassword && !password)}
@@ -126,7 +164,7 @@ export function TwoFactorSection({ enabled, hasPassword, onChange }: { enabled: 
             <Field label={t("auth.code")} htmlFor="twofa-code">
               <Input id="twofa-code" name="code" inputMode="numeric" autoComplete="one-time-code" required className="max-w-40 font-mono tracking-widest" />
             </Field>
-            {error && <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>}
+            {errorMessage}
             <div className="flex gap-2">
               <Button type="submit" variant="primary" disabled={pending}>
                 {t("auth.verify")}
@@ -136,12 +174,71 @@ export function TwoFactorSection({ enabled, hasPassword, onChange }: { enabled: 
               </Button>
             </div>
           </form>
+        ) : emailSent ? (
+          <form onSubmit={confirmEmail} className="grid gap-4">
+            <p className="text-sm text-muted wrap-anywhere">{t("account.emailCodeSent", { email })}</p>
+            <Field label={t("auth.code")} htmlFor="twofa-email-code">
+              <Input id="twofa-email-code" name="code" inputMode="numeric" autoComplete="one-time-code" required className="max-w-40 font-mono tracking-widest" />
+            </Field>
+            {errorMessage}
+            <div className="flex flex-wrap gap-2">
+              <Button type="submit" variant="primary" disabled={pending}>
+                {t("auth.verify")}
+              </Button>
+              <Button
+                variant="ghost"
+                disabled={pending}
+                onClick={async () => {
+                  if (await sendEmailCode()) toast.success(t("auth.codeResent"));
+                }}
+              >
+                {t("auth.resendCode")}
+              </Button>
+              <Button variant="ghost" onClick={() => setEmailSent(false)}>
+                {t("common.cancel")}
+              </Button>
+            </div>
+          </form>
         ) : (
           <>
-            {passwordField}
-            {error && <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>}
+            <fieldset className="grid gap-3 sm:grid-cols-2">
+              <legend className="sr-only">{t("account.twoFactorMethod")}</legend>
+              {(["app", "email"] as const).map((option) => (
+                <label
+                  key={option}
+                  className="flex cursor-pointer gap-3 rounded-xl border border-border bg-surface p-4 transition-colors hover:border-border-strong has-checked:border-accent has-checked:bg-accent-soft"
+                >
+                  <input
+                    type="radio"
+                    name="twofa-method"
+                    value={option}
+                    checked={choice === option}
+                    onChange={() => {
+                      setChoice(option);
+                      setError(null);
+                    }}
+                    className="mt-0.5 size-4 shrink-0 accent-[var(--accent)]"
+                  />
+                  <span className="grid min-w-0 gap-1">
+                    <span className="text-sm font-medium">{option === "app" ? t("account.methodApp") : t("account.methodEmail")}</span>
+                    <span className="text-xs leading-relaxed text-muted wrap-anywhere">
+                      {option === "app" ? t("account.methodAppHint") : t("account.methodEmailHint", { email })}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+            {choice === "app" && passwordField}
+            {errorMessage}
             <div>
-              <Button variant="primary" disabled={pending || (hasPassword && !password)} onClick={start}>
+              <Button
+                variant="primary"
+                disabled={pending || (choice === "app" && hasPassword && !password)}
+                onClick={async () => {
+                  if (choice === "app") await start();
+                  else if (await sendEmailCode()) setEmailSent(true);
+                }}
+              >
                 {t("account.turnOn")}
               </Button>
             </div>
