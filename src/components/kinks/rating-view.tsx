@@ -141,7 +141,7 @@ export function RatingView({ list }: { list: KinkList }) {
   };
 
   return (
-    <div ref={root} className="pb-32 [--bars:0px]">
+    <div ref={root} data-layout="wide" className="pb-32 [--bars:0px]">
       <div className="mx-auto grid max-w-[120rem] gap-8 px-4 pt-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:px-8 lg:pt-8 xl:gap-10">
         <aside className="hidden lg:block">
           <nav
@@ -167,7 +167,7 @@ export function RatingView({ list }: { list: KinkList }) {
                   <CategoryIcon name={category.icon} size={16} className="shrink-0" />
                   <span className="min-w-0 flex-1 truncate">{category.name}</span>
                   {done ? (
-                    <CheckIcon size={14} weight="bold" className="text-accent" aria-label={t("rating.complete")} />
+                    <CheckIcon size={14} weight="bold" className="text-fg" aria-label={t("rating.complete")} />
                   ) : (
                     <span className="font-mono text-xs text-subtle tabular-nums">
                       {p.answered}/{p.total}
@@ -184,7 +184,7 @@ export function RatingView({ list }: { list: KinkList }) {
             <ArrowLeftIcon size={14} /> {t("rating.allLists")}
           </Link>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{t("rating.title", { name: list.name })}</h1>
+            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{t("rating.title", { name: list.name })}</h1>
             <p className="text-sm text-subtle">{t("rating.answeringAs", { name: profileName })}</p>
           </div>
           <p className="mt-1.5 max-w-3xl leading-relaxed text-muted">{list.description}</p>
@@ -241,7 +241,7 @@ export function RatingView({ list }: { list: KinkList }) {
                   data-chip={category.id}
                   className={cn(
                     "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors",
-                    activeCategory === category.id ? "border-accent bg-accent-soft text-accent" : "border-border text-muted hover:text-fg",
+                    activeCategory === category.id ? "border-border-strong bg-surface-2 text-fg" : "border-border text-muted hover:text-fg",
                   )}
                 >
                   <CategoryIcon name={category.icon} size={14} />
@@ -272,19 +272,19 @@ export function RatingView({ list }: { list: KinkList }) {
                   aria-labelledby={`category-${category.id}-title`}
                   className="scroll-mt-[calc(var(--bars)-2rem)]"
                 >
-                  <div className="sticky top-[calc(3.5rem+var(--bars))] z-20 -mx-4 flex items-center gap-3 bg-bg/90 px-4 py-2.5 backdrop-blur-md lg:mx-0 lg:px-0">
-                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+                  <div className="flex items-center gap-3 py-2.5 lg:sticky lg:top-[calc(3.5rem+var(--bars))] lg:z-20 lg:bg-bg/90 lg:backdrop-blur-md">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-border bg-surface text-muted">
                       <CategoryIcon name={category.icon} size={17} />
                     </span>
                     <h2 id={`category-${category.id}-title`} className="min-w-0 truncate text-lg font-semibold tracking-tight">
                       {category.name}
                     </h2>
                     <div className="ml-auto flex shrink-0 items-center gap-2.5">
-                      <div className="hidden h-1 w-24 overflow-hidden rounded-full bg-surface-2 sm:block" aria-hidden>
-                        <div className="h-full rounded-full bg-accent transition-[width] duration-300" style={{ width: `${percent}%` }} />
+                      <div className="hidden h-1 w-24 overflow-hidden rounded-full bg-border sm:block" aria-hidden>
+                        <div className="h-full rounded-full bg-fg transition-[width] duration-300" style={{ width: `${percent}%` }} />
                       </div>
                       {p.total > 0 && p.answered === p.total ? (
-                        <CheckIcon size={14} weight="bold" className="text-accent" aria-label={t("rating.complete")} />
+                        <CheckIcon size={14} weight="bold" className="text-fg" aria-label={t("rating.complete")} />
                       ) : (
                         <span className="font-mono text-xs text-subtle tabular-nums">
                           {p.answered}/{p.total}
@@ -323,14 +323,14 @@ export function RatingView({ list }: { list: KinkList }) {
               <span className="font-mono font-medium tabular-nums">{stats.percent}%</span>
               <span className="truncate text-muted">{t("rating.progress", { answered: stats.answered, total: stats.total })}</span>
             </div>
-            <div className="mt-1.5 h-1 max-w-md overflow-hidden rounded-full bg-surface-2">
-              <div className="h-full rounded-full bg-accent transition-[width] duration-300" style={{ width: `${stats.percent}%` }} />
+            <div className="mt-1.5 h-1 max-w-md overflow-hidden rounded-full bg-border">
+              <div className="h-full rounded-full bg-fg transition-[width] duration-300" style={{ width: `${stats.percent}%` }} />
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="hidden sm:inline-flex" onClick={() => setConfirmReset(true)} disabled={stats.answered === 0}>
+          <Button variant="ghost" className="hidden sm:inline-flex" onClick={() => setConfirmReset(true)} disabled={stats.answered === 0}>
             {t("rating.reset")}
           </Button>
-          <Button size="sm" className="hidden md:inline-flex" onClick={jumpToNextUnanswered} disabled={stats.answered === stats.total}>
+          <Button className="hidden md:inline-flex" onClick={jumpToNextUnanswered} disabled={stats.answered === stats.total}>
             {t("rating.nextUnanswered")}
           </Button>
           <Link href={href(`/list/${list.slug}/results`)} className={buttonClass("primary", "md")}>

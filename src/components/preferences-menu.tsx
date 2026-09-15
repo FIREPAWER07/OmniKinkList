@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon, MonitorIcon, MoonIcon, PaletteIcon, SunIcon, TranslateIcon } from "@phosphor-icons/react";
+import { CheckIcon, MonitorIcon, MoonIcon, SlidersHorizontalIcon, SunIcon, TranslateIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useSyncExternalStore } from "react";
@@ -11,7 +11,11 @@ import { ACCENT_KEY, ACCENTS, type Accent } from "@/lib/accent";
 import { cn } from "@/lib/cn";
 import { useHydrated } from "@/lib/kinks/store";
 
-const SWATCH: Record<Accent, string> = { pink: "#ff4f8b", violet: "#a78bfa", blue: "#6ea4ff", teal: "#3ed3bf", orange: "#ff9a52" };
+/** Swatches match the accent values in globals.css for each theme. */
+const SWATCH: Record<"light" | "dark", Record<Accent, string>> = {
+  light: { pink: "#d42a66", violet: "#7c4dde", blue: "#2563d9", teal: "#0b7b70", orange: "#b5500d" },
+  dark: { pink: "#ff4f8b", violet: "#a78bfa", blue: "#6ea4ff", teal: "#3ed3bf", orange: "#ff9a52" },
+};
 
 const accentListeners = new Set<() => void>();
 
@@ -53,7 +57,7 @@ export function PreferencesMenu() {
   const locale = useLocale();
   const router = useRouter();
   const hydrated = useHydrated();
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const accent = useSyncExternalStore(subscribeAccent, readAccent, () => "pink" as Accent);
 
   // The inline script handles first paint; this re-applies it when a language switch re-renders <html>.
@@ -79,7 +83,7 @@ export function PreferencesMenu() {
       label={t("preferences.menu")}
       trigger={
         <MenuButton className="size-9" aria-label={t("preferences.menu")} data-tooltip={t("preferences.menu")}>
-          <PaletteIcon size={18} aria-hidden />
+          <SlidersHorizontalIcon size={18} aria-hidden />
         </MenuButton>
       }
     >
@@ -125,7 +129,7 @@ export function PreferencesMenu() {
               "size-7 rounded-full ring-offset-2 ring-offset-surface transition-shadow",
               accent === value ? "ring-2 ring-fg" : "hover:ring-2 hover:ring-border-strong",
             )}
-            style={{ background: SWATCH[value] }}
+            style={{ background: SWATCH[hydrated && resolvedTheme === "light" ? "light" : "dark"][value] }}
           />
         ))}
       </div>

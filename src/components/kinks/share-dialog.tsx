@@ -66,7 +66,7 @@ function ShareForm({ list, data }: { list: KinkList; data: ListData }) {
         </Button>
       </div>
       <p className="flex gap-2 rounded-lg bg-surface-2 p-3 text-xs leading-relaxed text-muted">
-        <WarningIcon size={16} className="mt-px shrink-0 text-maybe" aria-hidden />
+        <WarningIcon size={16} className="mt-px shrink-0 text-warning" aria-hidden />
         {t("share.warning")}
       </p>
     </div>

@@ -36,10 +36,8 @@ export function ResultsView({ list }: { list: KinkList }) {
           <p className="mt-2 text-muted">{t("results.summary", { answered: stats.answered, total: stats.total, percent: stats.percent })}</p>
         </div>
         {stats.answered > 0 && (
-          <div className="flex flex-wrap gap-2">
-            <Button variant="ghost" onClick={() => setDialog("clear")}>
-              {t("results.startOver")}
-            </Button>
+          // On phones the buttons fill even rows and sharing comes first; "Start over" lives at the bottom of the page.
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto [&>*]:grow sm:[&>*]:grow-0">
             <Link href={href(`/compare?list=${list.slug}`)} className={buttonClass("secondary")}>
               <ArrowsLeftRightIcon size={16} /> {t("results.compare")}
             </Link>
@@ -54,7 +52,7 @@ export function ResultsView({ list }: { list: KinkList }) {
             <Button onClick={() => setDialog("image")}>
               <ImageIcon size={16} /> {t("results.exportImage")}
             </Button>
-            <Button variant="primary" onClick={() => setDialog("share")}>
+            <Button variant="primary" className="order-first sm:order-none" onClick={() => setDialog("share")}>
               <ShareNetworkIcon size={16} /> {t("results.share")}
             </Button>
           </div>
@@ -74,6 +72,14 @@ export function ResultsView({ list }: { list: KinkList }) {
           <AnswerSummary list={list} data={data} />
         )}
       </div>
+
+      {stats.answered > 0 && (
+        <div className="mt-16 flex justify-center border-t border-border pt-6">
+          <Button variant="danger" size="sm" onClick={() => setDialog("clear")}>
+            {t("results.startOver")}
+          </Button>
+        </div>
+      )}
 
       <ShareDialog open={dialog === "share"} onClose={() => setDialog(null)} list={list} data={data} />
       <ImageDialog open={dialog === "image"} onClose={() => setDialog(null)} list={list} data={data} />

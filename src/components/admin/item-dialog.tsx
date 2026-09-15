@@ -173,8 +173,8 @@ function ItemForm({
           ))}
         </div>
         {removedCount > 0 && (
-          <p className="flex gap-2 rounded-lg bg-maybe/10 p-2.5 text-xs text-muted">
-            <WarningIcon size={14} className="mt-px shrink-0 text-maybe" aria-hidden />
+          <p className="flex gap-2 rounded-lg bg-warning/10 p-2.5 text-xs text-muted">
+            <WarningIcon size={14} className="mt-px shrink-0 text-warning" aria-hidden />
             Removing {removedCount} existing {removedCount === 1 ? "option" : "options"} drops those answers from results and old share links once published.
           </p>
         )}

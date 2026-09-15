@@ -55,7 +55,7 @@ export function StatusBadges({ banned, emailVerified }: { banned: boolean; email
   return (
     <span className="flex flex-wrap gap-1.5">
       {banned && <span className="rounded-full bg-danger/15 px-2 py-0.5 text-xs font-medium text-danger">Banned</span>}
-      {!emailVerified && <span className="rounded-full bg-maybe/15 px-2 py-0.5 text-xs font-medium text-maybe">Email not confirmed</span>}
+      {!emailVerified && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">Email not confirmed</span>}
     </span>
   );
 }
@@ -90,7 +90,7 @@ export function UserTable({ users, currentUserId }: { users: UserRow[]; currentU
               <td className="whitespace-nowrap px-5 py-3 font-mono text-xs text-muted">{dateFormat.format(new Date(row.createdAt))}</td>
               <td className="whitespace-nowrap px-5 py-3 font-mono text-xs text-muted">{row.lastActiveAt ? dateFormat.format(new Date(row.lastActiveAt)) : "No session"}</td>
               <td className="px-5 py-3">
-                {row.twoFactorEnabled ? <ShieldCheckIcon size={18} weight="fill" className="text-like" aria-label="On" /> : <span className="text-subtle">Off</span>}
+                {row.twoFactorEnabled ? <ShieldCheckIcon size={18} weight="fill" className="text-success" aria-label="On" /> : <span className="text-subtle">Off</span>}
               </td>
               <td className="px-5 py-3">
                 <RoleSelect userId={row.id} name={row.name} role={row.role} disabled={row.id === currentUserId} />

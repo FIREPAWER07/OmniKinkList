@@ -121,7 +121,7 @@ export function ImportView({ lists }: { lists: KinkList[] }) {
 
         <div className="rounded-xl border border-border bg-surface p-5">
           <Field label={t("import.linkLabel")} htmlFor="import-link" hint={t("import.linkHint")}>
-            <Input id="import-link" value={link} onChange={(event) => setLink(event.target.value)} className="font-mono text-xs" placeholder="https://…/s#…" />
+            <Input id="import-link" value={link} onChange={(event) => setLink(event.target.value)} className="font-mono text-xs" />
           </Field>
           <div className="mt-3 flex justify-end">
             <Button onClick={readLink} disabled={!link.trim()}>

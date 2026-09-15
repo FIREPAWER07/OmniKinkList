@@ -15,8 +15,8 @@ const dateTimeFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium", time
 const PROVIDER_LABELS: Record<string, string> = { credential: "Email and password", google: "Google", simplelogin: "Proton (SimpleLogin)" };
 
 const SUGGESTION_STATUS_STYLES = {
-  pending: "bg-accent-soft text-accent",
-  accepted: "bg-like/15 text-like",
+  pending: "bg-accent-soft text-accent-text",
+  accepted: "bg-success/15 text-success",
   rejected: "bg-surface-2 text-muted",
 } as const;
 
@@ -112,7 +112,7 @@ async function User({ params }: Pick<PageProps<"/[locale]/admin/users/[id]">, "p
         <div className="min-w-0">
           <h1 className="flex flex-wrap items-center gap-x-3 gap-y-1 text-2xl font-semibold tracking-tight">
             <span className="break-all">{profile.name}</span>
-            <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent">{ROLE_LABELS[profile.role]}</span>
+            <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent-text">{ROLE_LABELS[profile.role]}</span>
           </h1>
           <p className="mt-1 break-all text-sm text-muted">{profile.email}</p>
         </div>

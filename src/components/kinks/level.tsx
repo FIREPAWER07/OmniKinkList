@@ -49,23 +49,37 @@ export function LevelGlyph({ level, size, filled }: { level: Level; size: number
   );
 }
 
-/** Tailwind classes per level, spelled out so the compiler can see them. */
-export const LEVEL_STYLES: Record<Level, { text: string; bg: string }> = {
-  limit: { text: "text-limit", bg: "bg-limit" },
-  dislike: { text: "text-dislike", bg: "bg-dislike" },
-  maybe: { text: "text-maybe", bg: "bg-maybe" },
-  indifferent: { text: "text-indifferent", bg: "bg-indifferent" },
-  like: { text: "text-like", bg: "bg-like" },
-  favorite: { text: "text-favorite", bg: "bg-favorite" },
+/**
+ * Tailwind classes per level, spelled out so the compiler can see them. `fill` is the level color with its
+ * matching foreground. Level colors are fills only: some (yellow) are too light to be used as text.
+ */
+export const LEVEL_STYLES: Record<Level, { bg: string; fill: string }> = {
+  limit: { bg: "bg-limit", fill: "bg-limit text-on-limit" },
+  dislike: { bg: "bg-dislike", fill: "bg-dislike text-on-dislike" },
+  maybe: { bg: "bg-maybe", fill: "bg-maybe text-on-maybe" },
+  indifferent: { bg: "bg-indifferent", fill: "bg-indifferent text-on-indifferent" },
+  like: { bg: "bg-like", fill: "bg-like text-on-like" },
+  favorite: { bg: "bg-favorite", fill: "bg-favorite text-on-favorite" },
 };
+
+/** The level's icon on a square of its color. */
+export function LevelSwatch({ level, size = "sm", className }: { level: Level; size?: "sm" | "md" | "lg"; className?: string }) {
+  const box = { sm: "size-5 rounded-md", md: "size-6 rounded-md", lg: "size-11 rounded-lg" }[size];
+  const glyph = { sm: 12, md: 14, lg: 22 }[size];
+  return (
+    <span className={cn("grid shrink-0 place-items-center", box, LEVEL_STYLES[level].fill, className)}>
+      <LevelGlyph level={level} size={glyph} filled />
+    </span>
+  );
+}
 
 export function LevelChip({ level, className }: { level: Level; className?: string }) {
   const t = useT();
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold text-on-level",
-        LEVEL_STYLES[level].bg,
+        "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold",
+        LEVEL_STYLES[level].fill,
         className,
       )}
     >
@@ -81,9 +95,7 @@ export function LevelLegend({ className }: { className?: string }) {
     <ul className={cn("flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted", className)}>
       {LEVELS.map((level) => (
         <li key={level} className="inline-flex items-center gap-1.5">
-          <span className={cn("grid size-5 place-items-center rounded-md text-on-level", LEVEL_STYLES[level].bg)}>
-            <LevelGlyph level={level} size={12} filled />
-          </span>
+          <LevelSwatch level={level} />
           {t(`levels.${level}`)}
         </li>
       ))}

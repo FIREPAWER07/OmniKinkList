@@ -33,7 +33,7 @@ export function Celebration({ slug, complete }: { slug: string; complete: boolea
               style={{
                 left: `${(i * 97) % 100}%`,
                 animationDelay: `${(i % 12) * 60}ms`,
-                background: ["var(--accent)", "var(--lv-like)", "var(--lv-maybe)", "var(--lv-favorite)"][i % 4],
+                background: ["var(--accent)", "var(--lv-like)", "var(--lv-maybe)", "var(--lv-dislike)"][i % 4],
                 transform: `rotate(${i * 37}deg)`,
               }}
             />

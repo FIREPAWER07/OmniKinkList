@@ -45,7 +45,7 @@ export function brandCard(title: string, subtitle: string) {
           <div style={{ fontSize: 34, color: "#b1a7ae" }}>{subtitle}</div>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
-          {["#f4eff2", "#f26060", "#f5a524", "#8f98ad", "#3ecf8e", "#ff4f8b"].map((color) => (
+          {["#f45249", "#ff9646", "#fcd443", "#9aa5bb", "#53d490", "#f470c9"].map((color) => (
             <div key={color} style={{ width: 56, height: 14, borderRadius: 7, background: color }} />
           ))}
         </div>

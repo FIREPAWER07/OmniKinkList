@@ -21,11 +21,11 @@ export function AccountMenu() {
     return (
       <Link
         href={href("/login")}
-        className="grid size-9 place-items-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-fg"
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-fg max-sm:size-9 max-sm:justify-center max-sm:px-0"
         aria-label={t("nav.signIn")}
-        data-tooltip={t("nav.signIn")}
       >
         <SignInIcon size={18} aria-hidden />
+        <span className="max-sm:hidden">{t("nav.signIn")}</span>
       </Link>
     );
   }
@@ -46,7 +46,7 @@ export function AccountMenu() {
         <p className="truncate text-sm font-medium">{session.user.name}</p>
         <p className="truncate text-xs text-muted">{session.user.email}</p>
         {sync.status === "on" && (
-          <p className="mt-1.5 inline-flex items-center gap-1 text-xs text-accent">
+          <p className="mt-1.5 inline-flex items-center gap-1 text-xs text-success">
             <CloudCheckIcon size={13} aria-hidden /> {t("sync.menuOn")}
           </p>
         )}

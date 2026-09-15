@@ -57,7 +57,7 @@ export function SyncSection() {
           <li>{t("sync.point1")}</li>
           <li>{t("sync.point2")}</li>
           <li className="flex gap-2 text-fg">
-            <WarningIcon size={16} className="mt-0.5 shrink-0 text-maybe" aria-hidden /> {t("sync.point3")}
+            <WarningIcon size={16} className="mt-0.5 shrink-0 text-warning" aria-hidden /> {t("sync.point3")}
           </li>
         </ul>
 
@@ -93,7 +93,7 @@ export function SyncSection() {
         {sync.status === "paused" && (
           <div className="grid gap-3">
             <p className="flex gap-2 text-sm">
-              <WarningIcon size={16} className="mt-0.5 shrink-0 text-maybe" aria-hidden /> {t("sync.paused")}
+              <WarningIcon size={16} className="mt-0.5 shrink-0 text-warning" aria-hidden /> {t("sync.paused")}
             </p>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -113,7 +113,7 @@ export function SyncSection() {
         {sync.status === "on" && (
           <>
             <div className="grid gap-1.5 text-sm">
-              <p className="flex items-center gap-2 text-like">
+              <p className="flex items-center gap-2 text-success">
                 <CloudCheckIcon size={16} weight="fill" aria-hidden /> {lastSynced ? t("sync.onSince", { date: lastSynced }) : t("sync.on")}
               </p>
               <p className="flex gap-2 text-muted">

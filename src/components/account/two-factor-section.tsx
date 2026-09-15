@@ -115,7 +115,7 @@ export function TwoFactorSection({
         {method ? (
           <>
             <div className="grid gap-1">
-              <p className="inline-flex items-center gap-2 text-sm text-like">
+              <p className="inline-flex items-center gap-2 text-sm text-success">
                 <CheckCircleIcon size={16} weight="fill" aria-hidden /> {t("account.twoFactorOn")}
               </p>
               <p className="text-sm text-muted wrap-anywhere">{method === "app" ? t("account.usingApp") : t("account.usingEmail", { email })}</p>

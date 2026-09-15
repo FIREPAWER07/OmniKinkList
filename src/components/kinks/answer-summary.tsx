@@ -7,14 +7,14 @@ import { cn } from "@/lib/cn";
 import { allChoices, computeStats, itemChoices, itemKey, withCustom } from "@/lib/kinks/choices";
 import { LEVELS, type Experience, type KinkList, type Level, type ListData } from "@/lib/kinks/types";
 import { CategoryIcon } from "./category-icon";
-import { LEVEL_STYLES, LevelChip, LevelGlyph } from "./level";
+import { LEVEL_STYLES, LevelChip, LevelSwatch } from "./level";
 
 export function ExperienceChip({ value }: { value: Experience }) {
   const t = useT();
   const Icon = value === "tried" ? CheckCircleIcon : SparkleIcon;
   return (
-    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-border px-1.5 py-px text-[11px] text-muted">
-      <Icon size={11} weight="fill" className="text-accent" aria-hidden />
+    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-border px-1.5 py-px text-xs text-muted">
+      <Icon size={12} weight="fill" className="text-fg" aria-hidden />
       {t(`experience.${value}`)}
     </span>
   );
@@ -83,15 +83,16 @@ export function AnswerSummary({ list, data }: { list: KinkList; data: ListData }
                 aria-pressed={active}
                 className={cn(
                   "rounded-lg border p-3 text-left transition-colors",
-                  active ? "border-border bg-surface-2" : "border-transparent opacity-45 hover:opacity-80",
+                  active ? "border-border bg-surface-2" : "border-dashed border-border-strong text-muted hover:bg-surface-2",
                 )}
               >
-                <span className={cn("inline-flex items-center gap-1.5 text-sm font-medium", level === "limit" ? "text-fg" : LEVEL_STYLES[level].text)}>
-                  <LevelGlyph level={level} size={14} filled /> {t(`levels.${level}`)}
+                {/* Hidden levels keep full contrast and lose only their color, so they read as "off", not disabled. */}
+                <span className="inline-flex items-center gap-2 text-sm font-medium">
+                  <LevelSwatch level={level} className={active ? undefined : "bg-surface-2 text-subtle"} /> {t(`levels.${level}`)}
                 </span>
-                <span className="mt-1 flex items-baseline gap-2">
+                <span className="mt-1.5 flex items-baseline gap-2">
                   <span className="font-mono text-2xl font-medium tabular-nums">{stats.byLevel[level]}</span>
-                  <span className="font-mono text-xs text-subtle tabular-nums">{share}%</span>
+                  <span className="font-mono text-sm text-muted tabular-nums">{share}%</span>
                 </span>
               </button>
             );
@@ -106,7 +107,7 @@ export function AnswerSummary({ list, data }: { list: KinkList; data: ListData }
               aria-pressed={onlyWant}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs",
-                onlyWant ? "border-accent bg-accent-soft text-accent" : "border-border text-muted hover:text-fg",
+                onlyWant ? "border-fg bg-surface-2 text-fg" : "border-border text-muted hover:text-fg",
               )}
             >
               <SparkleIcon size={12} weight="fill" aria-hidden /> {t("results.onlyWant", { count: wantCount })}
@@ -122,7 +123,7 @@ export function AnswerSummary({ list, data }: { list: KinkList; data: ListData }
           {sections.map(({ category, items }) => (
             <section key={category.id}>
               <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold tracking-tight">
-                <CategoryIcon name={category.icon} size={18} className="text-accent" />
+                <CategoryIcon name={category.icon} size={18} className="text-muted" />
                 {category.name}
               </h2>
               <div className="gap-3 md:columns-2 xl:columns-3">
@@ -140,7 +141,7 @@ export function AnswerSummary({ list, data }: { list: KinkList; data: ListData }
                         </li>
                       ))}
                     </ul>
-                    {note && <p className="mt-3 whitespace-pre-wrap border-l-2 border-accent pl-3 text-sm text-muted">{note}</p>}
+                    {note && <p className="mt-3 whitespace-pre-wrap border-l-2 border-border-strong pl-3 text-sm text-muted">{note}</p>}
                   </article>
                 ))}
               </div>

@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useHref, useT } from "@/i18n/client";
+import { cn } from "@/lib/cn";
 import { Logo } from "./logo";
+import { SITE_CONTAINER } from "./site-header";
 
 export function SiteFooter() {
   const t = useT();
@@ -16,7 +18,7 @@ export function SiteFooter() {
   ];
   return (
     <footer className="mt-24 border-t border-border">
-      <div className="mx-auto grid max-w-[120rem] gap-8 px-4 py-10 text-sm md:grid-cols-[1fr_auto] lg:px-8">
+      <div className={cn(SITE_CONTAINER, "grid gap-8 py-10 text-sm md:grid-cols-[1fr_auto]")}>
         <div className="grid content-start gap-3">
           <Logo />
           <p className="max-w-sm text-muted">{t("footer.about")}</p>

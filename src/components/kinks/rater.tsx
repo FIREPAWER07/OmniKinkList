@@ -33,7 +33,7 @@ export const Rater = memo(function Rater({
   };
 
   return (
-    <div role="radiogroup" aria-label={label} className="flex shrink-0 gap-1">
+    <div role="radiogroup" aria-label={label} className="rater-group flex shrink-0 gap-1">
       {LEVELS.map((level, index) => {
         const active = value === level;
         const name = t(`levels.${level}`);
@@ -86,7 +86,7 @@ export const ExperienceToggle = memo(function ExperienceToggle({
       aria-label={t("experience.label", { item: label, state: stateLabel })}
       className={cn(
         "grid size-8 shrink-0 place-items-center rounded-lg transition-colors hover:bg-surface-2",
-        value ? "text-accent" : "text-subtle/70 hover:text-muted",
+        value ? "text-fg" : "text-subtle hover:text-fg",
       )}
     >
       <Icon size={16} weight={value ? "fill" : "regular"} aria-hidden />

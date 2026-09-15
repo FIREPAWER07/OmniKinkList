@@ -44,7 +44,7 @@ export function AgeGate() {
         <a href="https://www.google.com" className={buttonClass("ghost")}>
           {t("ageGate.leave")}
         </a>
-        <Button variant="primary" onClick={accept}>
+        <Button variant="primary" onClick={accept} data-autofocus>
           {t("ageGate.confirm")}
         </Button>
       </div>

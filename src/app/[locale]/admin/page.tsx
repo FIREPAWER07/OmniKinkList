@@ -40,7 +40,7 @@ async function AdminHome() {
               <div>
                 <p className="flex flex-wrap items-center gap-2 font-medium">
                   {list.name} <span className="font-mono text-xs text-subtle">/{list.slug}</span>
-                  {list.unpublished && <span className="rounded-full bg-maybe/15 px-2 py-0.5 text-xs font-medium text-maybe">Unpublished changes</span>}
+                  {list.unpublished && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">Unpublished changes</span>}
                 </p>
                 <p className="mt-1 text-sm text-muted">
                   {list.categoryCount} categories, {list.itemCount} items.{" "}

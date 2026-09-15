@@ -23,7 +23,7 @@ const COLORS = {
   fg: "#f4eff2",
   muted: "#b1a7ae",
   accent: "#ff4f8b",
-  levels: { limit: "#f4eff2", dislike: "#f26060", maybe: "#f5a524", indifferent: "#8f98ad", like: "#3ecf8e", favorite: "#ff4f8b" } as Record<Level, string>,
+  levels: { limit: "#f45249", dislike: "#ff9646", maybe: "#fcd443", indifferent: "#9aa5bb", like: "#53d490", favorite: "#f470c9" } as Record<Level, string>,
 };
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {

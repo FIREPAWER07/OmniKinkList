@@ -28,7 +28,7 @@ export function DemoCard({ item }: { item: KinkItem }) {
   return (
     <div className="relative">
       <div aria-hidden className="absolute -inset-x-6 -inset-y-8 -z-10 rounded-[2rem] bg-accent-soft/60 blur-2xl" />
-      <div className="rotate-[-1.5deg] rounded-xl border border-border bg-surface-2 p-2 shadow-2xl shadow-black/20 transition-transform duration-300 hover:rotate-0">
+      <div className="rounded-xl border border-border bg-surface-2 p-2 shadow-2xl shadow-black/20 transition-transform duration-300 lg:rotate-[-1.5deg] lg:hover:rotate-0">
         <ItemCard item={shown} data={data} onRate={onRate} onExperience={onExperience} className="border-transparent" />
       </div>
       <p className="mt-4 text-center text-xs text-subtle">{t("home.demoHint")}</p>

@@ -84,13 +84,9 @@ function CompareInner({ lists }: { lists: KinkList[] }) {
       <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{t("compare.title")}</h1>
       <p className="mt-2 max-w-2xl text-muted">{t("compare.subtitle")}</p>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
-        <SourcePicker label={t("compare.personA")} state={sourceA} onChange={setSourceA} profiles={profileOptions} error={a.error} />
-        <SourcePicker label={t("compare.personB")} state={sourceB} onChange={setSourceB} profiles={profileOptions} error={b.error} />
-      </div>
-
+      {/* The list is the first choice: it decides which answers each person can bring. */}
       {linkSlugs.length === 0 && (
-        <Field label={t("compare.list")} htmlFor="compare-list" className="mt-4 max-w-xs">
+        <Field label={t("compare.list")} htmlFor="compare-list" className="mt-8 max-w-xs">
           <Select id="compare-list" value={slug} onChange={(e) => setSlug(e.target.value)}>
             {lists.map((l) => (
               <option key={l.slug} value={l.slug}>
@@ -100,6 +96,11 @@ function CompareInner({ lists }: { lists: KinkList[] }) {
           </Select>
         </Field>
       )}
+
+      <div className={cn("grid gap-4 md:grid-cols-2 md:items-start", linkSlugs.length === 0 ? "mt-6" : "mt-8")}>
+        <SourcePicker label={t("compare.personA")} state={sourceA} onChange={setSourceA} profiles={profileOptions} error={a.error} />
+        <SourcePicker label={t("compare.personB")} state={sourceB} onChange={setSourceB} profiles={profileOptions} error={b.error} />
+      </div>
 
       {mismatch && <p className="mt-6 rounded-xl border border-danger/40 bg-danger/10 p-4 text-sm text-danger">{t("compare.mismatch")}</p>}
 
@@ -177,7 +178,7 @@ function CompareResults({ results, nameA, nameB }: { results: CompareItem[]; nam
                 active === bucket ? "border-accent bg-accent-soft" : "border-border bg-surface hover:border-border-strong",
               )}
             >
-              <span className={cn("flex items-center gap-2 text-sm font-medium", active === bucket ? "text-accent" : "text-fg")}>
+              <span className={cn("flex items-center gap-2 text-sm font-medium", active === bucket ? "text-accent-text" : "text-fg")}>
                 <Icon size={16} aria-hidden /> {t(`compare.buckets.${bucket}`)}
               </span>
               <span className="mt-1 block font-mono text-2xl tabular-nums">{counts[bucket]}</span>

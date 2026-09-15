@@ -52,7 +52,7 @@ export default async function HomePage() {
         ) : (
           <div className="mt-8 grid gap-3">
             {summaries.map((summary, index) => (
-              <ListRow key={summary.slug} summary={summary} featured={index === summaries.length - 1} />
+              <ListRow key={summary.slug} summary={summary} featured={index === 0} />
             ))}
           </div>
         )}

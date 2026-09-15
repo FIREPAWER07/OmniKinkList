@@ -39,13 +39,13 @@ async function UserProfile({ params }: Pick<PageProps<"/[locale]/u/[username]">,
       {profile.isOwner && <ProfileOwnerBar profilePublic={profile.profilePublic} />}
 
       <header className="flex items-center gap-5">
-        <span aria-hidden className="grid size-20 shrink-0 place-items-center rounded-full border border-border bg-accent-soft text-3xl font-semibold text-accent">
+        <span aria-hidden className="grid size-20 shrink-0 place-items-center rounded-full border border-border bg-accent-soft text-3xl font-semibold text-accent-text">
           {initial}
         </span>
         <div className="min-w-0">
           <h1 className="flex flex-wrap items-center gap-x-3 gap-y-1 text-3xl font-semibold tracking-tight">
             <span className="break-words">{profile.name}</span>
-            {badge && <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium tracking-normal text-accent">{badge}</span>}
+            {badge && <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium tracking-normal text-accent-text">{badge}</span>}
           </h1>
           <p className="mt-1 break-all font-mono text-sm text-muted">@{profile.username}</p>
         </div>

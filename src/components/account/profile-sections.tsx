@@ -106,12 +106,12 @@ export function ProfileSection({ user, onChange }: { user: SessionUser; onChange
           <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
             {user.email}
             {user.emailVerified ? (
-              <span className="inline-flex items-center gap-1 text-like">
+              <span className="inline-flex items-center gap-1 text-success">
                 <CheckCircleIcon size={14} weight="fill" aria-hidden /> {t("account.verified")}
               </span>
             ) : (
               <>
-                <span className="inline-flex items-center gap-1 text-maybe">
+                <span className="inline-flex items-center gap-1 text-warning">
                   <WarningCircleIcon size={14} weight="fill" aria-hidden /> {t("account.notVerified")}
                 </span>
                 <button

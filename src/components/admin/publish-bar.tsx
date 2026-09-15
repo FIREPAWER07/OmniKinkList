@@ -38,7 +38,7 @@ export function PublishBar({ slug, changes, neverPublished }: { slug: string; ch
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3">
         <p className="text-sm">
           {hasChanges ? (
-            <span className="text-maybe">{neverPublished ? "This list has never been published." : `Draft has unpublished changes (${lines.length}).`}</span>
+            <span className="text-warning">{neverPublished ? "This list has never been published." : `Draft has unpublished changes (${lines.length}).`}</span>
           ) : (
             <span className="text-muted">The draft matches the live version.</span>
           )}

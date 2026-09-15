@@ -32,7 +32,7 @@ export function VersionList({ slug, versions }: { slug: string; versions: Versio
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="font-medium">
-                  Version {v.version} {index === 0 && <span className="ml-1 rounded-full bg-like/15 px-2 py-0.5 text-xs text-like">Live</span>}
+                  Version {v.version} {index === 0 && <span className="ml-1 rounded-full bg-success/15 px-2 py-0.5 text-xs text-success">Live</span>}
                 </p>
                 <p className="text-sm text-muted">
                   {v.publishedByName}, {dateFormat.format(new Date(v.publishedAt))}

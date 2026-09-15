@@ -28,7 +28,7 @@ export function ListRow({ summary, featured }: { summary: KinkListSummary; featu
           <h3 className="text-xl font-semibold tracking-tight">{summary.name}</h3>
           <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-muted">{summary.tagline}</span>
           {newCount > 0 && (
-            <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent">
+            <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent-text">
               {t("home.newCount", { count: newCount })}
             </span>
           )}
@@ -47,7 +47,7 @@ export function ListRow({ summary, featured }: { summary: KinkListSummary; featu
         {answered > 0 && (
           <div>
             <dt className="text-subtle">{t("home.done")}</dt>
-            <dd className="font-mono text-base tabular-nums text-accent">{percent}%</dd>
+            <dd className="font-mono text-base tabular-nums">{percent}%</dd>
           </div>
         )}
       </dl>

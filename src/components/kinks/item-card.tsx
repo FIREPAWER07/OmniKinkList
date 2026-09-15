@@ -88,8 +88,8 @@ export const ItemCard = memo(function ItemCard({
   const renderRow = ({ key: k, label, isNew: newOption }: Row) => {
     const aria = label ? `${item.name}: ${label}` : item.name;
     return (
-      <li key={k} className="-mx-2 flex min-h-9 items-center gap-1 rounded-lg px-2 py-0.5 hover:bg-surface-2">
-        <span className="min-w-0 flex-1 text-sm leading-snug">
+      <li key={k} className="-mx-2 flex min-h-9 flex-wrap items-center gap-1 rounded-lg px-2 py-0.5 hover:bg-surface-2 max-[30rem]:py-1.5">
+        <span className={cn("min-w-0 flex-1 text-sm leading-snug", label && "max-[30rem]:basis-full max-[30rem]:pb-0.5")}>
           {label}
           {newOption && <span className="ml-1.5 inline-block size-1.5 rounded-full bg-accent align-middle" role="img" aria-label={t("rating.newOption")} data-tooltip={t("rating.newOption")} />}
         </span>
@@ -109,7 +109,7 @@ export const ItemCard = memo(function ItemCard({
           <h3 className="font-medium leading-snug">
             {item.name}
             {isNew && (
-              <span className="ml-2 inline-flex rounded-full bg-accent-soft px-1.5 py-px align-middle text-[11px] font-semibold text-accent">
+              <span className="ml-2 inline-flex rounded-full bg-accent-soft px-1.5 py-px align-middle text-xs font-semibold text-accent-text">
                 {t("rating.new")}
               </span>
             )}
@@ -118,7 +118,7 @@ export const ItemCard = memo(function ItemCard({
         </div>
         {item.options.length > 0 &&
           (row && complete ? (
-            <CheckIcon size={14} weight="bold" className="mt-1 shrink-0 text-accent" aria-label={t("rating.complete")} />
+            <CheckIcon size={14} weight="bold" className="mt-1 shrink-0 text-fg" aria-label={t("rating.complete")} />
           ) : (
             <span className="mt-1 shrink-0 font-mono text-xs text-subtle tabular-nums">
               {answered}/{item.options.length}
@@ -144,7 +144,7 @@ export const ItemCard = memo(function ItemCard({
             }}
             className={cn(
               "grid size-7 shrink-0 place-items-center rounded-lg hover:bg-surface-2",
-              note ? "text-accent" : "text-subtle hover:text-fg",
+              note ? "text-fg" : "text-subtle hover:text-fg",
             )}
             aria-label={note ? t("notes.edit") : t("notes.add")}
             aria-expanded={editingNote}
@@ -175,7 +175,7 @@ export const ItemCard = memo(function ItemCard({
         />
       ) : (
         note && (
-          <p className="mt-3 whitespace-pre-wrap rounded-lg border-l-2 border-accent bg-surface-2 px-3 py-1.5 text-sm text-muted">{note}</p>
+          <p className="mt-3 whitespace-pre-wrap rounded-lg border-l-2 border-border-strong bg-surface-2 px-3 py-1.5 text-sm text-muted">{note}</p>
         )
       )}
     </div>

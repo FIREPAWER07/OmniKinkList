@@ -58,8 +58,8 @@ export function AccountView() {
       <p className="mt-2 text-muted">{t("account.subtitle")}</p>
 
       {params.get("require2fa") && !session.user.twoFactorEnabled && (
-        <p className="mt-6 flex gap-2 rounded-xl border border-maybe/40 bg-maybe/10 p-4 text-sm">
-          <WarningIcon size={18} className="shrink-0 text-maybe" aria-hidden /> {t("account.require2fa")}
+        <p className="mt-6 flex gap-2 rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm">
+          <WarningIcon size={18} className="shrink-0 text-warning" aria-hidden /> {t("account.require2fa")}
         </p>
       )}
       {next?.startsWith("/admin") && session.user.twoFactorEnabled && (
