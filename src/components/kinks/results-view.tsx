@@ -7,10 +7,10 @@ import { toast } from "sonner";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useHref, useT } from "@/i18n/client";
-import { allChoices, computeStats, pruneKeys, withCustom } from "@/lib/kinks/choices";
+import { allChoices, computeStats, pruneListData, withCustom } from "@/lib/kinks/choices";
 import { downloadFile, exportFileName, generateExportHtml } from "@/lib/kinks/export-html";
 import { listStore, useListData } from "@/lib/kinks/store";
-import type { KinkList, ListData } from "@/lib/kinks/types";
+import type { KinkList } from "@/lib/kinks/types";
 import { AnswerSummary } from "./answer-summary";
 import { ImageDialog } from "./image-dialog";
 import { ShareDialog } from "./share-dialog";
@@ -21,10 +21,7 @@ export function ResultsView({ list }: { list: KinkList }) {
   const href = useHref();
   const { data: stored } = useListData(list.slug);
   const exportLabels = useExportLabels(list.name);
-  const data = useMemo<ListData>(() => {
-    const categories = withCustom(list, stored.custom, "");
-    return { ...stored, answers: pruneKeys(categories, stored.answers), experience: pruneKeys(categories, stored.experience) };
-  }, [list, stored]);
+  const data = useMemo(() => pruneListData(list, stored), [list, stored]);
   const stats = useMemo(() => computeStats(allChoices(withCustom(list, data.custom, "")), data.answers), [list, data]);
   const [dialog, setDialog] = useState<"share" | "image" | "clear" | null>(null);
 

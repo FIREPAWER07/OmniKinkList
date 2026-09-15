@@ -28,6 +28,17 @@ export async function consumeRateLimit(key: string, limit: number, windowSeconds
   }
 }
 
+/** Like `consumeRateLimit`, but returns whether the limit was hit instead of throwing. */
+export async function isRateLimited(key: string, limit: number, windowSeconds: number) {
+  try {
+    await consumeRateLimit(key, limit, windowSeconds);
+    return false;
+  } catch (error) {
+    if (error instanceof RateLimitError) return true;
+    throw error;
+  }
+}
+
 /** Best-effort client IP (Netlify sets `x-nf-client-connection-ip`). */
 export async function clientIp() {
   const h = await headers();

@@ -8,11 +8,11 @@ import { toast } from "sonner";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useHref, useT } from "@/i18n/client";
-import { allChoices, computeStats, pruneKeys, withCustom } from "@/lib/kinks/choices";
+import { allChoices, computeStats, pruneListData, withCustom } from "@/lib/kinks/choices";
 import { isEmptyListData } from "@/lib/kinks/list-data";
 import { decodeShare } from "@/lib/kinks/share";
 import { listStore, profileStore } from "@/lib/kinks/store";
-import type { KinkList, ListData } from "@/lib/kinks/types";
+import type { KinkList } from "@/lib/kinks/types";
 import { AnswerSummary } from "./answer-summary";
 
 function subscribeHash(notify: () => void) {
@@ -29,11 +29,7 @@ export function SharedView({ lists }: { lists: KinkList[] }) {
 
   const decoded = useMemo(() => (hash ? decodeShare(hash) : null), [hash]);
   const list = decoded ? lists.find((l) => l.slug === decoded.slug) : undefined;
-  const data = useMemo<ListData | null>(() => {
-    if (!list || !decoded) return null;
-    const categories = withCustom(list, decoded.data.custom, "");
-    return { ...decoded.data, answers: pruneKeys(categories, decoded.data.answers), experience: pruneKeys(categories, decoded.data.experience) };
-  }, [list, decoded]);
+  const data = useMemo(() => (list && decoded ? pruneListData(list, decoded.data) : null), [list, decoded]);
 
   if (hash === null) return <div className="mx-auto h-96 max-w-7xl animate-pulse px-4 pt-10 lg:px-8" aria-busy="true" />;
 

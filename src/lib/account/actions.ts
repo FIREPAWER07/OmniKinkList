@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { account, user } from "@/db/schema";
 import { isLocale } from "@/i18n/config";
 import { auth, usesAuthenticatorApp } from "@/lib/auth";
-import { consumeRateLimit, RateLimitError } from "@/lib/rate-limit";
+import { isRateLimited } from "@/lib/rate-limit";
 import { getCurrentUser } from "@/lib/session";
 import { profileInput, type ProfileInput } from "./profile";
 
@@ -51,13 +51,8 @@ export async function updateProfile(input: ProfileInput): Promise<UpdateProfileR
   if (!current) return { ok: false, error: "unauthorized" };
   const parsed = profileInput.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid", field: parsed.error.issues[0]?.path[0] as keyof ProfileInput };
-  try {
-    // Also slows down guessing which usernames exist through the "taken" error.
-    await consumeRateLimit(`profile:${current.id}`, 30, 3600);
-  } catch (error) {
-    if (error instanceof RateLimitError) return { ok: false, error: "rate-limited" };
-    throw error;
-  }
+  // Also slows down guessing which usernames exist through the "taken" error.
+  if (await isRateLimited(`profile:${current.id}`, 30, 3600)) return { ok: false, error: "rate-limited" };
 
   const { name, username, bio, profilePublic } = parsed.data;
   const [owner] = await db.select({ id: user.id }).from(user).where(eq(user.username, username));

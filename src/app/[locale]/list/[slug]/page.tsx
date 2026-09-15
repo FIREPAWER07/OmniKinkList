@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { RatingView } from "@/components/kinks/rating-view";
-import { getLocale, getT } from "@/i18n/server";
+import { getLocale, getTranslator } from "@/i18n/server";
 import { getList, getPublishedLists } from "@/lib/kinks/data";
 
 export async function generateStaticParams() {
@@ -10,7 +10,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/list/[slug]">): Promise<Metadata> {
-  const [{ slug }, locale, t] = await Promise.all([params, getLocale(), getT()]);
+  const [{ slug }, locale] = await Promise.all([params, getLocale()]);
+  const t = getTranslator(locale);
   const list = await getList(slug, locale);
   return { title: list ? t("rating.title", { name: list.name }) : t("notFound.title"), description: list?.description };
 }

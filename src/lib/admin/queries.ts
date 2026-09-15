@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, count, desc, eq, gt, ilike, inArray, ne, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
-import { hasUnpublishedChanges, loadDraft, pendingChanges } from "@/db/content";
+import { hasUnpublishedChanges, loadDraftAndLatest, pendingChanges } from "@/db/content";
 import { account, auditLog, categories, lists, listVersions, session, suggestions, user, userVaults } from "@/db/schema";
 
 export const USER_FILTERS = ["all", "new", "staff", "banned", "unverified"] as const;
@@ -134,48 +134,57 @@ export async function getUserDetail(id: string) {
   return { profile, accounts, sessions, vault: vault ?? null, recentSuggestions, suggestionTotals, moderation, edits };
 }
 
-export type UserDetail = NonNullable<Awaited<ReturnType<typeof getUserDetail>>>;
-
+/** The latest activity, serialized for the client. Snapshots are left out; only whether a change can be undone is sent. */
 export async function getAuditLog(limit = 100) {
-  return db.select().from(auditLog).orderBy(desc(auditLog.createdAt), desc(auditLog.id)).limit(limit);
+  const rows = await db
+    .select({
+      id: auditLog.id,
+      userName: auditLog.userName,
+      summary: auditLog.summary,
+      action: auditLog.action,
+      listSlug: auditLog.listSlug,
+      entityType: auditLog.entityType,
+      hasBefore: sql<boolean>`${auditLog.before} is not null`,
+      revertedAt: auditLog.revertedAt,
+      revertedByName: auditLog.revertedByName,
+      createdAt: auditLog.createdAt,
+    })
+    .from(auditLog)
+    .orderBy(desc(auditLog.createdAt), desc(auditLog.id))
+    .limit(limit);
+  return rows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString(), revertedAt: row.revertedAt?.toISOString() ?? null }));
 }
 
-export type AuditEntry = Awaited<ReturnType<typeof getAuditLog>>[number];
-
 export async function getDraftOverview() {
-  const rows = await db.select().from(lists).orderBy(asc(lists.sortOrder), asc(lists.name));
+  const rows = await db.select({ slug: lists.slug, name: lists.name }).from(lists).orderBy(asc(lists.sortOrder), asc(lists.name));
   return Promise.all(
     rows.map(async (list) => {
-      const [draft, latest, unpublished] = await Promise.all([
-        loadDraft(list.slug),
-        db.select({ version: listVersions.version, publishedAt: listVersions.publishedAt }).from(listVersions).where(eq(listVersions.listSlug, list.slug)).orderBy(desc(listVersions.version)).limit(1),
-        hasUnpublishedChanges(list.slug),
-      ]);
-      const itemCount = draft?.categories.reduce((n, c) => n + c.items.length, 0) ?? 0;
+      const { draft, latest } = await loadDraftAndLatest(list.slug);
       return {
         slug: list.slug,
         name: list.name,
         categoryCount: draft?.categories.length ?? 0,
-        itemCount,
-        version: latest[0]?.version ?? null,
-        publishedAt: latest[0]?.publishedAt ?? null,
-        unpublished,
+        itemCount: draft?.categories.reduce((n, c) => n + c.items.length, 0) ?? 0,
+        version: latest?.version ?? null,
+        publishedAt: latest?.publishedAt ?? null,
+        unpublished: !!draft && hasUnpublishedChanges(draft, latest),
       };
     }),
   );
 }
 
+/** Every category of every list, for pickers that move or add items. */
+export async function getAllCategories() {
+  return db
+    .select({ id: categories.id, name: categories.name, listSlug: categories.listSlug, listName: lists.name })
+    .from(categories)
+    .innerJoin(lists, eq(lists.slug, categories.listSlug))
+    .orderBy(asc(lists.sortOrder), asc(categories.sortOrder));
+}
+
 export async function getEditorList(slug: string) {
-  const [draft, changes, allCategories] = await Promise.all([
-    loadDraft(slug),
-    pendingChanges(slug),
-    db
-      .select({ id: categories.id, name: categories.name, listSlug: categories.listSlug, listName: lists.name })
-      .from(categories)
-      .innerJoin(lists, eq(lists.slug, categories.listSlug))
-      .orderBy(asc(lists.sortOrder), asc(categories.sortOrder)),
-  ]);
-  return draft ? { draft, changes, allCategories } : null;
+  const [{ draft, latest }, allCategories] = await Promise.all([loadDraftAndLatest(slug), getAllCategories()]);
+  return draft ? { draft, changes: pendingChanges(draft, latest), allCategories } : null;
 }
 
 export async function getVersions(slug: string) {
@@ -197,6 +206,6 @@ export async function getSuggestions(status: "pending" | "accepted" | "rejected"
 }
 
 export async function countPendingSuggestions() {
-  const [row] = await db.select({ value: count() }).from(suggestions).where(and(eq(suggestions.status, "pending")));
+  const [row] = await db.select({ value: count() }).from(suggestions).where(eq(suggestions.status, "pending"));
   return row?.value ?? 0;
 }

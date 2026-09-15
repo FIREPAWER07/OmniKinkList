@@ -5,12 +5,12 @@ import { LevelGuide } from "@/components/home/level-guide";
 import { ListRow } from "@/components/home/list-row";
 import { buttonClass } from "@/components/ui/button";
 import { localePath } from "@/i18n/config";
-import { getLocale, getT } from "@/i18n/server";
+import { getLocale, getTranslator } from "@/i18n/server";
 import { getPublishedLists, summarize } from "@/lib/kinks/data";
 
 export default async function HomePage() {
   const locale = await getLocale();
-  const t = await getT();
+  const t = getTranslator(locale);
   const lists = await getPublishedLists(locale);
   const summaries = lists.map(summarize);
   const demoItem =

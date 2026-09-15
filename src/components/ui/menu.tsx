@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, use, useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { createContext, use, useEffect, useId, useMemo, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 const MenuContext = createContext<{ open: boolean; toggle: () => void; close: () => void; id: string } | null>(null);
@@ -22,6 +22,7 @@ export function Menu({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
+  const context = useMemo(() => ({ open, toggle: () => setOpen((v) => !v), close: () => setOpen(false), id }), [open, id]);
 
   useEffect(() => {
     if (!open) return;
@@ -38,7 +39,7 @@ export function Menu({
   }, [open]);
 
   return (
-    <MenuContext value={{ open, toggle: () => setOpen((v) => !v), close: () => setOpen(false), id }}>
+    <MenuContext value={context}>
       <div ref={ref} className="relative">
         {trigger}
         {open && (
@@ -118,8 +119,4 @@ export function MenuItem({
 
 export function MenuSeparator() {
   return <div className="my-1 h-px bg-border" />;
-}
-
-export function useCloseMenu() {
-  return useMenu().close;
 }

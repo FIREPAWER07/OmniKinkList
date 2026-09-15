@@ -10,7 +10,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { asc } from "drizzle-orm";
-import type { PublishedData } from "../lib/kinks/published";
+import { translationEntries, type PublishedData } from "../lib/kinks/published";
 import { loadDraft, loadLatestVersion } from "./content";
 import { closeDb, db } from "./index";
 import { lists } from "./schema";
@@ -65,11 +65,7 @@ async function main() {
   ];
   await writeFile(path.join(OUT_DIR, "index.ts"), index.join("\n"));
 
-  const translations = exported.flatMap((d) =>
-    Object.entries(d.translations ?? {}).flatMap(([locale, entities]) =>
-      Object.entries(entities).flatMap(([entityKey, fields]) => Object.entries(fields).map(([field, value]) => ({ locale, entityKey, field, value }))),
-    ),
-  );
+  const translations = exported.flatMap((d) => translationEntries(d.translations));
   const translationFile = [
     `/**`,
     ` * Content translations applied on seed: \`{ locale, entityKey, field, value }\`.`,

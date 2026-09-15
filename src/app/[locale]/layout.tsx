@@ -7,8 +7,9 @@ import { Providers } from "@/components/providers";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { LOCALES, localePath } from "@/i18n/config";
-import { getLocale, getT } from "@/i18n/server";
+import { getLocale, getTranslator } from "@/i18n/server";
 import { ACCENT_SCRIPT } from "@/lib/accent";
+import { SITE_URL } from "@/lib/site-url";
 import "../globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin", "latin-ext"] });
@@ -19,11 +20,10 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
   const locale = await getLocale();
-  const siteUrl = process.env.BETTER_AUTH_URL || process.env.NETLIFY_SITE_URL || "http://localhost:3000";
+  const t = getTranslator(locale);
   return {
-    metadataBase: new URL(siteUrl),
+    metadataBase: new URL(SITE_URL),
     title: { default: "OmniKinkList", template: "%s | OmniKinkList" },
     description: t("meta.description"),
     alternates: {

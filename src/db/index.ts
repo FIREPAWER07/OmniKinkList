@@ -17,7 +17,6 @@ function createClient(): Sql {
 const client = (globalForDb.pgClient ??= createClient());
 
 export const db = drizzle(client, { schema });
-export type Database = typeof db;
 
 /** Closes the connection so command line scripts can exit. */
 export const closeDb = () => client.end();

@@ -4,7 +4,7 @@ import { CheckCircleIcon, SparkleIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useT } from "@/i18n/client";
 import { cn } from "@/lib/cn";
-import { allChoices, computeStats, itemKey, optionKey, withCustom } from "@/lib/kinks/choices";
+import { allChoices, computeStats, itemChoices, itemKey, withCustom } from "@/lib/kinks/choices";
 import { LEVELS, type Experience, type KinkList, type Level, type ListData } from "@/lib/kinks/types";
 import { CategoryIcon } from "./category-icon";
 import { LEVEL_STYLES, LevelChip, LevelGlyph } from "./level";
@@ -45,12 +45,8 @@ export function AnswerSummary({ list, data }: { list: KinkList; data: ListData }
           category,
           items: category.items
             .map((item) => {
-              const rows = (
-                item.options.length === 0
-                  ? [{ key: itemKey(item), label: null as string | null }]
-                  : item.options.map((o) => ({ key: optionKey(item, o.id), label: o.label as string | null }))
-              )
-                .map((row) => ({ ...row, level: data.answers[row.key], experience: data.experience[row.key] }))
+              const rows = itemChoices(item)
+                .map(({ key, optionLabel }) => ({ key, label: optionLabel, level: data.answers[key], experience: data.experience[key] }))
                 .filter((row) => (onlyWant ? row.experience === "want" : row.level && shown.has(row.level)));
               return { item, rows, note: data.notes[itemKey(item)] };
             })
@@ -131,7 +127,7 @@ export function AnswerSummary({ list, data }: { list: KinkList; data: ListData }
               </h2>
               <div className="gap-3 md:columns-2 xl:columns-3">
                 {items.map(({ item, rows, note }) => (
-                  <article key={`${item.custom ? "c" : "i"}${item.id}`} className="mb-3 break-inside-avoid rounded-xl border border-border bg-surface p-4">
+                  <article key={itemKey(item)} className="mb-3 break-inside-avoid rounded-xl border border-border bg-surface p-4">
                     <h3 className="font-medium leading-snug">{item.name}</h3>
                     <ul className="mt-2.5 grid gap-1.5">
                       {rows.map((row) => (

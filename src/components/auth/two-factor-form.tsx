@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/field";
+import { Field, FormError, Input } from "@/components/ui/field";
 import { useHref, useT } from "@/i18n/client";
 import type { MessageKey } from "@/i18n/translator";
 import { authClient } from "@/lib/auth-client";
@@ -88,11 +88,7 @@ export function TwoFactorForm() {
         <label className="flex items-center gap-2 text-sm text-muted">
           <input type="checkbox" name="trust" className="size-4 accent-[var(--accent)]" /> {t("auth.trustDevice")}
         </label>
-        {error && (
-          <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
-            {error}
-          </p>
-        )}
+        <FormError>{error}</FormError>
         {notice && (
           <p role="status" className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-muted">
             {notice}

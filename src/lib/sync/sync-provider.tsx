@@ -64,6 +64,9 @@ interface Active {
   encryption: Encryption | null;
 }
 
+/** The key this device holds for the active vault, if it is encrypted. */
+const heldKey = (state: Active) => state.encryption?.key ?? null;
+
 /** A vault this device knew as encrypted came back readable. */
 class EncryptionRemovedError extends Error {}
 
@@ -135,7 +138,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       if (result.reason === "rate-limited") return;
       if (result.reason !== "conflict") throw new Error(`Sync failed: ${result.reason}`);
       // Another device synced first: merge its data, then try again on top of the newer version.
-      await pull(result.current, state.encryption?.key ?? null);
+      await pull(result.current, heldKey(state));
     }
   }, [pull]);
 
@@ -206,7 +209,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       const state = active.current;
       if (document.visibilityState !== "visible" || !state) return;
       getVault()
-        .then((vault) => (vault && vault.version !== state.version ? pull(vault, state.encryption?.key ?? null) : undefined))
+        .then((vault) => (vault && vault.version !== state.version ? pull(vault, heldKey(state)) : undefined))
         .catch(async (error) => {
           // Network hiccups are ignored here; the next push reports real failures.
           if (isEncryptionChange(error)) await fail(error);
@@ -259,7 +262,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
           if (!userId || !state) return;
           // Merge what other devices synced first, since the vault is about to be overwritten.
           const vault = await getVault();
-          if (vault && vault.version !== state.version) await pull(vault, state.encryption?.key ?? null);
+          if (vault && vault.version !== state.version) await pull(vault, heldKey(state));
           const encryption = passphrase ? await newEncryption(passphrase) : null;
           await replace(encryption);
           if (encryption) await rememberKey(userId, encryption.key);
@@ -285,7 +288,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
           if (!state) return;
           try {
             const vault = await getVault();
-            if (vault) await pull(vault, state.encryption?.key ?? null);
+            if (vault) await pull(vault, heldKey(state));
             await push();
           } catch (error) {
             await fail(error);

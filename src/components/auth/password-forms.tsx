@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Turnstile } from "@/components/turnstile";
 import { Button, buttonClass } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/field";
+import { Field, FormError, Input } from "@/components/ui/field";
 import { useHref, useT } from "@/i18n/client";
 import { authClient } from "@/lib/auth-client";
 
@@ -110,11 +110,7 @@ export function ResetPasswordForm() {
           <Field label={t("auth.confirmPassword")} htmlFor="confirm">
             <Input id="confirm" name="confirm" type="password" autoComplete="new-password" minLength={10} required />
           </Field>
-          {error && (
-            <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
-              {error}
-            </p>
-          )}
+          <FormError>{error}</FormError>
           <Button type="submit" variant="primary" size="lg" disabled={pending} className="w-full">
             {t("auth.resetButton")}
           </Button>

@@ -33,44 +33,47 @@ const neutral = (level?: Level) => level === "maybe" || level === "indifferent";
 /** Roles anyone can share with anyone ("Switch", "Mutual (69)"), instead of needing the opposite role. */
 const SHARED_ROLE = /mutual|switch|together|both|69/i;
 
+const wants = (side: CompareSide) => side.experience === "want";
+
 function compatible(a: CompareRow, b: CompareRow) {
   return a.key !== b.key || SHARED_ROLE.test(a.label ?? "");
+}
+
+/** How person A's answer relates to person B's, for one pair of choices. */
+function relate(a: CompareSide, b: CompareSide) {
+  return {
+    match: positive(a.level) && positive(b.level),
+    conflict: (positive(a.level) && negative(b.level)) || (negative(a.level) && positive(b.level)),
+    talk: (positive(a.level) && neutral(b.level)) || (neutral(a.level) && positive(b.level)),
+    curious: (wants(a) && (wants(b) || positive(b.level))) || (wants(b) && positive(a.level)),
+  };
 }
 
 function classify(rows: CompareRow[]): { bucket: CompareBucket | null; rolePairs: [string, string][] } {
   const roles = rows.filter((r) => r.kind === "role");
   const direct = rows.filter((r) => r.kind !== "role");
   const rolePairs: [string, string][] = [];
-  let conflict = false;
-  let match = false;
-  let curious = false;
-  let talk = false;
+  const found = { conflict: false, match: false, curious: false, talk: false };
+  const record = (relation: ReturnType<typeof relate>) => {
+    for (const flag of Object.keys(found) as (keyof typeof found)[]) if (relation[flag]) found[flag] = true;
+  };
 
+  // Roles pair up across people: A's "Giving" with B's "Receiving".
   for (const x of roles) {
     for (const y of roles) {
       if (!compatible(x, y)) continue;
-      if (positive(x.a.level) && positive(y.b.level)) {
-        match = true;
-        rolePairs.push([x.label ?? "", y.label ?? ""]);
-      }
-      if ((positive(x.a.level) && negative(y.b.level)) || (negative(x.a.level) && positive(y.b.level))) conflict = true;
-      if ((positive(x.a.level) && neutral(y.b.level)) || (neutral(x.a.level) && positive(y.b.level))) talk = true;
-      if (x.a.experience === "want" && (y.b.experience === "want" || positive(y.b.level))) curious = true;
-      if (y.b.experience === "want" && positive(x.a.level)) curious = true;
+      const relation = relate(x.a, y.b);
+      if (relation.match) rolePairs.push([x.label ?? "", y.label ?? ""]);
+      record(relation);
     }
   }
 
-  for (const r of direct) {
-    if (positive(r.a.level) && positive(r.b.level)) match = true;
-    if ((positive(r.a.level) && negative(r.b.level)) || (negative(r.a.level) && positive(r.b.level))) conflict = true;
-    if ((positive(r.a.level) && neutral(r.b.level)) || (neutral(r.a.level) && positive(r.b.level))) talk = true;
-    if (r.a.experience === "want" && r.b.experience === "want") curious = true;
-    if ((r.a.experience === "want" && positive(r.b.level)) || (r.b.experience === "want" && positive(r.a.level))) curious = true;
-  }
+  for (const r of direct) record(relate(r.a, r.b));
 
   // Roles where both want the same side still deserve a conversation.
-  for (const r of roles) if (positive(r.a.level) && positive(r.b.level) && !SHARED_ROLE.test(r.label ?? "")) talk = true;
+  for (const r of roles) if (positive(r.a.level) && positive(r.b.level) && !SHARED_ROLE.test(r.label ?? "")) found.talk = true;
 
+  const { conflict, match, curious, talk } = found;
   const bucket = conflict ? "conflict" : match ? "match" : curious ? "curious" : talk ? "talk" : null;
   return { bucket, rolePairs };
 }

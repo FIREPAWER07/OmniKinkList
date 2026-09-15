@@ -1,7 +1,6 @@
 import { appendFile } from "node:fs/promises";
-import { DEFAULT_LOCALE, isLocale, type Locale } from "@/i18n/config";
-import { MESSAGES } from "@/i18n/messages";
-import { createTranslator } from "@/i18n/translator";
+import { DEFAULT_LOCALE, isLocale } from "@/i18n/config";
+import { translatorFor } from "@/i18n/messages";
 
 interface Email {
   to: string;
@@ -51,13 +50,10 @@ ${action}
 </div></body></html>`;
 }
 
-function translatorFor(locale: unknown) {
-  const lang: Locale = isLocale(locale) ? locale : DEFAULT_LOCALE;
-  return createTranslator(lang, MESSAGES[lang], MESSAGES[DEFAULT_LOCALE]);
-}
+const emailTranslator = (locale: unknown) => translatorFor(isLocale(locale) ? locale : DEFAULT_LOCALE);
 
 export function authEmail(kind: "verify" | "reset", to: string, url: string, locale: unknown) {
-  const t = translatorFor(locale);
+  const t = emailTranslator(locale);
   const title = t(`email.${kind}Title`);
   const body = t(`email.${kind}Body`);
   const footer = t("email.ignore");
@@ -72,7 +68,7 @@ export function authEmail(kind: "verify" | "reset", to: string, url: string, loc
 
 /** The code for the second step of signing in, or for confirming email as the second step. */
 export function signInCodeEmail(to: string, code: string, minutes: number, locale: unknown) {
-  const t = translatorFor(locale);
+  const t = emailTranslator(locale);
   const title = t("email.codeTitle");
   const body = t("email.codeBody", { minutes });
   const footer = t("email.codeIgnore");

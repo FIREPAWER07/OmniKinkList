@@ -2,6 +2,7 @@
 
 import { inferAdditionalFields, twoFactorClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
+import { localePath, stripLocale } from "@/i18n/config";
 import type { auth } from "./auth";
 
 export const authClient = createAuthClient({
@@ -9,7 +10,7 @@ export const authClient = createAuthClient({
     inferAdditionalFields<typeof auth>(),
     twoFactorClient({
       async onTwoFactorRedirect({ twoFactorMethods }): Promise<void> {
-        const prefix = window.location.pathname.match(/^\/(it|es|de|fr)(?=\/|$)/)?.[0] ?? "";
+        const { locale } = stripLocale(window.location.pathname);
         const next = new URLSearchParams(window.location.search).get("next");
         const params = new URLSearchParams();
         if (next) params.set("next", next);
@@ -21,7 +22,7 @@ export const authClient = createAuthClient({
         }
         // A full page load, so the new session cookies are picked up by the server.
         const query = params.toString() ? `?${params}` : "";
-        window.location.assign(new URL(`${prefix}/two-factor${query}`, window.location.origin));
+        window.location.assign(new URL(`${localePath(locale, "/two-factor")}${query}`, window.location.origin));
       },
     }),
   ],

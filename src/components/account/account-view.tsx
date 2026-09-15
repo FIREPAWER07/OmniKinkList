@@ -38,8 +38,8 @@ export function AccountView() {
     if (!isPending && !userId) router.replace(`${href("/login")}?next=${encodeURIComponent(href("/account"))}`);
   }, [userId, isPending, router, href]);
 
-  // Keyed on the user only: `href` changes every render, and a render during a link click (to the profile page, say)
-  // would otherwise call this action from a page that doesn't include it.
+  // Keyed on the user only: re-running on anything else during a link click (to the profile page, say) would call this
+  // action from a page that doesn't include it.
   useEffect(() => {
     if (userId) getAccountInfo().then(setInfo);
   }, [userId]);

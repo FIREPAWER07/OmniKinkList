@@ -3,7 +3,7 @@
 import { CheckCircleIcon } from "@phosphor-icons/react";
 import { useState, useTransition, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { Field, FormError, Input, Select, Textarea } from "@/components/ui/field";
 import { useLocale, useT } from "@/i18n/client";
 import { submitSuggestion } from "@/lib/suggestions/actions";
 import { Turnstile } from "./turnstile";
@@ -118,11 +118,7 @@ export function SuggestForm({ lists }: { lists: ListOption[] }) {
         </Field>
         <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
         <Turnstile onToken={setToken} resetKey={resetKey} />
-        {error && (
-          <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
-            {error}
-          </p>
-        )}
+        <FormError>{error}</FormError>
         <div className="flex justify-end">
           <Button type="submit" variant="primary" disabled={pending}>
             {pending ? t("common.sending") : t("suggest.submit")}

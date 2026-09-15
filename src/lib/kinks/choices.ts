@@ -6,6 +6,7 @@ import {
   type KinkItem,
   type KinkList,
   type Level,
+  type ListData,
 } from "./types";
 
 /**
@@ -84,16 +85,25 @@ export function listChoices(list: KinkList): Choice[] {
   return allChoices(list.categories);
 }
 
-/** Drops keys whose choice no longer exists. */
-export function pruneKeys<T>(categories: KinkCategory[], map: Record<string, T>): Record<string, T> {
-  const valid = new Set(allChoices(categories).map((c) => c.key));
+function keepKeys<T>(valid: Set<ChoiceKey>, map: Record<string, T>): Record<string, T> {
   const pruned: Record<string, T> = {};
   for (const [key, value] of Object.entries(map)) if (valid.has(key)) pruned[key] = value;
   return pruned;
 }
 
+/** Drops keys whose choice no longer exists. */
+export function pruneKeys<T>(categories: KinkCategory[], map: Record<string, T>): Record<string, T> {
+  return keepKeys(new Set(allChoices(categories).map((c) => c.key)), map);
+}
+
 export function pruneAnswers(list: KinkList, answers: Answers): Answers {
   return pruneKeys(list.categories, answers);
+}
+
+/** List data without answers and experience for choices that no longer exist in the list or the person's own items. */
+export function pruneListData(list: KinkList, data: ListData): ListData {
+  const valid = new Set(allChoices(withCustom(list, data.custom, "")).map((c) => c.key));
+  return { ...data, answers: keepKeys(valid, data.answers), experience: keepKeys(valid, data.experience) };
 }
 
 export interface AnswerStats {

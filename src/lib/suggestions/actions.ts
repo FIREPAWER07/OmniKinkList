@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { suggestions } from "@/db/schema";
 import { isLocale } from "@/i18n/config";
 import { verifyCaptcha } from "@/lib/captcha";
-import { clientIp, consumeRateLimit, RateLimitError } from "@/lib/rate-limit";
+import { clientIp, isRateLimited } from "@/lib/rate-limit";
 import { getCurrentUser } from "@/lib/session";
 
 const labels = z
@@ -34,12 +34,7 @@ export async function submitSuggestion(input: z.input<typeof suggestionInput>): 
   if (!parsed.success) return { ok: false, error: "invalid" };
   const ip = await clientIp();
   if (!(await verifyCaptcha(parsed.data.captchaToken, ip))) return { ok: false, error: "captcha" };
-  try {
-    await consumeRateLimit(`suggest:${ip}`, 5, 3600);
-  } catch (error) {
-    if (error instanceof RateLimitError) return { ok: false, error: "rate-limited" };
-    throw error;
-  }
+  if (await isRateLimited(`suggest:${ip}`, 5, 3600)) return { ok: false, error: "rate-limited" };
   const user = await getCurrentUser();
   const { listSlug, categoryId, name, description, comment, roles, variants, locale } = parsed.data;
   await db.insert(suggestions).values({

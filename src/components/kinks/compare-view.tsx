@@ -7,11 +7,12 @@ import { Field, Select, Textarea } from "@/components/ui/field";
 import { useT } from "@/i18n/client";
 import { cn } from "@/lib/cn";
 import { BUCKET_ORDER, compareAnswers, type CompareBucket, type CompareItem } from "@/lib/kinks/compare";
-import { decodeShareInput } from "@/lib/kinks/share";
-import { DEFAULT_PROFILE_ID, listStore, useHydrated, useProfiles } from "@/lib/kinks/store";
+import { decodeShareInput, type SharedList } from "@/lib/kinks/share";
+import { listStore, useHydrated, useProfiles } from "@/lib/kinks/store";
 import type { KinkList, ListData } from "@/lib/kinks/types";
 import { ExperienceChip } from "./answer-summary";
 import { LevelChip } from "./level";
+import { profileDisplayName } from "./profile-switcher";
 
 const BUCKET_ICONS: Record<CompareBucket, Icon> = {
   match: HandshakeIcon,
@@ -25,8 +26,20 @@ type SourceState = { mode: "profile"; profileId: string } | { mode: "link"; text
 interface ResolvedSource {
   slug: string | null;
   name: string;
+  /** Answers from a share link. Profile answers are read separately, once the list is known. */
   data: ListData | null;
   error?: "invalidLink";
+}
+
+function decodeLink(source: SourceState): SharedList | null {
+  return source.mode === "link" && source.text.trim() ? decodeShareInput(source.text) : null;
+}
+
+function resolve(source: SourceState, shared: SharedList | null, profileName: (id: string) => string, fallbackName: string): ResolvedSource {
+  if (source.mode === "profile") return { slug: null, name: profileName(source.profileId), data: null };
+  if (!source.text.trim()) return { slug: null, name: fallbackName, data: null };
+  if (!shared) return { slug: null, name: fallbackName, data: null, error: "invalidLink" };
+  return { slug: shared.slug, name: shared.name || fallbackName, data: shared.data };
 }
 
 export function CompareView({ lists }: { lists: KinkList[] }) {
@@ -45,31 +58,24 @@ function CompareInner({ lists }: { lists: KinkList[] }) {
   const [slug, setSlug] = useState(() => params.get("list") ?? lists[0]?.slug ?? "");
   const [sourceA, setSourceA] = useState<SourceState>({ mode: "profile", profileId: profiles.active });
   const [sourceB, setSourceB] = useState<SourceState>({ mode: "link", text: "" });
+  // Decoding a link is not free, so it only happens when the pasted text changes.
+  const sharedA = useMemo(() => decodeLink(sourceA), [sourceA]);
+  const sharedB = useMemo(() => decodeLink(sourceB), [sourceB]);
 
-  const profileName = (id: string) => {
-    const profile = profiles.profiles.find((p) => p.id === id);
-    return profile?.name || (id === DEFAULT_PROFILE_ID ? t("profiles.me") : t("profiles.unnamed"));
-  };
+  const profileName = (id: string) => profileDisplayName(profiles.profiles.find((p) => p.id === id) ?? { id, name: "" }, t);
+  const profileOptions = profiles.profiles.map((p) => ({ id: p.id, name: profileName(p.id) }));
 
-  const resolve = (source: SourceState, fallbackName: string): ResolvedSource => {
-    if (source.mode === "profile") {
-      return { slug: null, name: profileName(source.profileId), data: hydrated ? listStore.get(slug, source.profileId) : null };
-    }
-    if (!source.text.trim()) return { slug: null, name: fallbackName, data: null };
-    const shared = decodeShareInput(source.text);
-    if (!shared) return { slug: null, name: fallbackName, data: null, error: "invalidLink" };
-    return { slug: shared.slug, name: shared.name || fallbackName, data: shared.data };
-  };
-
-  const a = resolve(sourceA, t("compare.personA"));
-  const b = resolve(sourceB, t("compare.personB"));
+  const a = resolve(sourceA, sharedA, profileName, t("compare.personA"));
+  const b = resolve(sourceB, sharedB, profileName, t("compare.personB"));
   const linkSlugs = [a.slug, b.slug].filter((s): s is string => !!s);
   const effectiveSlug = linkSlugs[0] ?? slug;
   const mismatch = linkSlugs.length === 2 && linkSlugs[0] !== linkSlugs[1];
   const list = lists.find((l) => l.slug === effectiveSlug);
 
-  const aData = sourceA.mode === "profile" && hydrated ? listStore.get(effectiveSlug, sourceA.profileId) : a.data;
-  const bData = sourceB.mode === "profile" && hydrated ? listStore.get(effectiveSlug, sourceB.profileId) : b.data;
+  const dataOf = (source: SourceState, resolved: ResolvedSource) =>
+    source.mode === "profile" ? (hydrated ? listStore.get(effectiveSlug, source.profileId) : null) : resolved.data;
+  const aData = dataOf(sourceA, a);
+  const bData = dataOf(sourceB, b);
 
   const results = useMemo(() => (list && aData && bData && !mismatch ? compareAnswers(list, aData, bData) : null), [list, aData, bData, mismatch]);
 
@@ -79,8 +85,8 @@ function CompareInner({ lists }: { lists: KinkList[] }) {
       <p className="mt-2 max-w-2xl text-muted">{t("compare.subtitle")}</p>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2">
-        <SourcePicker label={t("compare.personA")} state={sourceA} onChange={setSourceA} profiles={profiles.profiles.map((p) => ({ id: p.id, name: profileName(p.id) }))} error={a.error} />
-        <SourcePicker label={t("compare.personB")} state={sourceB} onChange={setSourceB} profiles={profiles.profiles.map((p) => ({ id: p.id, name: profileName(p.id) }))} error={b.error} />
+        <SourcePicker label={t("compare.personA")} state={sourceA} onChange={setSourceA} profiles={profileOptions} error={a.error} />
+        <SourcePicker label={t("compare.personB")} state={sourceB} onChange={setSourceB} profiles={profileOptions} error={b.error} />
       </div>
 
       {linkSlugs.length === 0 && (

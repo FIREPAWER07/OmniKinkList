@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { localePath } from "@/i18n/config";
-import { getLocale, getT } from "@/i18n/server";
+import { getLocale, getT, getTranslator } from "@/i18n/server";
 import { getChangelog } from "@/lib/kinks/data";
 import type { ListChanges } from "@/lib/kinks/published";
 
@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ChangelogPage() {
   const locale = await getLocale();
-  const t = await getT();
+  const t = getTranslator(locale);
   const entries = await getChangelog(locale);
   const dateFormat = new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" });
 

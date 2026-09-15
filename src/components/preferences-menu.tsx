@@ -15,6 +15,11 @@ const SWATCH: Record<Accent, string> = { pink: "#ff4f8b", violet: "#a78bfa", blu
 
 const accentListeners = new Set<() => void>();
 
+function subscribeAccent(listener: () => void) {
+  accentListeners.add(listener);
+  return () => accentListeners.delete(listener);
+}
+
 function readAccent(): Accent {
   try {
     const value = localStorage.getItem(ACCENT_KEY);
@@ -49,14 +54,7 @@ export function PreferencesMenu() {
   const router = useRouter();
   const hydrated = useHydrated();
   const { theme, setTheme } = useTheme();
-  const accent = useSyncExternalStore(
-    (listener) => {
-      accentListeners.add(listener);
-      return () => accentListeners.delete(listener);
-    },
-    readAccent,
-    () => "pink" as Accent,
-  );
+  const accent = useSyncExternalStore(subscribeAccent, readAccent, () => "pink" as Accent);
 
   // The inline script handles first paint; this re-applies it when a language switch re-renders <html>.
   useEffect(() => {

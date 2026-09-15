@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { ItemCard } from "@/components/kinks/item-card";
 import { useT } from "@/i18n/client";
+import { optionKey } from "@/lib/kinks/choices";
 import { emptyListData, setKey } from "@/lib/kinks/list-data";
 import type { Experience, KinkItem, Level } from "@/lib/kinks/types";
 
@@ -13,8 +14,8 @@ export function DemoCard({ item }: { item: KinkItem }) {
   const [data, setData] = useState(() => {
     const initial = emptyListData();
     const preset: Level[] = ["favorite", "like", "maybe"];
-    shown.options.slice(0, 3).forEach((o, i) => (initial.answers[`o${o.id}`] = preset[i]));
-    if (shown.options[1]) initial.experience[`o${shown.options[1].id}`] = "want";
+    shown.options.slice(0, 3).forEach((o, i) => (initial.answers[optionKey(shown, o.id)] = preset[i]));
+    if (shown.options[1]) initial.experience[optionKey(shown, shown.options[1].id)] = "want";
     return initial;
   });
 

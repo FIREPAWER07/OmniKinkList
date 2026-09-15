@@ -5,13 +5,12 @@
  *   bun run db:local    serves the database kept in `.pglite` on port 5432
  *
  * PGlite has a single connection that the server shares, so clients must use one connection each:
- * keep `?max=1` on the DATABASE_URL (see LOCAL_DATABASE_URL).
+ * keep `?max=1` on the DATABASE_URL (see `localDatabaseUrl`).
  */
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 
 export const localDatabaseUrl = (port: number) => `postgres://postgres:postgres@127.0.0.1:${port}/postgres?max=1`;
-export const LOCAL_DATABASE_URL = localDatabaseUrl(5432);
 
 /** Starts the server. `dataDir` undefined keeps everything in memory. */
 export async function startLocalDatabase({ dataDir, port }: { dataDir?: string; port: number }) {

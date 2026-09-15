@@ -1,11 +1,11 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { userVaults } from "@/db/schema";
 import type { StoreSnapshot } from "@/lib/kinks/store";
-import { consumeRateLimit, RateLimitError } from "@/lib/rate-limit";
+import { isRateLimited } from "@/lib/rate-limit";
 import { getCurrentUser } from "@/lib/session";
 
 /** A synced vault: either readable answers, or answers encrypted in the browser. */
@@ -71,12 +71,7 @@ export async function putVault(input: z.input<typeof putInput>): Promise<PutVaul
     ? { data: null, ciphertext: parsed.data.ciphertext, iv: parsed.data.iv, salt: parsed.data.salt, iterations: parsed.data.iterations }
     : { data: JSON.stringify(parsed.data.snapshot), ciphertext: null, iv: null, salt: null, iterations: null };
   if (payload.data && payload.data.length > MAX_PAYLOAD) return { ok: false, reason: "invalid" };
-  try {
-    await consumeRateLimit(`vault:${user.id}`, 120, 600);
-  } catch (error) {
-    if (error instanceof RateLimitError) return { ok: false, reason: "rate-limited" };
-    throw error;
-  }
+  if (await isRateLimited(`vault:${user.id}`, 120, 600)) return { ok: false, reason: "rate-limited" };
 
   const { baseVersion, force } = parsed.data;
   const [current] = await db.select().from(userVaults).where(eq(userVaults.userId, user.id));
@@ -84,10 +79,23 @@ export async function putVault(input: z.input<typeof putInput>): Promise<PutVaul
 
   const version = (current?.version ?? 0) + 1;
   const updatedAt = new Date();
-  if (current) {
-    await db.update(userVaults).set({ ...payload, version, updatedAt }).where(eq(userVaults.userId, user.id));
-  } else {
-    await db.insert(userVaults).values({ userId: user.id, ...payload, version, updatedAt });
+  const values = { ...payload, version, updatedAt };
+  // Unless forced, only the version read above is replaced, so a device syncing at the same moment gets a conflict
+  // (and merges) instead of silently overwriting the other one.
+  const written = current
+    ? await db
+        .update(userVaults)
+        .set(values)
+        .where(force ? eq(userVaults.userId, user.id) : and(eq(userVaults.userId, user.id), eq(userVaults.version, current.version)))
+        .returning({ version: userVaults.version })
+    : await db
+        .insert(userVaults)
+        .values({ userId: user.id, ...values })
+        .onConflictDoNothing()
+        .returning({ version: userVaults.version });
+  if (written.length === 0) {
+    const [latest] = await db.select().from(userVaults).where(eq(userVaults.userId, user.id));
+    if (latest) return { ok: false, reason: "conflict", current: toRecord(latest) };
   }
   return { ok: true, version, updatedAt: updatedAt.toISOString() };
 }

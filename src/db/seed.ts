@@ -5,18 +5,12 @@
  *   bun run db:seed --force  wipe all list content, versions and translations, then reseed (keeps users)
  */
 import { count } from "drizzle-orm";
-import { publishList, syncIdSequences } from "./content";
+import { inChunks, publishList, syncIdSequences } from "./content";
 import { closeDb, db } from "./index";
 import { auditLog, categories, contentTranslations, items, lists, listVersions, options } from "./schema";
 import { buildSeedRows } from "./seed-rows";
 import { seedLists } from "./seed-data";
 import { seedTranslations } from "./seed-data/translations";
-
-const CHUNK = 200;
-
-async function insertChunked<T>(rows: T[], insert: (chunk: T[]) => Promise<unknown>) {
-  for (let i = 0; i < rows.length; i += CHUNK) await insert(rows.slice(i, i + CHUNK));
-}
 
 async function main() {
   const force = process.argv.includes("--force");
@@ -38,11 +32,11 @@ async function main() {
   }
 
   const { listRows, categoryRows, itemRows, optionRows } = buildSeedRows(seedLists);
-  await insertChunked(listRows, (chunk) => db.insert(lists).values(chunk));
-  await insertChunked(categoryRows, (chunk) => db.insert(categories).values(chunk));
-  await insertChunked(itemRows, (chunk) => db.insert(items).values(chunk));
-  await insertChunked(optionRows, (chunk) => db.insert(options).values(chunk));
-  await insertChunked(seedTranslations, (chunk) => db.insert(contentTranslations).values(chunk));
+  await inChunks(listRows, (chunk) => db.insert(lists).values(chunk));
+  await inChunks(categoryRows, (chunk) => db.insert(categories).values(chunk));
+  await inChunks(itemRows, (chunk) => db.insert(items).values(chunk));
+  await inChunks(optionRows, (chunk) => db.insert(options).values(chunk));
+  await inChunks(seedTranslations, (chunk) => db.insert(contentTranslations).values(chunk));
   await syncIdSequences();
 
   for (const list of listRows) {

@@ -20,32 +20,28 @@ const SUGGESTION_STATUS_STYLES = {
   rejected: "bg-surface-2 text-muted",
 } as const;
 
+/** Checked in order: Edge and Opera also claim to be Chrome, and Chrome claims to be Safari. */
+const BROWSERS: [RegExp, string][] = [
+  [/Edg\//, "Edge"],
+  [/OPR\//, "Opera"],
+  [/Firefox\//, "Firefox"],
+  [/Chrome\//, "Chrome"],
+  [/Safari\//, "Safari"],
+];
+/** Checked in order: Android also claims to be Linux, and iOS to be macOS. */
+const SYSTEMS: [RegExp, string][] = [
+  [/Android/, "Android"],
+  [/iPhone|iPad/, "iOS"],
+  [/Windows/, "Windows"],
+  [/Mac OS X/, "macOS"],
+  [/Linux/, "Linux"],
+];
+
 /** "Firefox on Windows", good enough to tell sessions apart. */
 function describeUserAgent(userAgent: string | null) {
   if (!userAgent) return "Unknown device";
-  const browser = /Edg\//.test(userAgent)
-    ? "Edge"
-    : /OPR\//.test(userAgent)
-      ? "Opera"
-      : /Firefox\//.test(userAgent)
-        ? "Firefox"
-        : /Chrome\//.test(userAgent)
-          ? "Chrome"
-          : /Safari\//.test(userAgent)
-            ? "Safari"
-            : "Unknown browser";
-  const os = /Android/.test(userAgent)
-    ? "Android"
-    : /iPhone|iPad/.test(userAgent)
-      ? "iOS"
-      : /Windows/.test(userAgent)
-        ? "Windows"
-        : /Mac OS X/.test(userAgent)
-          ? "macOS"
-          : /Linux/.test(userAgent)
-            ? "Linux"
-            : "an unknown system";
-  return `${browser} on ${os}`;
+  const first = (patterns: [RegExp, string][], fallback: string) => patterns.find(([pattern]) => pattern.test(userAgent))?.[1] ?? fallback;
+  return `${first(BROWSERS, "Unknown browser")} on ${first(SYSTEMS, "an unknown system")}`;
 }
 
 function formatBytes(bytes: number) {

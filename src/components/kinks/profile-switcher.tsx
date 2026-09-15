@@ -7,13 +7,18 @@ import { Dialog } from "@/components/ui/dialog";
 import { Field, Input } from "@/components/ui/field";
 import { Menu, MenuButton, MenuItem, MenuSeparator } from "@/components/ui/menu";
 import { useT } from "@/i18n/client";
+import type { Translate } from "@/i18n/translator";
 import { cn } from "@/lib/cn";
 import { DEFAULT_PROFILE_ID, profileStore, useHydrated, useProfiles, type Profile } from "@/lib/kinks/store";
 
+/** A profile's name, or "Me" for the default profile and "Unnamed" for others without one. */
+export function profileDisplayName(profile: Pick<Profile, "id" | "name">, t: Translate) {
+  return profile.name || (profile.id === DEFAULT_PROFILE_ID ? t("profiles.me") : t("profiles.unnamed"));
+}
+
 export function useProfileName(profile: Profile | undefined) {
   const t = useT();
-  if (!profile) return t("profiles.me");
-  return profile.name || (profile.id === DEFAULT_PROFILE_ID ? t("profiles.me") : t("profiles.unnamed"));
+  return profile ? profileDisplayName(profile, t) : t("profiles.me");
 }
 
 function ProfileLabel({ profile }: { profile: Profile }) {

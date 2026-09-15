@@ -7,8 +7,16 @@ import { Dialog } from "./ui/dialog";
 
 const KEY = "okl:age-confirmed";
 const listeners = new Set<() => void>();
+/** Set when the answer couldn't be saved, so the gate still closes for this visit. */
+let acceptedThisVisit = false;
+
+function subscribe(notify: () => void) {
+  listeners.add(notify);
+  return () => listeners.delete(notify);
+}
 
 function confirmed() {
+  if (acceptedThisVisit) return true;
   try {
     return window.localStorage.getItem(KEY) === "1";
   } catch {
@@ -16,25 +24,19 @@ function confirmed() {
   }
 }
 
+function accept() {
+  try {
+    window.localStorage.setItem(KEY, "1");
+  } catch {
+    // The gate shows again next visit.
+    acceptedThisVisit = true;
+  }
+  listeners.forEach((notify) => notify());
+}
+
 export function AgeGate() {
   const t = useT();
-  const ok = useSyncExternalStore(
-    (notify) => {
-      listeners.add(notify);
-      return () => listeners.delete(notify);
-    },
-    confirmed,
-    () => true,
-  );
-
-  const accept = () => {
-    try {
-      window.localStorage.setItem(KEY, "1");
-    } catch {
-      // The gate shows again next visit.
-    }
-    listeners.forEach((notify) => notify());
-  };
+  const ok = useSyncExternalStore(subscribe, confirmed, () => true);
 
   return (
     <Dialog open={!ok} onClose={accept} dismissible={false} title={t("ageGate.title")} description={t("ageGate.body")}>

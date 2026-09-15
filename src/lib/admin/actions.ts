@@ -3,10 +3,10 @@
 import { and, eq, inArray, max, sql } from "drizzle-orm";
 import { revalidatePath, updateTag } from "next/cache";
 import { db } from "@/db";
-import { loadLatestVersion, publishList as publishDraft } from "@/db/content";
+import { inChunks, loadLatestVersion, publishList as publishDraft } from "@/db/content";
 import { auditLog, categories, contentTranslations, items, lists, listVersions, options, session, suggestions, user } from "@/db/schema";
 import { LISTS_TAG } from "@/lib/kinks/data";
-import type { PublishedData } from "@/lib/kinks/published";
+import { entityKey, translationEntries, type PublishedData } from "@/lib/kinks/published";
 import { BAN_DURATION_LABELS, banExpiry, isBanActive } from "@/lib/moderation";
 import { consumeRateLimit, RateLimitError } from "@/lib/rate-limit";
 import type { Role } from "@/lib/roles";
@@ -14,6 +14,7 @@ import { AuthorizationError, requireActionRole, type CurrentUser } from "@/lib/s
 import {
   deleteCategoryCompletely,
   deleteItemCompletely,
+  deleteListContent,
   restoreCategory,
   restoreCategoryTree,
   restoreItem,
@@ -22,6 +23,7 @@ import {
   restoreOrder,
   restoreRole,
   restoreTranslation,
+  setSortOrders,
   snapshotCategory,
   snapshotCategoryTree,
   snapshotItem,
@@ -125,9 +127,7 @@ export async function deleteList(slug: string) {
   return run("admin", async (actor) => {
     const [row] = await db.select({ name: lists.name }).from(lists).where(eq(lists.slug, slug));
     if (!row) return { ok: false, error: "That list no longer exists." };
-    const categoryRows = await db.select({ id: categories.id }).from(categories).where(eq(categories.listSlug, slug));
-    for (const category of categoryRows) await deleteCategoryCompletely(category.id);
-    await db.delete(contentTranslations).where(eq(contentTranslations.entityKey, `l:${slug}`));
+    await deleteListContent(slug);
     await db.delete(lists).where(eq(lists.slug, slug));
     await log(actor, "delete", `Deleted list "${row.name}" and its published versions`, slug);
     updateTag(LISTS_TAG);
@@ -155,24 +155,28 @@ export async function restoreVersion(slug: string, version?: number) {
     if (!target) return { ok: false, error: "That version does not exist." };
     const data = JSON.parse(target.data) as PublishedData;
 
-    const categoryRows = await db.select({ id: categories.id }).from(categories).where(eq(categories.listSlug, slug));
-    for (const category of categoryRows) await deleteCategoryCompletely(category.id);
+    await deleteListContent(slug);
     await db.update(lists).set({ name: data.name, tagline: data.tagline, description: data.description }).where(eq(lists.slug, slug));
-    await db.delete(contentTranslations).where(eq(contentTranslations.entityKey, `l:${slug}`));
 
-    for (const [ci, category] of data.categories.entries()) {
-      await db.insert(categories).values({ id: category.id, listSlug: slug, name: category.name, description: category.description, icon: category.icon, sortOrder: ci });
-      for (const [ii, item] of category.items.entries()) {
-        await db.insert(items).values({ id: item.id, categoryId: category.id, name: item.name, description: item.description, sortOrder: ii });
-        if (item.options.length) {
-          await db.insert(options).values(item.options.map((o, oi) => ({ id: o.id, itemId: item.id, label: o.label, kind: o.kind, sortOrder: oi })));
-        }
-      }
-    }
-    const translationRows = Object.entries(data.translations ?? {}).flatMap(([locale, entities]) =>
-      Object.entries(entities).flatMap(([entityKey, fields]) => Object.entries(fields).map(([field, value]) => ({ locale, entityKey, field, value }))),
+    const categoryRows = data.categories.map((category, sortOrder) => ({
+      id: category.id,
+      listSlug: slug,
+      name: category.name,
+      description: category.description,
+      icon: category.icon,
+      sortOrder,
+    }));
+    const itemRows = data.categories.flatMap((category) =>
+      category.items.map((item, sortOrder) => ({ id: item.id, categoryId: category.id, name: item.name, description: item.description, sortOrder })),
     );
-    for (let i = 0; i < translationRows.length; i += 200) await db.insert(contentTranslations).values(translationRows.slice(i, i + 200));
+    const optionRows = data.categories.flatMap((category) =>
+      category.items.flatMap((item) => item.options.map((o, sortOrder) => ({ id: o.id, itemId: item.id, label: o.label, kind: o.kind, sortOrder }))),
+    );
+    // Parents first, so every row's foreign key already exists.
+    await inChunks(categoryRows, (chunk) => db.insert(categories).values(chunk));
+    await inChunks(itemRows, (chunk) => db.insert(items).values(chunk));
+    await inChunks(optionRows, (chunk) => db.insert(options).values(chunk));
+    await inChunks(translationEntries(data.translations), (chunk) => db.insert(contentTranslations).values(chunk));
 
     await log(actor, version ? "restore" : "discard", version ? `Restored version ${version} into the draft` : "Discarded unpublished changes", slug);
   });
@@ -222,7 +226,7 @@ export async function reorderCategories(listSlug: string, orderedIds: number[]) 
     const before = await snapshotOrder("categories", listSlug);
     const known = new Set(before.rows.map((r) => r.id));
     if (parsed.data.length !== known.size || !parsed.data.every((id) => known.has(id))) return { ok: false, error: "The list changed. Reload and try again." };
-    for (const [index, id] of parsed.data.entries()) await db.update(categories).set({ sortOrder: index }).where(eq(categories.id, id));
+    await setSortOrders("categories", parsed.data.map((id, sortOrder) => ({ id, sortOrder })));
     await log(actor, "move", "Reordered categories", listSlug, { entityType: "order", entityId: listSlug, before, after: await snapshotOrder("categories", listSlug) });
   });
 }
@@ -244,11 +248,12 @@ async function writeItem(parsed: ItemInput) {
   const keep = new Set(optionInputs.map((o) => o.id).filter(Boolean));
   const removed = current.filter((o) => !keep.has(o.id)).map((o) => o.id);
   if (removed.length) {
-    await db.delete(contentTranslations).where(inArray(contentTranslations.entityKey, removed.map((o) => `o:${o}`)));
+    await db.delete(contentTranslations).where(inArray(contentTranslations.entityKey, removed.map(entityKey.option)));
     await db.delete(options).where(inArray(options.id, removed));
   }
+  const existing = new Set(current.map((c) => c.id));
   for (const [order, option] of optionInputs.entries()) {
-    if (option.id && current.some((c) => c.id === option.id)) {
+    if (option.id && existing.has(option.id)) {
       await db.update(options).set({ label: option.label, kind: option.kind, sortOrder: order }).where(eq(options.id, option.id));
     } else {
       await db.insert(options).values({ itemId, label: option.label, kind: option.kind, sortOrder: order });
@@ -289,10 +294,16 @@ export async function duplicateItem(id: number, targetCategoryId: number) {
       options: source.options.map((o) => ({ label: o.label, kind: o.kind })),
     });
     const created = (await snapshotItem(newId))!;
-    const optionMap = new Map(source.options.map((o, i) => [`o:${o.id}`, `o:${created.options[i]?.id}`]));
-    const copied = source.translations
-      .map((row) => ({ ...row, entityKey: row.entityKey === `i:${id}` ? `i:${newId}` : optionMap.get(row.entityKey) ?? "" }))
-      .filter((row) => row.entityKey && !row.entityKey.endsWith("undefined"));
+    // Options are written in order, so each source option matches the copy at the same index.
+    const keyMap = new Map([[entityKey.item(id), entityKey.item(newId)]]);
+    source.options.forEach((option, index) => {
+      const copy = created.options[index];
+      if (copy) keyMap.set(entityKey.option(option.id), entityKey.option(copy.id));
+    });
+    const copied = source.translations.flatMap((row) => {
+      const key = keyMap.get(row.entityKey);
+      return key ? [{ ...row, entityKey: key }] : [];
+    });
     if (copied.length) await db.insert(contentTranslations).values(copied);
     await log(actor, "create", `Copied item "${source.name}" to ${target.name}`, target.listSlug, {
       entityType: "item",
@@ -327,7 +338,7 @@ export async function reorderItems(categoryId: number, orderedIds: number[]) {
     const before = await snapshotOrder("items", categoryId);
     const known = new Set(before.rows.map((r) => r.id));
     if (parsed.data.length !== known.size || !parsed.data.every((id) => known.has(id))) return { ok: false, error: "The category changed. Reload and try again." };
-    for (const [index, id] of parsed.data.entries()) await db.update(items).set({ sortOrder: index }).where(eq(items.id, id));
+    await setSortOrders("items", parsed.data.map((id, sortOrder) => ({ id, sortOrder })));
     await log(actor, "move", `Reordered items in ${category.name}`, category.listSlug, {
       entityType: "order",
       entityId: categoryId,

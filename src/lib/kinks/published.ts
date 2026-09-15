@@ -16,15 +16,30 @@ export const entityKey = {
   option: (id: number) => `o:${id}`,
 };
 
+export interface TranslationEntry {
+  locale: string;
+  entityKey: string;
+  field: string;
+  value: string;
+}
+
+/** Flattens a translation map into one row per translated field. */
+export function translationEntries(translations: TranslationMap | undefined): TranslationEntry[] {
+  return Object.entries(translations ?? {}).flatMap(([locale, entities]) =>
+    Object.entries(entities).flatMap(([key, fields]) => Object.entries(fields).map(([field, value]) => ({ locale, entityKey: key, field, value }))),
+  );
+}
+
 /** Applies translations for a locale, falling back to English for anything missing. */
 export function localizeList(data: PublishedData, locale: Locale): KinkList {
   const t = locale === DEFAULT_LOCALE ? undefined : data.translations?.[locale];
   const pick = (key: string, field: string, fallback: string) => t?.[key]?.[field]?.trim() || fallback;
+  const listKey = entityKey.list(data.slug);
   return {
     slug: data.slug,
-    name: pick(entityKey.list(data.slug), "name", data.name),
-    tagline: pick(entityKey.list(data.slug), "tagline", data.tagline),
-    description: pick(entityKey.list(data.slug), "description", data.description),
+    name: pick(listKey, "name", data.name),
+    tagline: pick(listKey, "tagline", data.tagline),
+    description: pick(listKey, "description", data.description),
     version: data.version,
     publishedAt: data.publishedAt,
     categories: data.categories.map((category) => ({

@@ -6,7 +6,7 @@ import { Input, Textarea } from "@/components/ui/field";
 import { LOCALE_NAMES, type Locale } from "@/i18n/config";
 import { saveTranslation } from "@/lib/admin/actions";
 import { cn } from "@/lib/cn";
-import type { PublishedData } from "@/lib/kinks/published";
+import { entityKey, type PublishedData } from "@/lib/kinks/published";
 
 interface Row {
   entityKey: string;
@@ -24,18 +24,18 @@ export function TranslationEditor({ draft, locale }: { draft: PublishedData; loc
 
   const rows = useMemo(() => {
     const all: Row[] = [
-      { entityKey: `l:${draft.slug}`, field: "name", source: draft.name, context: "List name" },
-      { entityKey: `l:${draft.slug}`, field: "tagline", source: draft.tagline, context: "List tagline" },
-      { entityKey: `l:${draft.slug}`, field: "description", source: draft.description, context: "List description", multiline: true },
+      { entityKey: entityKey.list(draft.slug), field: "name", source: draft.name, context: "List name" },
+      { entityKey: entityKey.list(draft.slug), field: "tagline", source: draft.tagline, context: "List tagline" },
+      { entityKey: entityKey.list(draft.slug), field: "description", source: draft.description, context: "List description", multiline: true },
     ];
     for (const category of draft.categories) {
-      all.push({ entityKey: `c:${category.id}`, field: "name", source: category.name, context: "Category" });
-      all.push({ entityKey: `c:${category.id}`, field: "description", source: category.description, context: `${category.name} description`, multiline: true });
+      all.push({ entityKey: entityKey.category(category.id), field: "name", source: category.name, context: "Category" });
+      all.push({ entityKey: entityKey.category(category.id), field: "description", source: category.description, context: `${category.name} description`, multiline: true });
       for (const item of category.items) {
-        all.push({ entityKey: `i:${item.id}`, field: "name", source: item.name, context: category.name });
-        all.push({ entityKey: `i:${item.id}`, field: "description", source: item.description, context: `${item.name} description`, multiline: true });
+        all.push({ entityKey: entityKey.item(item.id), field: "name", source: item.name, context: category.name });
+        all.push({ entityKey: entityKey.item(item.id), field: "description", source: item.description, context: `${item.name} description`, multiline: true });
         for (const option of item.options) {
-          all.push({ entityKey: `o:${option.id}`, field: "label", source: option.label, context: `${item.name} ${option.kind === "role" ? "role" : "variation"}` });
+          all.push({ entityKey: entityKey.option(option.id), field: "label", source: option.label, context: `${item.name} ${option.kind === "role" ? "role" : "variation"}` });
         }
       }
     }

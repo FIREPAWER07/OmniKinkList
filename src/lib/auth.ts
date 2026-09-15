@@ -9,13 +9,10 @@ import * as schema from "@/db/schema";
 import { generateUsername } from "./account/profile";
 import { authEmail, sendEmail, signInCodeEmail } from "./email";
 import { BANNED_ERROR_CODE, isBanActive } from "./moderation";
+import { SITE_URL } from "./site-url";
 
-/**
- * The production URL comes from BETTER_AUTH_URL, or from Netlify's `URL` captured at build time.
- * Netlify deploy previews and branch deploys (`<name>--<site>.netlify.app`) are allowed too.
- */
-const siteUrl = process.env.BETTER_AUTH_URL || process.env.NETLIFY_SITE_URL || "http://localhost:3000";
-const allowedHosts = [new URL(siteUrl).host];
+/** Netlify deploy previews and branch deploys (`<name>--<site>.netlify.app`) are allowed besides the site URL. */
+const allowedHosts = [new URL(SITE_URL).host];
 if (process.env.NETLIFY_SITE_NAME) {
   allowedHosts.push(`${process.env.NETLIFY_SITE_NAME}.netlify.app`, `*--${process.env.NETLIFY_SITE_NAME}.netlify.app`);
 }
@@ -41,6 +38,9 @@ export const emailVerificationRequired = process.env.REQUIRE_EMAIL_VERIFICATION 
 /** How long an emailed two-factor code stays valid. */
 const EMAIL_CODE_MINUTES = 5;
 
+/** The `locale` field added to users below, which Better Auth's hook types don't include. */
+const localeOf = (user: object) => (user as { locale?: string }).locale;
+
 /** Whether the account's second factor is an authenticator app. Accounts with 2FA on and no app get codes by email. */
 export async function usesAuthenticatorApp(userId: string) {
   const [row] = await db
@@ -53,21 +53,21 @@ export async function usesAuthenticatorApp(userId: string) {
 
 export const auth = betterAuth({
   appName: "OmniKinkList",
-  baseURL: { allowedHosts, fallback: siteUrl },
+  baseURL: { allowedHosts, fallback: SITE_URL },
   database: drizzleAdapter(db, { provider: "pg", schema }),
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 10,
     requireEmailVerification: emailVerificationRequired,
     sendResetPassword: async ({ user, url }) => {
-      await sendEmail(authEmail("reset", user.email, url, (user as { locale?: string }).locale));
+      await sendEmail(authEmail("reset", user.email, url, localeOf(user)));
     },
   },
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
-      await sendEmail(authEmail("verify", user.email, url, (user as { locale?: string }).locale));
+      await sendEmail(authEmail("verify", user.email, url, localeOf(user)));
     },
   },
   socialProviders,
@@ -129,7 +129,7 @@ export const auth = betterAuth({
           // Better Auth offers emailed codes to every account with 2FA on. Accounts with an authenticator app never get
           // one, so someone who gets into their email still can't pass the second step.
           if (await usesAuthenticatorApp(user.id)) return;
-          await sendEmail(signInCodeEmail(user.email, otp, EMAIL_CODE_MINUTES, (user as { locale?: string }).locale));
+          await sendEmail(signInCodeEmail(user.email, otp, EMAIL_CODE_MINUTES, localeOf(user)));
         },
       },
     }),
@@ -155,5 +155,3 @@ export const auth = betterAuth({
     nextCookies(),
   ],
 });
-
-export type AuthSession = typeof auth.$Infer.Session;

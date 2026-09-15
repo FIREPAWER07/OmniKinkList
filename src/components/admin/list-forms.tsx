@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { CATEGORY_ICONS } from "@/components/kinks/category-icon";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { Field, Input, Textarea } from "@/components/ui/field";
+import { Field, FormError, Input, Textarea } from "@/components/ui/field";
 import { createList, saveCategory, updateList, type ActionResult } from "@/lib/admin/actions";
 import { cn } from "@/lib/cn";
 
@@ -182,11 +182,7 @@ function CategoryForm({ listSlug, category, onClose }: { listSlug: string; categ
 export function FormFooter({ error, pending, onCancel, label }: { error: string | null; pending: boolean; onCancel: () => void; label: string }) {
   return (
     <>
-      {error && (
-        <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
-          {error}
-        </p>
-      )}
+      <FormError>{error}</FormError>
       <div className="mt-2 flex justify-end gap-2">
         <Button variant="ghost" onClick={onCancel}>
           Cancel

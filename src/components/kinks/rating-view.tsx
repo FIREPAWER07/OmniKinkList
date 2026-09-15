@@ -7,7 +7,7 @@ import { Button, buttonClass } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useHref, useT } from "@/i18n/client";
 import { cn } from "@/lib/cn";
-import { allChoices, categoryChoices, computeStats, itemChoices, withCustom } from "@/lib/kinks/choices";
+import { allChoices, categoryChoices, computeStats, itemChoices, itemKey, withCustom } from "@/lib/kinks/choices";
 import { listStore, useListData, useProfiles } from "@/lib/kinks/store";
 import type { KinkItem, KinkList } from "@/lib/kinks/types";
 import { CategoryIcon } from "./category-icon";
@@ -26,7 +26,8 @@ export function RatingView({ list }: { list: KinkList }) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [customDialog, setCustomDialog] = useState<{ item?: KinkItem } | null>(null);
   const [query, setQuery] = useState("");
-  const [onlyUnanswered, setOnlyUnanswered] = useState<Set<number> | null>(null);
+  /** Item keys that were unanswered when the filter was turned on. */
+  const [onlyUnanswered, setOnlyUnanswered] = useState<Set<string> | null>(null);
   const [newSince, setNewSince] = useState<number | undefined>();
   const root = useRef<HTMLDivElement>(null);
   const toolbar = useRef<HTMLDivElement>(null);
@@ -34,7 +35,7 @@ export function RatingView({ list }: { list: KinkList }) {
 
   const categories = useMemo(() => withCustom(list, data.custom, t("custom.category")), [list, data.custom, t]);
   const [activeCategory, setActiveCategory] = useState(categories[0]?.id);
-  const stats = computeStats(allChoices(categories), data.answers);
+  const stats = useMemo(() => computeStats(allChoices(categories), data.answers), [categories, data.answers]);
 
   // Remember when this profile last opened the list, to highlight what was published since.
   const visited = useRef<string | null>(null);
@@ -66,7 +67,7 @@ export function RatingView({ list }: { list: KinkList }) {
         .map((category) => ({
           ...category,
           items: category.items.filter((item) => {
-            if (onlyUnanswered && !onlyUnanswered.has(item.id * (item.custom ? -1 : 1))) return false;
+            if (onlyUnanswered && !onlyUnanswered.has(itemKey(item))) return false;
             if (!q) return true;
             return (
               item.name.toLowerCase().includes(q) ||
@@ -78,15 +79,16 @@ export function RatingView({ list }: { list: KinkList }) {
         .filter((category) => category.items.length > 0),
     [categories, onlyUnanswered, q],
   );
+  const visibleIds = useMemo(() => new Set(visibleCategories.map((c) => c.id)), [visibleCategories]);
+
+  const isUnanswered = (item: KinkItem) => itemChoices(item).some((c) => !data.answers[c.key]);
 
   const toggleUnanswered = () => {
     if (onlyUnanswered) return setOnlyUnanswered(null);
     // Take a snapshot, so items don't vanish the moment they get answered.
-    const ids = new Set<number>();
-    for (const item of categories.flatMap((c) => c.items)) {
-      if (itemChoices(item).some((c) => !data.answers[c.key])) ids.add(item.id * (item.custom ? -1 : 1));
-    }
-    setOnlyUnanswered(ids);
+    const keys = new Set<string>();
+    for (const item of categories.flatMap((c) => c.items)) if (isUnanswered(item)) keys.add(itemKey(item));
+    setOnlyUnanswered(keys);
   };
 
   // Category headers stick right under whichever bar is sticky at this width (toolbar on desktop, chips on
@@ -128,8 +130,8 @@ export function RatingView({ list }: { list: KinkList }) {
   const jumpToNextUnanswered = () => {
     for (const category of visibleCategories) {
       for (const item of category.items) {
-        if (itemChoices(item).some((c) => !data.answers[c.key])) {
-          const el = document.getElementById(`item-${item.custom ? "c" : "i"}${item.id}`);
+        if (isUnanswered(item)) {
+          const el = document.getElementById(`item-${itemKey(item)}`);
           el?.scrollIntoView({ block: "center" });
           el?.querySelector<HTMLElement>('[role="radio"][tabindex="0"]')?.focus({ preventScroll: true });
           return;
@@ -150,7 +152,7 @@ export function RatingView({ list }: { list: KinkList }) {
             {categories.map((category) => {
               const p = progress.get(category.id)!;
               const done = p.total > 0 && p.answered === p.total;
-              const hidden = !visibleCategories.some((c) => c.id === category.id);
+              const hidden = !visibleIds.has(category.id);
               return (
                 <a
                   key={category.id}
@@ -293,7 +295,7 @@ export function RatingView({ list }: { list: KinkList }) {
                   {description && <p className="mb-3 max-w-3xl text-sm text-muted">{description}</p>}
                   <div className="divide-y divide-border rounded-xl border border-border bg-surface">
                     {category.items.map((item) => (
-                      <div key={item.id} id={`item-${item.custom ? "c" : "i"}${item.id}`} className="scroll-mt-40">
+                      <div key={item.id} id={`item-${itemKey(item)}`} className="scroll-mt-40">
                         <ItemCard
                           item={item}
                           data={data}

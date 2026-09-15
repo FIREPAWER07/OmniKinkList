@@ -21,7 +21,7 @@ async function Activity() {
       <p className="mt-1 max-w-2xl text-sm text-muted">
         The last 300 changes. Undo reverses a change in the draft; publish afterwards to make it live.
       </p>
-      <ActivityList entries={entries.map((e) => ({ ...e, createdAt: e.createdAt.toISOString(), revertedAt: e.revertedAt?.toISOString() ?? null }))} className="mt-6" />
+      <ActivityList entries={entries} className="mt-6" />
     </section>
   );
 }

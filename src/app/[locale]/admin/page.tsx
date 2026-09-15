@@ -68,7 +68,7 @@ async function AdminHome() {
             All activity
           </Link>
         </div>
-        <ActivityList entries={activity.map((e) => ({ ...e, createdAt: e.createdAt.toISOString(), revertedAt: e.revertedAt?.toISOString() ?? null }))} compact className="mt-4" />
+        <ActivityList entries={activity} compact className="mt-4" />
       </aside>
     </div>
   );

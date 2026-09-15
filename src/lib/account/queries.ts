@@ -32,14 +32,15 @@ export const getProfile = cache(async (rawUsername: string) => {
     .where(eq(user.username, username));
   if (!row || isBanActive(row)) return null;
 
-  const viewer = await getCurrentUser();
+  const [viewer, [{ accepted }]] = await Promise.all([
+    getCurrentUser(),
+    db
+      .select({ accepted: count() })
+      .from(suggestions)
+      .where(and(eq(suggestions.submitterId, row.id), eq(suggestions.status, "accepted"))),
+  ]);
   const isOwner = viewer?.id === row.id;
   if (!row.profilePublic && !isOwner) return null;
-
-  const [{ accepted }] = await db
-    .select({ accepted: count() })
-    .from(suggestions)
-    .where(and(eq(suggestions.submitterId, row.id), eq(suggestions.status, "accepted")));
 
   return {
     name: row.name,
@@ -52,5 +53,3 @@ export const getProfile = cache(async (rawUsername: string) => {
     isOwner,
   };
 });
-
-export type ProfileView = NonNullable<Awaited<ReturnType<typeof getProfile>>>;

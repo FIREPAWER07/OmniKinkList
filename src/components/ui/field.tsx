@@ -35,6 +35,16 @@ export function Field({
   );
 }
 
+/** An error message shown above a form's buttons. Renders nothing without a message. */
+export function FormError({ children }: { children: ReactNode }) {
+  if (!children) return null;
+  return (
+    <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
+      {children}
+    </p>
+  );
+}
+
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn(control, "h-10", className)} {...props} />;
 }

@@ -1,7 +1,9 @@
 import "server-only";
-import { and, asc, eq, inArray, notInArray } from "drizzle-orm";
+import { and, asc, eq, inArray, notInArray, sql, type AnyColumn } from "drizzle-orm";
 import { db } from "@/db";
+import { inChunks } from "@/db/content";
 import { categories, contentTranslations, items, lists, options, user } from "@/db/schema";
+import { entityKey } from "@/lib/kinks/published";
 import type { OptionKind } from "@/lib/kinks/types";
 import type { Role } from "@/lib/roles";
 
@@ -73,9 +75,29 @@ async function translationsFor(keys: string[]): Promise<TranslationRow[]> {
   return db.select().from(contentTranslations).where(inArray(contentTranslations.entityKey, keys));
 }
 
+async function deleteTranslations(keys: string[]) {
+  await inChunks(keys, (chunk) => db.delete(contentTranslations).where(inArray(contentTranslations.entityKey, chunk)), 400);
+}
+
 async function replaceTranslations(keys: string[], rows: TranslationRow[]) {
-  if (keys.length) await db.delete(contentTranslations).where(inArray(contentTranslations.entityKey, keys));
+  await deleteTranslations(keys);
   if (rows.length) await db.insert(contentTranslations).values(rows);
+}
+
+/** `case id when 1 then 0 when 7 then 1 ... end`, for setting many sort orders in one statement. */
+function sortOrderCase(id: AnyColumn, rows: { id: number; sortOrder: number }[]) {
+  return sql`case ${id} ${sql.join(
+    rows.map((row) => sql`when ${row.id} then ${row.sortOrder}::integer`),
+    sql` `,
+  )} end`;
+}
+
+/** Sets the sort order of many items or categories at once. */
+export async function setSortOrders(table: OrderSnapshot["table"], rows: { id: number; sortOrder: number }[]) {
+  if (rows.length === 0) return;
+  const ids = rows.map((row) => row.id);
+  if (table === "items") await db.update(items).set({ sortOrder: sortOrderCase(items.id, rows) }).where(inArray(items.id, ids));
+  else await db.update(categories).set({ sortOrder: sortOrderCase(categories.id, rows) }).where(inArray(categories.id, ids));
 }
 
 /* ------------------------------ Items ------------------------------ */
@@ -91,14 +113,20 @@ export async function snapshotItem(id: number): Promise<ItemSnapshot | null> {
     description: item.description,
     sortOrder: item.sortOrder,
     options: optionRows.map((o) => ({ id: o.id, label: o.label, kind: o.kind as OptionKind, sortOrder: o.sortOrder })),
-    translations: await translationsFor([`i:${id}`, ...optionRows.map((o) => `o:${o.id}`)]),
+    translations: await translationsFor([entityKey.item(id), ...optionRows.map((o) => entityKey.option(o.id))]),
   };
 }
 
+/** Deletes items with their options (by cascade) and the translations of both. */
+async function deleteItemsCompletely(ids: number[]) {
+  if (ids.length === 0) return;
+  const optionRows = await db.select({ id: options.id }).from(options).where(inArray(options.itemId, ids));
+  await deleteTranslations([...ids.map(entityKey.item), ...optionRows.map((o) => entityKey.option(o.id))]);
+  await db.delete(items).where(inArray(items.id, ids));
+}
+
 export async function deleteItemCompletely(id: number) {
-  const optionRows = await db.select({ id: options.id }).from(options).where(eq(options.itemId, id));
-  await db.delete(contentTranslations).where(inArray(contentTranslations.entityKey, [`i:${id}`, ...optionRows.map((o) => `o:${o.id}`)]));
-  await db.delete(items).where(eq(items.id, id));
+  await deleteItemsCompletely([id]);
 }
 
 export async function restoreItem(id: number, snapshot: ItemSnapshot | null) {
@@ -119,7 +147,7 @@ export async function restoreItem(id: number, snapshot: ItemSnapshot | null) {
     const values = { itemId: id, label: option.label, kind: option.kind, sortOrder: option.sortOrder };
     await db.insert(options).values({ id: option.id, ...values }).onConflictDoUpdate({ target: options.id, set: values });
   }
-  const keys = [`i:${id}`, ...snapshot.options.map((o) => `o:${o.id}`), ...removed.map((o) => `o:${o.id}`)];
+  const keys = [entityKey.item(id), ...snapshot.options.map((o) => entityKey.option(o.id)), ...removed.map((o) => entityKey.option(o.id))];
   await replaceTranslations(keys, snapshot.translations);
 }
 
@@ -128,7 +156,7 @@ export async function restoreItem(id: number, snapshot: ItemSnapshot | null) {
 export async function snapshotCategory(id: number): Promise<CategorySnapshot | null> {
   const [row] = await db.select().from(categories).where(eq(categories.id, id));
   if (!row) return null;
-  return { ...row, translations: await translationsFor([`c:${id}`]) };
+  return { ...row, translations: await translationsFor([entityKey.category(id)]) };
 }
 
 export async function snapshotCategoryTree(id: number): Promise<CategoryTreeSnapshot | null> {
@@ -141,9 +169,16 @@ export async function snapshotCategoryTree(id: number): Promise<CategoryTreeSnap
 
 export async function deleteCategoryCompletely(id: number) {
   const itemRows = await db.select({ id: items.id }).from(items).where(eq(items.categoryId, id));
-  for (const item of itemRows) await deleteItemCompletely(item.id);
-  await db.delete(contentTranslations).where(eq(contentTranslations.entityKey, `c:${id}`));
+  await deleteItemsCompletely(itemRows.map((item) => item.id));
+  await db.delete(contentTranslations).where(eq(contentTranslations.entityKey, entityKey.category(id)));
   await db.delete(categories).where(eq(categories.id, id));
+}
+
+/** Deletes every category of a list with everything in it, and the list's own translations. The list row stays. */
+export async function deleteListContent(slug: string) {
+  const categoryRows = await db.select({ id: categories.id }).from(categories).where(eq(categories.listSlug, slug));
+  for (const category of categoryRows) await deleteCategoryCompletely(category.id);
+  await db.delete(contentTranslations).where(eq(contentTranslations.entityKey, entityKey.list(slug)));
 }
 
 export async function restoreCategory(id: number, snapshot: CategorySnapshot | null) {
@@ -152,7 +187,7 @@ export async function restoreCategory(id: number, snapshot: CategorySnapshot | n
   if (!list) throw new RestoreError("The list of this category no longer exists.");
   const fields = { listSlug: snapshot.listSlug, name: snapshot.name, description: snapshot.description, icon: snapshot.icon, sortOrder: snapshot.sortOrder };
   await db.insert(categories).values({ id: snapshot.id, ...fields }).onConflictDoUpdate({ target: categories.id, set: fields });
-  await replaceTranslations([`c:${id}`], snapshot.translations);
+  await replaceTranslations([entityKey.category(id)], snapshot.translations);
 }
 
 export async function restoreCategoryTree(id: number, snapshot: CategoryTreeSnapshot | null) {
@@ -166,13 +201,13 @@ export async function restoreCategoryTree(id: number, snapshot: CategoryTreeSnap
 export async function snapshotList(slug: string): Promise<ListSnapshot | null> {
   const [row] = await db.select().from(lists).where(eq(lists.slug, slug));
   if (!row) return null;
-  return { slug: row.slug, name: row.name, tagline: row.tagline, description: row.description, translations: await translationsFor([`l:${slug}`]) };
+  return { slug: row.slug, name: row.name, tagline: row.tagline, description: row.description, translations: await translationsFor([entityKey.list(slug)]) };
 }
 
 export async function restoreList(slug: string, snapshot: ListSnapshot | null) {
   if (!snapshot) throw new RestoreError("Creating or deleting whole lists cannot be undone here.");
   await db.update(lists).set({ name: snapshot.name, tagline: snapshot.tagline, description: snapshot.description }).where(eq(lists.slug, slug));
-  await replaceTranslations([`l:${slug}`], snapshot.translations);
+  await replaceTranslations([entityKey.list(slug)], snapshot.translations);
 }
 
 /* ------------------------------ Other ------------------------------ */
@@ -186,10 +221,7 @@ export async function snapshotOrder(table: OrderSnapshot["table"], parent: numbe
 }
 
 export async function restoreOrder(snapshot: OrderSnapshot) {
-  for (const row of snapshot.rows) {
-    if (snapshot.table === "items") await db.update(items).set({ sortOrder: row.sortOrder }).where(eq(items.id, row.id));
-    else await db.update(categories).set({ sortOrder: row.sortOrder }).where(eq(categories.id, row.id));
-  }
+  await setSortOrders(snapshot.table, snapshot.rows);
 }
 
 export async function snapshotTranslation(locale: string, entityKey: string, field: string): Promise<TranslationSnapshot> {

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ProfileOwnerBar } from "@/components/profile/owner-bar";
-import { getLocale, getT } from "@/i18n/server";
+import { getLocale, getT, getTranslator } from "@/i18n/server";
 import { getProfile } from "@/lib/account/queries";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/u/[username]">): Promise<Metadata> {
@@ -25,7 +25,8 @@ export default function UserProfilePage({ params }: PageProps<"/[locale]/u/[user
 }
 
 async function UserProfile({ params }: Pick<PageProps<"/[locale]/u/[username]">, "params">) {
-  const [{ username }, locale, t] = await Promise.all([params, getLocale(), getT()]);
+  const [{ username }, locale] = await Promise.all([params, getLocale()]);
+  const t = getTranslator(locale);
   const profile = await getProfile(username);
   if (!profile) notFound();
 

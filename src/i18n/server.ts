@@ -1,9 +1,8 @@
 import "server-only";
 import { notFound } from "next/navigation";
 import { locale as localeParam } from "next/root-params";
-import { DEFAULT_LOCALE, isLocale, type Locale } from "./config";
-import { MESSAGES } from "./messages";
-import { createTranslator } from "./translator";
+import { isLocale, type Locale } from "./config";
+import { translatorFor } from "./messages";
 
 /** Current locale from the `[locale]` root segment. 404s on anything unsupported. */
 export async function getLocale(): Promise<Locale> {
@@ -13,7 +12,7 @@ export async function getLocale(): Promise<Locale> {
 }
 
 export function getTranslator(locale: Locale) {
-  return createTranslator(locale, MESSAGES[locale], MESSAGES[DEFAULT_LOCALE]);
+  return translatorFor(locale);
 }
 
 export async function getT() {

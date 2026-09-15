@@ -45,10 +45,6 @@ export function summarize(list: KinkList): KinkListSummary {
   };
 }
 
-export async function getListSummaries(locale: Locale): Promise<KinkListSummary[]> {
-  return (await getPublishedLists(locale)).map(summarize);
-}
-
 export interface ChangelogEntry {
   listSlug: string;
   listName: string;

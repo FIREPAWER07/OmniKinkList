@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button, buttonClass } from "@/components/ui/button";
-import { Field, Input, Textarea } from "@/components/ui/field";
+import { Field, FormError, Input, Textarea } from "@/components/ui/field";
 import { useHref, useLocale, useT } from "@/i18n/client";
 import { setInitialPassword, updateLocale, updateProfile } from "@/lib/account/actions";
 import { BIO_MAX, NAME_MAX, USERNAME_MAX, USERNAME_MIN } from "@/lib/account/profile";
@@ -188,11 +188,7 @@ export function PasswordSection({ hasPassword, providers, onChange }: { hasPassw
         <Field label={hasPassword ? t("auth.newPassword") : t("account.setPassword")} htmlFor="new-password" hint={t("auth.passwordHint")}>
           <Input id="new-password" name="newPassword" type="password" autoComplete="new-password" minLength={10} required />
         </Field>
-        {error && (
-          <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
-            {error}
-          </p>
-        )}
+        <FormError>{error}</FormError>
         <div>
           <Button type="submit" disabled={pending}>
             {hasPassword ? t("account.changePassword") : t("account.setPassword")}
@@ -236,11 +232,7 @@ export function DangerZone({ hasPassword, email }: { hasPassword: boolean; email
             <Input id="delete-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
           </Field>
         )}
-        {error && (
-          <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
-            {error}
-          </p>
-        )}
+        <FormError>{error}</FormError>
         <div>
           <Button variant="danger" disabled={confirmText !== email || (hasPassword && !password)} onClick={remove}>
             {t("account.deleteButton")}

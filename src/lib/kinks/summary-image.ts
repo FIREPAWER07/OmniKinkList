@@ -113,7 +113,6 @@ export async function renderSummaryImage(list: KinkList, data: ListData, options
     ctx.font = `500 30px ${font}`;
     ctx.fillText(options.levelLabels[level], x + 40, ly);
     ctx.fillStyle = COLORS.muted;
-    ctx.font = `500 30px ${font}`;
     const count = String(stats.byLevel[level]);
     ctx.fillText(count, x + barWidth / 2 - 40 - ctx.measureText(count).width, ly);
   });

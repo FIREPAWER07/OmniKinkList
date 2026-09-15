@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { renderSVG } from "uqr";
 import { twoFactorErrorKey } from "@/components/auth/two-factor-form";
 import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/field";
+import { Field, FormError, Input } from "@/components/ui/field";
 import { useT } from "@/i18n/client";
 import { authClient } from "@/lib/auth-client";
 import { Section } from "./account-view";
@@ -89,7 +89,7 @@ export function TwoFactorSection({
     </Field>
   );
 
-  const errorMessage = error && <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>;
+  const errorMessage = <FormError>{error}</FormError>;
 
   return (
     <Section title={t("account.twoFactor")} description={t("account.twoFactorHint")}>

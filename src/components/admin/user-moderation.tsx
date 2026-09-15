@@ -6,7 +6,7 @@ import { useId, useState, useTransition, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { Field, FormError, Input, Select, Textarea } from "@/components/ui/field";
 import { banUser, deleteUserAccount, rejectSuggestionsFrom, revokeUserSessions, unbanUser, type ActionResult } from "@/lib/admin/actions";
 import { BAN_DURATION_LABELS, BAN_DURATIONS, type BanDuration } from "@/lib/moderation";
 import type { Role } from "@/lib/roles";
@@ -126,11 +126,7 @@ function BanDialog({ target, pendingSuggestions, open, onClose }: { target: Targ
             Also reject their {pendingSuggestions} pending suggestion{pendingSuggestions === 1 ? "" : "s"}
           </label>
         )}
-        {error && (
-          <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
-            {error}
-          </p>
-        )}
+        <FormError>{error}</FormError>
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose}>
             Cancel

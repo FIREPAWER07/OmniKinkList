@@ -6,12 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Turnstile } from "@/components/turnstile";
 import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/field";
+import { Field, FormError, Input } from "@/components/ui/field";
 import { useHref, useLocale, useT } from "@/i18n/client";
+import type { SocialProvider as Provider } from "@/lib/auth";
 import { signIn, signUp } from "@/lib/auth-client";
 import { BANNED_ERROR_CODE } from "@/lib/moderation";
-
-type Provider = "google" | "simplelogin";
 
 /** Only same-origin relative paths are allowed as a post-login destination. */
 export function safeNext(value: string | null, fallback: string) {
@@ -145,11 +144,7 @@ export function AuthForm({ mode, socialProviders }: { mode: "login" | "signup"; 
           </Link>
         )}
         <Turnstile onToken={setCaptchaToken} resetKey={captchaReset} />
-        {error && (
-          <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
-            {error}
-          </p>
-        )}
+        <FormError>{error}</FormError>
         <Button type="submit" variant="primary" size="lg" disabled={pending} className="mt-2 w-full">
           {pending && <SpinnerGapIcon size={18} className="animate-spin" />}
           {mode === "login" ? t("auth.signInButton") : t("auth.signUpButton")}

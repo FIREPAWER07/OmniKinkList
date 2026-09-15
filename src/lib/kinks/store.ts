@@ -32,11 +32,14 @@ export const DEFAULT_PROFILE_ID = "me";
 const PROFILES_KEY = "okl:profiles";
 const DATA_PREFIX = "okl:data:";
 const LEGACY_PREFIX = "okl:answers:";
+const PROFILE_NAME_MAX = 40;
+
+const defaultProfile = (updatedAt: number): Profile => ({ id: DEFAULT_PROFILE_ID, name: "", updatedAt });
 
 const EMPTY_DATA: ListData = Object.freeze(emptyListData()) as ListData;
 const SERVER_PROFILES: ProfilesState = Object.freeze({
   active: DEFAULT_PROFILE_ID,
-  profiles: [{ id: DEFAULT_PROFILE_ID, name: "", updatedAt: 0 }],
+  profiles: [defaultProfile(0)],
   deleted: {},
   updatedAt: 0,
 }) as ProfilesState;
@@ -80,12 +83,30 @@ function dataKey(profileId: string, slug: string) {
   return `${DATA_PREFIX}${profileId}:${slug}`;
 }
 
+function dataKeys() {
+  const store = storage();
+  if (!store) return [];
+  const keys: string[] = [];
+  for (let i = 0; i < store.length; i++) {
+    const key = store.key(i);
+    if (key?.startsWith(DATA_PREFIX)) keys.push(key);
+  }
+  return keys;
+}
+
+function profileDataKeys(profileId: string, keys = dataKeys()) {
+  const prefix = `${DATA_PREFIX}${profileId}:`;
+  return keys.filter((key) => key.startsWith(prefix));
+}
+
+const cleanName = (name: string) => name.trim().slice(0, PROFILE_NAME_MAX);
+
 function sanitizeProfiles(raw: unknown): ProfilesState | null {
   if (!raw || typeof raw !== "object") return null;
   const value = raw as Partial<ProfilesState>;
   const profiles = (Array.isArray(value.profiles) ? value.profiles : [])
     .filter((p): p is Profile => !!p && typeof p.id === "string" && /^[\w-]{1,40}$/.test(p.id))
-    .map((p) => ({ id: p.id, name: typeof p.name === "string" ? p.name.slice(0, 40) : "", updatedAt: Number(p.updatedAt) || 0 }));
+    .map((p) => ({ id: p.id, name: typeof p.name === "string" ? p.name.slice(0, PROFILE_NAME_MAX) : "", updatedAt: Number(p.updatedAt) || 0 }));
   if (profiles.length === 0) return null;
   const active = profiles.some((p) => p.id === value.active) ? value.active! : profiles[0].id;
   const deleted: Record<string, number> = {};
@@ -118,7 +139,7 @@ function getProfiles(): ProfilesState {
   let state = sanitizeProfiles(readJson(PROFILES_KEY));
   if (!state) {
     migrateLegacy();
-    state = { ...SERVER_PROFILES, profiles: [{ id: DEFAULT_PROFILE_ID, name: "", updatedAt: 0 }], deleted: {} };
+    state = { active: DEFAULT_PROFILE_ID, profiles: [defaultProfile(0)], deleted: {}, updatedAt: 0 };
     writeJson(PROFILES_KEY, state);
   }
   cache.set(PROFILES_KEY, state);
@@ -149,18 +170,19 @@ function setData(profileId: string, slug: string, data: ListData, localChange = 
   notify(localChange);
 }
 
+/** One `storage` listener for the whole store, attached while anything is subscribed. */
+function onStorage(event: StorageEvent) {
+  if (event.key !== null && event.key !== PROFILES_KEY && !event.key.startsWith(DATA_PREFIX)) return;
+  cache.clear();
+  listeners.forEach((listener) => listener());
+}
+
 function subscribe(listener: () => void) {
+  if (listeners.size === 0) window.addEventListener("storage", onStorage);
   listeners.add(listener);
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === null || event.key === PROFILES_KEY || event.key.startsWith(DATA_PREFIX)) {
-      cache.clear();
-      listener();
-    }
-  };
-  window.addEventListener("storage", onStorage);
   return () => {
     listeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
+    if (listeners.size === 0) window.removeEventListener("storage", onStorage);
   };
 }
 
@@ -177,7 +199,7 @@ export const profileStore = {
   create(name: string) {
     const state = getProfiles();
     const now = Date.now();
-    const profile = { id: randomId(), name: name.trim().slice(0, 40), updatedAt: now };
+    const profile = { id: randomId(), name: cleanName(name), updatedAt: now };
     setProfiles({ ...state, profiles: [...state.profiles, profile], active: profile.id, updatedAt: now });
     return profile;
   },
@@ -186,7 +208,7 @@ export const profileStore = {
     const now = Date.now();
     setProfiles({
       ...state,
-      profiles: state.profiles.map((p) => (p.id === id ? { ...p, name: name.trim().slice(0, 40), updatedAt: now } : p)),
+      profiles: state.profiles.map((p) => (p.id === id ? { ...p, name: cleanName(name), updatedAt: now } : p)),
       updatedAt: now,
     });
   },
@@ -198,7 +220,7 @@ export const profileStore = {
     const state = getProfiles();
     if (state.profiles.length <= 1) return;
     const now = Date.now();
-    for (const key of dataKeys()) if (key.startsWith(`${DATA_PREFIX}${id}:`)) {
+    for (const key of profileDataKeys(id)) {
       cache.delete(key);
       writeJson(key, null);
     }
@@ -211,17 +233,6 @@ export const profileStore = {
     });
   },
 };
-
-function dataKeys() {
-  const store = storage();
-  if (!store) return [];
-  const keys: string[] = [];
-  for (let i = 0; i < store.length; i++) {
-    const key = store.key(i);
-    if (key?.startsWith(DATA_PREFIX)) keys.push(key);
-  }
-  return keys;
-}
 
 function update(slug: string, change: (data: ListData) => ListData, profileId = getProfiles().active) {
   const next = change(getData(profileId, slug));
@@ -270,15 +281,14 @@ export const listStore = {
   /** Records a visit and returns the time of the previous one. */
   markVisited(slug: string): number | undefined {
     const profileId = getProfiles().active;
-    const previous = getData(profileId, slug).lastVisitAt;
+    const key = dataKey(profileId, slug);
     const data = getData(profileId, slug);
     // Not a content change, so it doesn't bump updatedAt or trigger sync.
-    const key = dataKey(profileId, slug);
     const next = { ...data, lastVisitAt: Date.now() };
     cache.set(key, next);
     writeJson(key, next);
     notify(false);
-    return previous;
+    return data.lastVisitAt;
   },
 };
 
@@ -319,11 +329,12 @@ export function mergeSnapshot(remote: StoreSnapshot) {
       if (!current || p.updatedAt > current.updatedAt) byId.set(p.id, p);
     }
     const profiles = [...byId.values()].filter((p) => !(deleted[p.id] && deleted[p.id] >= p.updatedAt));
-    if (profiles.length === 0) profiles.push({ id: DEFAULT_PROFILE_ID, name: "", updatedAt: Date.now() });
+    if (profiles.length === 0) profiles.push(defaultProfile(Date.now()));
     const active = profiles.some((p) => p.id === local.active) ? local.active : profiles[0].id;
+    const keys = dataKeys();
     for (const id of Object.keys(deleted)) {
       if (profiles.some((p) => p.id === id)) continue;
-      for (const key of dataKeys()) if (key.startsWith(`${DATA_PREFIX}${id}:`)) writeJson(key, null);
+      for (const key of profileDataKeys(id, keys)) writeJson(key, null);
     }
     cache.clear();
     setProfiles({ active, profiles, deleted, updatedAt: Math.max(local.updatedAt, remoteProfiles.updatedAt) }, false);
@@ -367,10 +378,12 @@ export function useListData(slug: string, profileId?: string) {
   return { data, profileId: id, setAnswer, setExperience };
 }
 
+const subscribeNothing = () => () => {};
+
 /** True once the component has hydrated. */
 export function useHydrated() {
   return useSyncExternalStore(
-    () => () => {},
+    subscribeNothing,
     () => true,
     () => false,
   );

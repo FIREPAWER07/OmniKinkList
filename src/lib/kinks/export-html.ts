@@ -1,4 +1,4 @@
-import { allChoices, computeStats, itemKey, optionKey, withCustom } from "./choices";
+import { allChoices, computeStats, itemChoices, itemKey, withCustom } from "./choices";
 import { emptyListData } from "./list-data";
 import { LEVELS, type Experience, type KinkList, type Level, type ListData } from "./types";
 
@@ -37,12 +37,12 @@ export interface ExportLabels {
 const escapeHtml = (value: string) =>
   value.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]!);
 
+const LINE_SEPARATOR = new RegExp(String.fromCharCode(0x2028), "g");
+const PARAGRAPH_SEPARATOR = new RegExp(String.fromCharCode(0x2029), "g");
+
 /** JSON that is safe to inline inside a <script> element. */
 const inlineJson = (value: unknown) =>
-  JSON.stringify(value)
-    .replace(/</g, "\\u003c")
-    .replace(new RegExp(String.fromCharCode(0x2028), "g"), "\\u2028")
-    .replace(new RegExp(String.fromCharCode(0x2029), "g"), "\\u2029");
+  JSON.stringify(value).replace(/</g, "\\u003c").replace(LINE_SEPARATOR, "\\u2028").replace(PARAGRAPH_SEPARATOR, "\\u2029");
 
 export function buildExportPayload(list: KinkList, data: ListData, now = new Date()): ExportPayload {
   const categories = withCustom(list, data.custom, "");
@@ -60,10 +60,11 @@ export function buildExportPayload(list: KinkList, data: ListData, now = new Dat
     labels[choice.key] = [choice.item.name, choice.optionLabel];
   }
   for (const item of categories.flatMap((c) => c.items)) {
-    const note = data.notes[itemKey(item)];
+    const key = itemKey(item);
+    const note = data.notes[key];
     if (note) {
-      kept.notes[itemKey(item)] = note;
-      itemNames[itemKey(item)] = item.name;
+      kept.notes[key] = note;
+      itemNames[key] = item.name;
     }
   }
   return {
@@ -100,11 +101,9 @@ export function generateExportHtml(list: KinkList, data: ListData, siteUrl: stri
     .map((category) => {
       const cards = category.items
         .map((item) => {
-          const rows = (
-            item.options.length === 0
-              ? [{ key: itemKey(item), label: null as string | null }]
-              : item.options.map((o) => ({ key: optionKey(item, o.id), label: o.label as string | null }))
-          ).filter((row) => answers[row.key] || experience[row.key]);
+          const rows = itemChoices(item)
+            .map((choice) => ({ key: choice.key, label: choice.optionLabel }))
+            .filter((row) => answers[row.key] || experience[row.key]);
           const note = notes[itemKey(item)];
           if (rows.length === 0 && !note) return "";
           const lines = rows

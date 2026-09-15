@@ -15,7 +15,8 @@ export interface ActivityEntry {
   action: string;
   listSlug: string | null;
   entityType: string | null;
-  before: string | null;
+  /** Whether a snapshot from before the change was kept, which undoing needs. */
+  hasBefore: boolean;
   revertedAt: string | null;
   revertedByName: string | null;
   createdAt: string;
@@ -35,7 +36,7 @@ export function ActivityList({ entries, compact, className }: { entries: Activit
     <>
       <ol className={cn("grid", compact ? "gap-3" : "divide-y divide-border rounded-xl border border-border bg-surface", className)}>
         {entries.map((entry) => {
-          const undoable = !compact && entry.entityType && entry.before !== null && !entry.revertedAt;
+          const undoable = !compact && entry.entityType && entry.hasBefore && !entry.revertedAt;
           return (
             <li key={entry.id} className={compact ? "text-sm" : "flex flex-wrap items-center gap-x-6 gap-y-1 px-5 py-3 text-sm"}>
               <div className="min-w-0 flex-1">
