@@ -4,7 +4,7 @@
 
 [![GitHub issues](https://img.shields.io/github/issues/FIREPAWER07/OmniKinkList)](https://github.com/FIREPAWER07/OmniKinkList/issues)
 [![License](https://img.shields.io/github/license/FIREPAWER07/OmniKinkList)](LICENSE)
-[![Live Demo](https://img.shields.io/badge/For_Live_Demo-Click_Here-red)](https://firepawer07.github.io/OmniKinkList/)
+[![Live Demo](https://img.shields.io/badge/For_Live_Demo-Click_Here-red)](https://omnikinklist.netlify.app/)
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D31CKA7D)
 
 A modern, interactive web app designed for degenerates who want to **explore, track, and share their personal preferences**—with style, efficiency, and full customization.  
@@ -34,7 +34,7 @@ A modern, interactive web app designed for degenerates who want to **explore, tr
 
 ## 🔗 Links  
 
-* [💻 Live Demo](https://firepawer07.github.io/OmniKinkList/)  
+* [💻 Live Demo](https://omnikinklist.netlify.app/)  
 * [🐞 Report Issues](https://github.com/FIREPAWER07/OmniKinkList/issues)  
 * [☕ Support on Ko-fi](https://ko-fi.com/D1D31CKA7D)  
 
